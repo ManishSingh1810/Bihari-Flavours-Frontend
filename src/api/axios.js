@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // REQUIRED for cookies
 });
-console.log("VITE_API_URL =", import.meta.env.VITE_API_URL)/api;
+console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
 
 // Attach token ONLY if it exists (HTTP / dev)
 api.interceptors.request.use(
@@ -48,5 +48,6 @@ api.interceptors.response.use(
 );
 
 export default api;
+
 
 
