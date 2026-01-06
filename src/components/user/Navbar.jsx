@@ -1,0 +1,203 @@
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useUser } from "../../Context/userContext";
+import logo from "../../assets/logo.png";
+
+/* ---------------- Icons ---------------- */
+
+/* Menu */
+const MenuIcon = (p) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+
+const XIcon = (p) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+/* Cart (already good) */
+const CartIcon = (p) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...p}
+  >
+    <circle cx="9" cy="21" r="1" />
+    <circle cx="20" cy="21" r="1" />
+    <path d="M1 1h4l2.7 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L23 6H6" />
+  </svg>
+);
+
+/* Products – softened */
+const ProductsIcon = (p) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...p}
+  >
+    <path d="M6 2l-3 4v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+    <path d="M3 6h18" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </svg>
+);
+
+/* Orders – list-style, lighter */
+const OrdersIcon = (p) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...p}
+  >
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M7 8h10" />
+    <path d="M7 12h6" />
+    <path d="M7 16h4" />
+  </svg>
+);
+
+const MotionNavLink = motion(NavLink);
+
+/* ---------------- Header ---------------- */
+export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { user, logout } = useUser();
+  const navigate = useNavigate();
+
+  /* Lock body scroll when menu open */
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => (document.body.style.overflow = "");
+  }, [menuOpen]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } finally {
+      logout();
+      navigate("/", { replace: true });
+    }
+  };
+
+  const navLinkClass = ({ isActive }) =>
+    `flex items-center gap-2 rounded-md px-3 py-2 text-sm transition
+     border ${
+       isActive
+         ? "border-[#8E1B1B] text-[#8E1B1B]"
+         : "border-transparent text-[#1F1B16] hover:border-[rgba(142,27,27,0.25)]"
+     }`;
+
+  return (
+    <motion.header
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="sticky top-0 z-50 h-16 sm:h-20
+                 bg-[#FAF7F2]
+                 border-b border-[rgba(142,27,27,0.25)]"
+    >
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
+        {/* Logo */}
+        <MotionNavLink to="/" className="flex items-center gap-3">
+          <img src={logo} alt="Bihari Flavours" className="h-10 sm:h-12" />
+          <h2 className="text-lg sm:text-xl font-semibold text-[#8E1B1B]">
+            Bihari Flavours
+          </h2>
+        </MotionNavLink>
+
+        {/* Desktop Nav */}
+        <div className="hidden lg:flex items-center gap-2">
+          <MotionNavLink to="/product" className={navLinkClass}>
+            <ProductsIcon className="h-4 w-4" /> Products
+          </MotionNavLink>
+
+          <MotionNavLink to={user ? "/order" : "/login"} className={navLinkClass}>
+            <OrdersIcon className="h-4 w-4" /> Orders
+          </MotionNavLink>
+
+          <MotionNavLink to={user ? "/cart" : "/login"} className={navLinkClass}>
+            <CartIcon className="h-4 w-4" /> Cart
+          </MotionNavLink>
+
+          {user ? (
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 text-sm hover:text-[#8E1B1B]"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/login")}
+              className="px-3 py-2 text-sm hover:text-[#8E1B1B]"
+            >
+              Login
+            </button>
+          )}
+        </div>
+
+        {/* Mobile Toggle */}
+        <button
+          className="lg:hidden h-10 w-10"
+          onClick={() => setMenuOpen(v => !v)}
+        >
+          {menuOpen ? <XIcon /> : <MenuIcon />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <motion.div
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          className="fixed right-0 z-40
+                     top-16 sm:top-20
+                     h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)]
+                     w-64 bg-[#F3EFE8]
+                     border-l border-[rgba(142,27,27,0.25)]
+                     lg:hidden"
+        >
+          <div className="flex flex-col space-y-2 px-4 py-6">
+            <NavLink to="/product" className={navLinkClass} onClick={() => setMenuOpen(false)}>
+              <ProductsIcon className="h-4 w-4" /> Products
+            </NavLink>
+
+            <NavLink to={user ? "/order" : "/login"} className={navLinkClass} onClick={() => setMenuOpen(false)}>
+              <OrdersIcon className="h-4 w-4" /> Orders
+            </NavLink>
+
+            <NavLink to={user ? "/cart" : "/login"} className={navLinkClass} onClick={() => setMenuOpen(false)}>
+              <CartIcon className="h-4 w-4" /> Cart
+            </NavLink>
+          </div>
+        </motion.div>
+      )}
+    </motion.header>
+  );
+}
