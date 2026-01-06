@@ -91,7 +91,7 @@ const Auth = () => {
       setLoading(true);
       setError('');
 
-      const res = await axios.post(`${API_BASE_URL}/users/signin`, {
+      const res = await axios.post(`${API_BASE_URL}/api/users/signin`, {
         email: data.mobile,
         password: data.password
       });
@@ -117,7 +117,7 @@ const Auth = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/otp/send`, { email: mobile, purpose: 'login' });
+      const res = await axios.post(`${API_BASE_URL}/api/otp/send`, { email: mobile, purpose: 'login' });
       if (res.data.success) {
         setUserInfo({ mobile });
         setLoginStep('enterOtp');
@@ -133,7 +133,7 @@ const Auth = () => {
   const onVerifyLoginOtp = async (data) => {
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/otp/verify`, {
+      const res = await axios.post(`${API_BASE_URL}/api/otp/verify`, {
         email: userInfo.mobile,
         code: data.otp,
         purpose: 'login'
@@ -154,7 +154,7 @@ const Auth = () => {
   const onSignUpDetails = async (data) => {
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/otp/send`, {
+      const res = await axios.post(`${API_BASE_URL}/api/otp/send`, {
         email: data.mobile,
         purpose: 'signup'
       });
@@ -174,7 +174,7 @@ const Auth = () => {
   const onVerifySignUpOtp = async (data) => {
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/otp/verify`, {
+      const res = await axios.post(`${API_BASE_URL}/api/otp/verify`, {
         email: userInfo.mobile,
         code: data.otp,
         purpose: 'signup'
@@ -193,7 +193,7 @@ const Auth = () => {
   const onSetPassword = async (data) => {
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/users/signup`, {
+      const res = await axios.post(`${API_BASE_URL}/api/users/signup`, {
         name: userInfo.name,
         email: userInfo.mobile,
         password: data.password
@@ -213,7 +213,7 @@ const Auth = () => {
   const handleResendOtp = async () => {
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/otp/resend`, {
+      const res = await axios.post(`${API_BASE_URL}/api/otp/resend`, {
         email: userInfo.mobile
       });
       if (res.data.success) startResendTimer();
@@ -503,5 +503,6 @@ const Auth = () => {
     </div>
   );
 };
+
 
 export default Auth;
