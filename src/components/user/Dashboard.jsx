@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Star } from "lucide-react";
 import api from "../../api/axios";
-import hero from "../../assets/Hero.jpg";
+import hero from "../../assets/hero.jpg";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -450,3 +450,4 @@ const Hero = () => {
 };
 
 export default Hero;
+
