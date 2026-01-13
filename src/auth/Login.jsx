@@ -92,6 +92,7 @@ const Auth = () => {
 
     const res = await axios.post(`${API_BASE_URL}/api/users/signin`, {
       email: data.mobile,
+      phone: data.mobile,
       password: data.password,
     });
 
@@ -541,6 +542,7 @@ const onSetPassword = async (data) => {
 
 
 export default Auth;
+
 
 
 
