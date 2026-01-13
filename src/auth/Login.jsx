@@ -87,25 +87,49 @@ const Auth = () => {
 
   // ===== Password Login =====
   const onPasswordLogin = async (data) => {
-    try {
-      setLoading(true);
-      setError('');
+  try {
+    setLoading(true);
+    setError("");
 
-      const res = await axios.post(`${API_BASE_URL}/api/users/signin`, {
-        email: data.mobile,
-        password: data.password
-      });
+    const res = await axios.post(`${API_BASE_URL}/users/signin`, {
+      email: data.mobile,
+      password: data.password
+    });
 
-      if (res.data.success) {
-        storeAuthData(res.data);
-        redirectUser(res.data.user?.role);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+    if (!res.data?.success) {
+      setError(res.data?.message || "Login failed");
+      return;
     }
-  };
+
+    storeAuthData(res.data);
+    redirectUser(res.data.user?.role);
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const onPasswordLogin = async (data) => {
+  //   try {
+  //     setLoading(true);
+  //     setError('');
+
+  //     const res = await axios.post(`${API_BASE_URL}/users/signin`, {
+  //       email: data.mobile,
+  //       password: data.password
+  //     });
+
+  //     if (res.data.success) {
+  //       storeAuthData(res.data);
+  //       redirectUser(res.data.user?.role);
+  //     }
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || "Login failed");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // ===== OTP Login =====
   const onRequestLoginOtp = async () => {
@@ -138,16 +162,22 @@ const Auth = () => {
         code: data.otp,
         purpose: 'login'
       });
+      if (!res.data?.success) {
+  setError(res.data?.message || "Invalid OTP");
+  return;
+}
 
-      if (res.data.success) {
-        storeAuthData(res.data);
-        redirectUser(res.data.user?.role);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Invalid OTP");
-    } finally {
-      setLoading(false);
+
+      // if (res.data.success) {
+      //   storeAuthData(res.data);
+      //   redirectUser(res.data.user?.role);
+      // }
     }
+     // catch (err) {
+    //   setError(err.response?.data?.message || "Invalid OTP");
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   // ===== Signup =====
@@ -199,14 +229,20 @@ const Auth = () => {
         password: data.password
       });
 
-      if (res.data.success) {
-        storeAuthData(res.data);
-        redirectUser(res.data.user?.role);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      if (!res.data?.success) {
+  setError(res.data?.message || "Registration failed");
+  return;
+}
+
+
+    //   if (res.data.success) {
+    //     storeAuthData(res.data);
+    //     redirectUser(res.data.user?.role);
+    //   }
+    // } catch (err) {
+    //   setError(err.response?.data?.message || "Registration failed");
+    // } finally {
+    //   setLoading(false);
     }
   };
 
@@ -506,4 +542,5 @@ const Auth = () => {
 
 
 export default Auth;
+
 
