@@ -90,7 +90,7 @@ const Auth = () => {
     setLoading(true);
     setError("");
 
-    const res = await axios.post(`${API_BASE_URL}/users/signin`, {
+    const res = await axios.post(`${API_BASE_URL}/api/users/signin`, {
       email: data.mobile,
       password: data.password,
     });
@@ -153,31 +153,31 @@ const Auth = () => {
     }
   };
 
-  const onVerifyLoginOtp = async (data) => {
-    try {
-      setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/api/otp/verify`, {
-        email: userInfo.mobile,
-        code: data.otp,
-        purpose: 'login'
-      });
-      if (!res.data?.success) {
-  setError(res.data?.message || "Invalid OTP");
-  return;
-}
+const onVerifyLoginOtp = async (data) => {
+  try {
+    setLoading(true);
+    setError("");
 
+    const res = await axios.post(`${API_BASE_URL}/api/otp/verify`, {
+      email: userInfo.mobile,
+      code: data.otp,
+      purpose: "login",
+    });
 
-      // if (res.data.success) {
-      //   storeAuthData(res.data);
-      //   redirectUser(res.data.user?.role);
-      // }
+    if (!res.data?.success) {
+      setError(res.data?.message || "Invalid OTP");
+      return;
     }
-     // catch (err) {
-    //   setError(err.response?.data?.message || "Invalid OTP");
-    // } finally {
-    //   setLoading(false);
-    // }
-  };
+
+    storeAuthData(res.data);
+    redirectUser(res.data.user?.role);
+  } catch (err) {
+    setError(err.response?.data?.message || "Invalid OTP");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // ===== Signup =====
   const onSignUpDetails = async (data) => {
@@ -219,37 +219,37 @@ const Auth = () => {
     }
   };
 
-  const onSetPassword = async (data) => {
-    try {
-      setLoading(true);
-      const res = await axios.post(`${API_BASE_URL}/api/users/signup`, {
-        name: userInfo.name,
-        email: userInfo.mobile,
-        password: data.password
-      });
+const onSetPassword = async (data) => {
+  try {
+    setLoading(true);
+    setError("");
 
-      if (!res.data?.success) {
-  setError(res.data?.message || "Registration failed");
-  return;
-}
+    const res = await axios.post(`${API_BASE_URL}/api/users/signup`, {
+      name: userInfo.name,
+      email: userInfo.mobile,
+      password: data.password,
+    });
 
-
-    //   if (res.data.success) {
-    //     storeAuthData(res.data);
-    //     redirectUser(res.data.user?.role);
-    //   }
-    // } catch (err) {
-    //   setError(err.response?.data?.message || "Registration failed");
-    // } finally {
-    //   setLoading(false);
+    if (!res.data?.success) {
+      setError(res.data?.message || "Registration failed");
+      return;
     }
-  };
+
+    storeAuthData(res.data);
+    redirectUser(res.data.user?.role);
+  } catch (err) {
+    setError(err.response?.data?.message || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleResendOtp = async () => {
     try {
       setLoading(true);
       const res = await axios.post(`${API_BASE_URL}/api/otp/resend`, {
-        email: userInfo.mobile
+        email: userInfo.mobile,
+        purpose: signUpStep === "enterOtp" ? "signup" : "login",
       });
       if (res.data.success) startResendTimer();
     } catch (err) {
@@ -541,6 +541,7 @@ const Auth = () => {
 
 
 export default Auth;
+
 
 
 
