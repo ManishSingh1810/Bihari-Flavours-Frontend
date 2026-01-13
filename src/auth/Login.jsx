@@ -69,17 +69,40 @@ const Auth = () => {
 
   // ===== Auth Helpers =====
   const storeAuthData = (data) => {
-    const { token, user } = data;
-    if (!token || !user) return;
+  const { token, user } = data;
 
-    login({
-      token,
-      name: user.name,
-      phone: user.phone,
-      role: user.role,
-      userId: user.userId || user.id
-    });
+  if (!token || !user) {
+    setError(data?.message || "Login failed");
+    return;
+  }
+
+  const payload = {
+    token,
+    name: user.name,
+    email: user.email,              // ✅ IMPORTANT
+    role: user.role,
+    userId: user.userId || user._id || user.id,
   };
+
+  // ✅ persist so refresh still stays logged-in
+  localStorage.setItem("authToken", token);
+  localStorage.setItem("user", JSON.stringify(payload));
+
+  login(payload);
+};
+
+  // const storeAuthData = (data) => {
+  //   const { token, user } = data;
+  //   if (!token || !user) return;
+
+  //   login({
+  //     token,
+  //     name: user.name,
+  //     phone: user.phone,
+  //     role: user.role,
+  //     userId: user.userId || user.id
+  //   });
+  // };
 
   const redirectUser = (role) => {
     navigate(role === "admin" ? "/admin" : "/", { replace: true });
@@ -542,6 +565,7 @@ const onSetPassword = async (data) => {
 
 
 export default Auth;
+
 
 
 
