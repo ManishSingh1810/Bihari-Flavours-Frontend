@@ -85,7 +85,6 @@ const Auth = () => {
     navigate(role === "admin" ? "/admin" : "/", { replace: true });
   };
 
-  // ===== Password Login =====
   const onPasswordLogin = async (data) => {
   try {
     setLoading(true);
@@ -93,7 +92,7 @@ const Auth = () => {
 
     const res = await axios.post(`${API_BASE_URL}/users/signin`, {
       email: data.mobile,
-      password: data.password
+      password: data.password,
     });
 
     if (!res.data?.success) {
@@ -542,5 +541,6 @@ const Auth = () => {
 
 
 export default Auth;
+
 
 
