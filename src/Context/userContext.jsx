@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-
+// import api from 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
@@ -51,11 +51,23 @@ export const UserProvider = ({ children }) => {
   // =====================
   // Logout
   // =====================
-  const logout = () => {
+  const logout = async () => {
+  try {
+    await api.post("/users/logout"); // or "/auth/logout" depending on your route
+  } catch (e) {
+    // Even if API fails, still clear local state
+    console.log("Backend logout failed:", e?.response?.data || e.message);
+  } finally {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
-  };
+  }
+};
+  // const logout = () => {
+  //   setUser(null);
+  //   localStorage.removeItem("user");
+  //   localStorage.removeItem("authToken");
+  // };
 
   return (
     <UserContext.Provider
@@ -73,3 +85,4 @@ export const UserProvider = ({ children }) => {
 };
 
 export const useUser = () => useContext(UserContext);
+
