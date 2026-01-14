@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
-import { motion, AnimatePresence } from "framer-motion";
-import { Minus, Plus } from "lucide-react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { Minus, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -164,7 +164,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  // const [selectedProduct, setSelectedProduct] = useState(null);
   const navigate = useNavigate();
 
 
@@ -231,7 +231,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] px-6 py-24">
-      <AnimatePresence mode="wait">
+      {/* <AnimatePresence mode="wait">
         {selectedProduct && (
           <ProductDetailsModal
             key={`modal-${selectedProduct._id}`}
@@ -241,7 +241,7 @@ export default function ProductsPage() {
             adding={adding}
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       <div className="mx-auto max-w-6xl">
         <h1 className="mb-12 text-center text-3xl font-semibold text-[#1F1B16]">
@@ -301,5 +301,6 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
