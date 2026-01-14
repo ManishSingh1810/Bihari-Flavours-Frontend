@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, Plus, Minus } from "lucide-react";
 import api from "../../api/axios";
 import hero from "../../assets/hero.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
@@ -34,8 +33,6 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
 
   const [qty, setQty] = useState(0);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const navigate = useNavigate();
-
 
   // 🔁 Backend images (ORDER PRESERVED)
   const images =
@@ -43,14 +40,14 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
       ? product.photos
       : [
           product.photo ||
-            "https://placehold.co/600x400/EEE/AAA?text=No+Image",
+            "https://placehold.co/1200x800/EEE/AAA?text=No+Image",
         ];
 
   /* Reset state when modal opens for a new product */
   useEffect(() => {
     setQty(0);
     setActiveImageIndex(0); // ✅ FIRST IMAGE ALWAYS
-  }, [product._id]);
+  }, [product?._id]);
 
   const handleAdd = async () => {
     await onAdd(product._id);
@@ -74,53 +71,61 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
     >
       <motion.div
         onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.96, y: 18 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        exit={{ opacity: 0, scale: 0.96, y: 18 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="relative w-full max-w-xl rounded-2xl
-                   bg-[#FAF7F2]
+        className="relative w-[min(980px,95vw)] max-h-[85vh] overflow-hidden
+                   rounded-2xl bg-[#FAF7F2]
                    border border-[rgba(142,27,27,0.25)]
                    shadow-2xl"
       >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-[#6F675E]
-                     hover:text-[#1F1B16] transition"
+          className="absolute top-4 right-4 z-10 h-9 w-9 grid place-items-center
+                     rounded-full bg-white/70 border border-[rgba(142,27,27,0.15)]
+                     text-[#6F675E] hover:text-[#1F1B16] transition"
+          aria-label="Close"
         >
           ✕
         </button>
 
-        {/* MAIN IMAGE → always images[0] initially */}
-        <motion.img
-          key={images[activeImageIndex]}
-          src={images[activeImageIndex]}
-          alt={product.name}
-          initial={{ opacity: 0.6 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="h-64 w-full rounded-t-2xl object-cover"
-        />
+        {/* IMAGE AREA */}
+        <div className="bg-white">
+          {/* MAIN IMAGE */}
+          <motion.img
+            key={images[activeImageIndex]}
+            src={images[activeImageIndex]}
+            alt={product.name}
+            initial={{ opacity: 0.6 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
+            className="w-full h-[240px] sm:h-[320px] md:h-[380px] object-contain"
+            loading="lazy"
+          />
+        </div>
 
-        {/* THUMBNAILS (FIRST IMAGE INCLUDED) */}
+        {/* THUMBNAILS */}
         {images.length > 1 && (
-          <div className="flex gap-3 px-4 pt-4">
+          <div className="flex gap-3 overflow-x-auto px-5 py-3 bg-[#FAF7F2]">
             {images.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveImageIndex(idx)}
-                className={`h-14 w-14 overflow-hidden rounded-md border transition
+                className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border transition
                   ${
                     idx === activeImageIndex
                       ? "border-[#8E1B1B]"
-                      : "border-transparent hover:border-[rgba(142,27,27,0.3)]"
-                  }`}
+                      : "border-[rgba(142,27,27,0.15)] hover:border-[rgba(142,27,27,0.35)]"
+                  } bg-white`}
+                aria-label={`View image ${idx + 1}`}
               >
                 <img
                   src={img}
                   alt={`thumbnail-${idx}`}
                   className="h-full w-full object-cover"
+                  loading="lazy"
                 />
               </button>
             ))}
@@ -128,16 +133,17 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
         )}
 
         {/* CONTENT */}
-        <div className="p-6 space-y-5">
-          <h2 className="text-2xl font-semibold text-[#1F1B16]">
-            {product.name}
-          </h2>
+        <div className="p-6 space-y-5 overflow-auto max-h-[calc(85vh-380px)]">
+          <div>
+            <h2 className="text-2xl font-semibold text-[#1F1B16]">
+              {product.name}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-[#6F675E]">
+              {product.desc}
+            </p>
+          </div>
 
-          <p className="text-sm leading-relaxed text-[#6F675E]">
-            {product.desc}
-          </p>
-
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center justify-between pt-4 border-t border-[rgba(142,27,27,0.15)]">
             <span className="text-xl font-semibold text-[#8E1B1B]">
               ₹{product.price}
             </span>
@@ -159,23 +165,26 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
                 {adding === product._id ? "Adding…" : "Add to Cart"}
               </button>
             ) : (
-              <div className="flex items-center gap-3
-                              rounded-md border border-[#8E1B1B]
-                              px-3 py-1">
+              <div
+                className="flex items-center gap-3 rounded-md
+                           border border-[#8E1B1B] px-3 py-1 bg-white"
+              >
                 <button
                   onClick={handleDecrease}
                   className="text-[#8E1B1B] hover:scale-110 transition"
+                  aria-label="Decrease quantity"
                 >
                   <Minus size={16} />
                 </button>
 
-                <span className="min-w-[1.5rem] text-center font-medium">
+                <span className="min-w-[1.5rem] text-center font-medium text-[#1F1B16]">
                   {qty}
                 </span>
 
                 <button
                   onClick={handleIncrease}
                   className="text-[#8E1B1B] hover:scale-110 transition"
+                  aria-label="Increase quantity"
                 >
                   <Plus size={16} />
                 </button>
@@ -188,10 +197,12 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
   );
 };
 
-
 /* ---------------- Product Card ------------------------- */
 const ProductCard = ({ product, handleAddToCart, adding, onOpen }) => {
-  const img = Array.isArray(product.photos) && product.photos.length > 0 ? product.photos[0] : product.photo || "https://placehold.co/600x400/EEE/AAA?text=No+Image";
+  const img =
+    Array.isArray(product.photos) && product.photos.length > 0
+      ? product.photos[0]
+      : product.photo || "https://placehold.co/1200x800/EEE/AAA?text=No+Image";
 
   return (
     <article
@@ -201,11 +212,14 @@ const ProductCard = ({ product, handleAddToCart, adding, onOpen }) => {
                  bg-[#F3EFE8] p-4 transition
                  hover:bg-[#FAF7F2]"
     >
-      <img
-        src={img}
-        alt={product.name}
-        className="h-40 w-full rounded-md object-cover"
-      />
+      <div className="rounded-md bg-white border border-[rgba(142,27,27,0.12)] overflow-hidden">
+        <img
+          src={img}
+          alt={product.name}
+          className="h-40 w-full object-contain"
+          loading="lazy"
+        />
+      </div>
 
       <div className="flex flex-1 flex-col pt-3">
         <h3 className="text-lg font-semibold text-[#1F1B16]">
@@ -221,7 +235,7 @@ const ProductCard = ({ product, handleAddToCart, adding, onOpen }) => {
             ₹{product.price}
           </span>
 
-          {/* Prevent modal open */}
+          {/* Prevent modal open when clicking button */}
           <div onClick={(e) => e.stopPropagation()}>
             <AddToCartButton
               productId={product._id}
@@ -234,6 +248,7 @@ const ProductCard = ({ product, handleAddToCart, adding, onOpen }) => {
     </article>
   );
 };
+
 const FloatingQuote = () => {
   return (
     <motion.section
@@ -263,11 +278,12 @@ const FloatingQuote = () => {
     </motion.section>
   );
 };
+
 const ScrollHighlights = () => {
   const items = [
     "Small-batch preparation",
     "Traditional recipes passed down generations",
-    "No shortcuts. No dilution."
+    "No shortcuts. No dilution.",
   ];
 
   return (
@@ -292,18 +308,18 @@ const ScrollHighlights = () => {
   );
 };
 
-/* ------------------------- HERO ------------------------ */
+/* ------------------------- HERO (HOME) ------------------------ */
 const Hero = () => {
   const { scrollYProgress } = useScroll();
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
+
+  const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(null);
   const [error, setError] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
-
-
 
   useEffect(() => {
     async function loadProducts() {
@@ -356,19 +372,17 @@ const Hero = () => {
             <div className="text-center lg:text-left">
               <h1 className="mb-6 text-6xl lg:text-7xl font-semibold text-[#1F1B16]">
                 Bihari
-                <span className="block text-[#8E1B1B]">
-                  Flavours
-                </span>
+                <span className="block text-[#8E1B1B]">Flavours</span>
               </h1>
 
               <p className="mb-6 max-w-xl text-lg text-[#6F675E] lg:text-xl">
-                Food shaped by memory, patience, and the quiet confidence
-                of home kitchens across Bihar.
+                Food shaped by memory, patience, and the quiet confidence of home
+                kitchens across Bihar.
               </p>
 
               <p className="mb-8 max-w-xl text-sm leading-relaxed text-[#6F675E]">
-                Our products are prepared in small batches using methods
-                that favour care over speed.
+                Our products are prepared in small batches using methods that
+                favour care over speed.
               </p>
 
               <Link
@@ -412,6 +426,10 @@ const Hero = () => {
         </div>
       </motion.section>
 
+      {/* Floating quote + highlights (optional but you already have them) */}
+      <FloatingQuote />
+      <ScrollHighlights />
+
       {/* ALL PRODUCTS */}
       <section
         className="bg-[#F3EFE8] py-16 px-6
@@ -423,9 +441,7 @@ const Hero = () => {
           </h2>
 
           {loading && <p className="text-center">Loading…</p>}
-          {error && (
-            <p className="text-center text-[#8E1B1B]">{error}</p>
-          )}
+          {error && <p className="text-center text-[#8E1B1B]">{error}</p>}
 
           {!loading && !error && (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -436,8 +452,6 @@ const Hero = () => {
                   handleAddToCart={handleAddToCart}
                   adding={adding}
                   onOpen={setSelectedProduct}
-                  onClick={() => navigate(`/product/${product._id}`)}
-
                 />
               ))}
             </div>
@@ -449,7 +463,6 @@ const Hero = () => {
       <ProductDetailsModal
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
-        
         onAdd={handleAddToCart}
         adding={adding}
       />
@@ -458,7 +471,6 @@ const Hero = () => {
 };
 
 export default Hero;
-
 
 
 
