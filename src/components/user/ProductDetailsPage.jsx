@@ -2,17 +2,26 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
-import { ChevronLeft, ChevronRight, Package, ShieldCheck, Truck } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Share2,
+  Star,
+  ShieldCheck,
+  Truck,
+  Package,
+} from "lucide-react";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
+  const [allProducts, setAllProducts] = useState([]);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Gallery
+  // gallery
   const [active, setActive] = useState(0);
   const touchStartX = useRef(null);
 
@@ -25,14 +34,21 @@ export default function ProductDetailsPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/products/${id}`); // needs backend route
-        if (!res.data.success) throw new Error("Failed to load product");
-        setProduct(res.data.product);
+        const [pRes, listRes] = await Promise.all([
+          api.get(`/products/${id}`),
+          api.get(`/products`),
+        ]);
+
+        if (!pRes.data.success) throw new Error("Failed to load product");
+        setProduct(pRes.data.product);
+
+        if (listRes.data.success) setAllProducts(listRes.data.products || []);
+
         setActive(0);
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       } catch (e) {
         const status = e?.response?.status;
-        if (status === 401) return logoutUser();
+        if (status === 401 || status === 403) return logoutUser();
         toast.error(e?.response?.data?.message || "Failed to load product");
       } finally {
         setLoading(false);
@@ -57,29 +73,49 @@ export default function ProductDetailsPage() {
   const nextImg = () => setActive((i) => (i + 1) % images.length);
   const prevImg = () => setActive((i) => (i - 1 + images.length) % images.length);
 
-  // Simple swipe (mobile)
-  const onTouchStart = (e) => {
-    touchStartX.current = e.touches?.[0]?.clientX ?? null;
-  };
+  // swipe
+  const onTouchStart = (e) => (touchStartX.current = e.touches?.[0]?.clientX ?? null);
   const onTouchEnd = (e) => {
     const startX = touchStartX.current;
     const endX = e.changedTouches?.[0]?.clientX ?? null;
     if (startX == null || endX == null) return;
 
     const dx = endX - startX;
-    if (Math.abs(dx) < 40) return; // swipe threshold
-    if (dx < 0) nextImg();
-    else prevImg();
-
+    if (Math.abs(dx) < 40) return;
+    dx < 0 ? nextImg() : prevImg();
     touchStartX.current = null;
   };
 
+  // WhatsApp share
+  const shareOnWhatsApp = () => {
+    if (!product) return;
+    const url = window.location.href;
+    const text = `Check out ${product.name} on Bihari Flavours: ${url}`;
+    const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(wa, "_blank");
+  };
+
+  // rating placeholder (later connect DB)
+  const rating = product?.rating ?? 4.6;
+  const reviewCount = product?.reviewCount ?? 128;
+
+  // related products (exclude current)
+  const related = useMemo(() => {
+    const list = (allProducts || []).filter((p) => p._id !== id);
+
+    // If you have category in DB, prefer same category:
+    if (product?.category) {
+      const sameCat = list.filter((p) => p.category === product.category);
+      return (sameCat.length ? sameCat : list).slice(0, 4);
+    }
+
+    // else just show first 4 (already sorted by newest)
+    return list.slice(0, 4);
+  }, [allProducts, id, product]);
+
   const handleAddToCart = async () => {
     if (!product) return;
-    if (isOutOfStock) {
-      toast.error("This product is currently out of stock");
-      return;
-    }
+    if (isOutOfStock) return toast.error("This product is currently out of stock");
 
     setAdding(true);
     try {
@@ -88,7 +124,7 @@ export default function ProductDetailsPage() {
       toast.success("Added to cart");
     } catch (e) {
       const status = e?.response?.status;
-      if (status === 401) return logoutUser();
+      if (status === 401 || status === 403) return logoutUser();
       toast.error(e?.response?.data?.message || "Failed to add to cart");
     } finally {
       setAdding(false);
@@ -111,36 +147,46 @@ export default function ProductDetailsPage() {
     );
   }
 
-  // Optional new fields (show only if present)
-  const netQuantity = product.netQuantity || product.netQty;
-  const shelfLife = product.shelfLife;
-  const ingredients = product.ingredients;
-  const storage = product.storage;
+  const netQuantity = product.netQuantity || "—";
+  const shelfLife = product.shelfLife || "—";
+  const ingredients = product.ingredients || "";
+  const storage = product.storage || "Store in a cool, dry place";
+  const country = product.country || "India";
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-24">
+    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-24 pb-28">
       <div className="mx-auto max-w-6xl">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-6 text-sm text-[#6F675E] hover:text-[#1F1B16]"
-        >
-          ← Back
-        </button>
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-sm text-[#6F675E] hover:text-[#1F1B16]"
+          >
+            ← Back
+          </button>
+
+          <button
+            onClick={shareOnWhatsApp}
+            className="inline-flex items-center gap-2 rounded-md border border-[rgba(142,27,27,0.35)]
+                       bg-[#FAF7F2] px-3 py-2 text-sm text-[#8E1B1B]
+                       hover:bg-[#8E1B1B] hover:text-white"
+          >
+            <Share2 size={16} /> Share
+          </button>
+        </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          {/* ===== LEFT: GALLERY ===== */}
+          {/* GALLERY */}
           <div className="rounded-2xl border border-[rgba(142,27,27,0.25)] bg-[#F3EFE8] p-4">
             <div
               className="relative overflow-hidden rounded-xl bg-white"
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
-              {/* Fixed square ratio so all images look consistent */}
               <div className="aspect-square w-full">
                 <img
                   src={images[active]}
                   alt={product.name}
-                  className="h-full w-full object-contain p-2"
+                  className="h-full w-full object-contain p-3"
                   draggable="false"
                 />
               </div>
@@ -160,7 +206,6 @@ export default function ProductDetailsPage() {
                     <ChevronRight />
                   </button>
 
-                  {/* Dots */}
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
                     {images.map((_, i) => (
                       <button
@@ -169,7 +214,6 @@ export default function ProductDetailsPage() {
                         className={`h-2.5 w-2.5 rounded-full ${
                           i === active ? "bg-[#8E1B1B]" : "bg-black/20"
                         }`}
-                        aria-label={`Image ${i + 1}`}
                       />
                     ))}
                   </div>
@@ -177,7 +221,6 @@ export default function ProductDetailsPage() {
               )}
             </div>
 
-            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
                 {images.map((img, idx) => (
@@ -193,20 +236,28 @@ export default function ProductDetailsPage() {
                 ))}
               </div>
             )}
-
-            <p className="mt-3 text-xs text-[#6F675E]">
-              Tip: On mobile, swipe left/right to change images.
-            </p>
           </div>
 
-          {/* ===== RIGHT: DETAILS ===== */}
+          {/* DETAILS */}
           <div className="rounded-2xl border border-[rgba(142,27,27,0.25)] bg-[#F3EFE8] p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-semibold text-[#1F1B16]">
                   {product.name}
                 </h1>
-                <p className="mt-2 text-sm text-[#6F675E]">
+
+                {/* Rating placeholder */}
+                <div className="mt-2 flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-1 text-[#8E1B1B]">
+                    <Star size={16} fill="currentColor" />
+                    <span className="font-semibold">{rating}</span>
+                  </div>
+                  <span className="text-[#6F675E]">({reviewCount} reviews)</span>
+                  <span className="text-[#6F675E]">•</span>
+                  <span className="text-[#6F675E]">Trusted snack brand</span>
+                </div>
+
+                <p className="mt-3 text-sm text-[#6F675E]">
                   {product.desc}
                 </p>
               </div>
@@ -237,34 +288,25 @@ export default function ProductDetailsPage() {
               </button>
             </div>
 
-            {/* Trust badges */}
+            {/* badges */}
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <div className="flex items-center gap-2 rounded-lg bg-[#FAF7F2] p-3 text-xs text-[#6F675E]">
-                <ShieldCheck size={16} className="text-[#8E1B1B]" />
-                Hygienic packing
-              </div>
-              <div className="flex items-center gap-2 rounded-lg bg-[#FAF7F2] p-3 text-xs text-[#6F675E]">
-                <Truck size={16} className="text-[#8E1B1B]" />
-                Fast delivery
-              </div>
-              <div className="flex items-center gap-2 rounded-lg bg-[#FAF7F2] p-3 text-xs text-[#6F675E]">
-                <Package size={16} className="text-[#8E1B1B]" />
-                Quality checked
-              </div>
+              <Badge icon={<ShieldCheck size={16} />} text="Hygienic packing" />
+              <Badge icon={<Truck size={16} />} text="Fast delivery" />
+              <Badge icon={<Package size={16} />} text="Quality checked" />
             </div>
 
-            {/* Product info */}
+            {/* info */}
             <div className="mt-6 rounded-xl bg-[#FAF7F2] p-4">
               <h3 className="font-semibold text-[#1F1B16]">Product Information</h3>
 
               <div className="mt-3 grid gap-3 sm:grid-cols-2 text-sm">
-                <InfoRow label="Net Quantity" value={netQuantity || "—"} />
-                <InfoRow label="Shelf Life" value={shelfLife || "—"} />
-                <InfoRow label="Storage" value={storage || "Store in a cool, dry place"} />
-                <InfoRow label="Country of Origin" value={product.country || "India"} />
+                <InfoRow label="Net Quantity" value={netQuantity} />
+                <InfoRow label="Shelf Life" value={shelfLife} />
+                <InfoRow label="Storage" value={storage} />
+                <InfoRow label="Country of Origin" value={country} />
               </div>
 
-              {ingredients && (
+              {!!ingredients && (
                 <div className="mt-4 text-sm">
                   <p className="font-medium text-[#1F1B16]">Ingredients</p>
                   <p className="text-[#6F675E] mt-1">{ingredients}</p>
@@ -272,6 +314,65 @@ export default function ProductDetailsPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* YOU MAY ALSO LIKE */}
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-[#1F1B16] mb-4">
+            You may also like
+          </h2>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((p) => {
+              const img = p.photos?.[0] || p.photo || "https://placehold.co/600x600/EEE/AAA?text=No+Image";
+              const out = p.quantity === "outofstock";
+
+              return (
+                <button
+                  key={p._id}
+                  onClick={() => navigate(`/product/${p._id}`)}
+                  className="text-left rounded-xl border border-[rgba(142,27,27,0.25)]
+                             bg-[#F3EFE8] p-4 hover:bg-[#FAF7F2]"
+                >
+                  <div className="aspect-square w-full bg-white rounded-lg overflow-hidden">
+                    <img src={img} alt={p.name} className="h-full w-full object-contain p-2" />
+                  </div>
+
+                  <div className="mt-3 flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-[#1F1B16] line-clamp-1">{p.name}</p>
+                      <p className="text-sm text-[#8E1B1B] font-semibold">₹{p.price}</p>
+                    </div>
+                    <span
+                      className={`mt-1 rounded-full border px-2 py-0.5 text-[10px] ${
+                        out ? "border-gray-300 text-gray-500" : "border-[rgba(142,27,27,0.35)] text-[#8E1B1B]"
+                      }`}
+                    >
+                      {out ? "Out" : "In stock"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* STICKY ADD TO CART BAR (mobile only) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#FAF7F2]/95 backdrop-blur border-t border-[rgba(142,27,27,0.25)] p-3 sm:hidden">
+        <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs text-[#6F675E]">Total</p>
+            <p className="text-lg font-semibold text-[#8E1B1B]">₹{product.price}</p>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={adding || isOutOfStock}
+            className="flex-1 rounded-lg bg-[#8E1B1B] py-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {isOutOfStock ? "Out of Stock" : adding ? "Adding…" : "Add to Cart"}
+          </button>
         </div>
       </div>
     </div>
@@ -283,6 +384,15 @@ function InfoRow({ label, value }) {
     <div className="flex items-start justify-between gap-3 border-b border-black/5 pb-2">
       <span className="text-[#6F675E]">{label}</span>
       <span className="font-medium text-[#1F1B16] text-right">{value}</span>
+    </div>
+  );
+}
+
+function Badge({ icon, text }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg bg-[#FAF7F2] p-3 text-xs text-[#6F675E]">
+      <span className="text-[#8E1B1B]">{icon}</span>
+      {text}
     </div>
   );
 }
