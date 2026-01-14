@@ -299,8 +299,8 @@ const Hero = () => {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(null);
   const [error, setError] = useState("");
-  //const [selectedProduct, setSelectedProduct] = useState(null);
-  const navigate = useNavigate();
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
 
 
   useEffect(() => {
@@ -387,7 +387,7 @@ const Hero = () => {
                     ))}
                   </div>
                   <span className="text-[#6F675E] text-sm">
-                    Trusted by 500+ families across India
+                    Trusted by 50+ families across India
                   </span>
                 </div>
               </div>
@@ -434,6 +434,8 @@ const Hero = () => {
                   handleAddToCart={handleAddToCart}
                   adding={adding}
                   onOpen={setSelectedProduct}
+                  onClick={() => navigate(`/product/${product._id}`)}
+
                 />
               ))}
             </div>
@@ -444,8 +446,8 @@ const Hero = () => {
       {/* MODAL */}
       <ProductDetailsModal
         product={selectedProduct}
-        //onClose={() => setSelectedProduct(null)}
-        onClick={() => navigate(`/product/${product._id}`)}
+        onClose={() => setSelectedProduct(null)}
+        
         onAdd={handleAddToCart}
         adding={adding}
       />
@@ -454,5 +456,6 @@ const Hero = () => {
 };
 
 export default Hero;
+
 
 
