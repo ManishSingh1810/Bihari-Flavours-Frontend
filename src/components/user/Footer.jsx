@@ -108,7 +108,7 @@ const Footer = () => {
 
         {/* Bottom Line */}
         <p className="mt-20 flex items-center justify-center gap-2 text-center text-sm text-[#6F675E]">
-          Made with <Heart className="h-4 w-4 text-[#8E1B1B]" /> for Bihar • © {new Date().getFullYear()} Bihari Flavours
+          Made with <Heart className="h-4 w-4 text-[#8E1B1B]" /> from Bihar • © {new Date().getFullYear()} Bihari Flavours
         </p>
 
       </div>
@@ -117,3 +117,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
