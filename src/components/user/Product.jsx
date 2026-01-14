@@ -87,11 +87,30 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
           ✕
         </button>
 
-        <img
-          src={images[activeImageIndex]}
-          alt={product.name}
-          className="h-64 w-full rounded-t-2xl object-cover"
-        />
+        <div className="relative w-full overflow-hidden rounded-xl bg-white border border-black/10">
+  {/* Fixed ratio container so ALL cards look identical */}
+  <div className="aspect-square w-full">
+    <img
+      src={img}
+      alt={product.name}
+      className="h-full w-full object-contain p-3"
+      loading="lazy"
+      draggable="false"
+    />
+  </div>
+
+  {/* Optional: Stock badge */}
+  <span
+    className={`absolute left-3 top-3 rounded-full px-2 py-1 text-[10px] font-semibold border
+      ${
+        product.quantity === "outofstock"
+          ? "border-gray-300 bg-white/90 text-gray-500"
+          : "border-[rgba(142,27,27,0.35)] bg-white/90 text-[#8E1B1B]"
+      }`}
+  >
+    {product.quantity === "outofstock" ? "Out of stock" : "In stock"}
+  </span>
+</div>
 
         {images.length > 1 && (
           <div className="flex gap-3 px-4 pt-4">
@@ -301,6 +320,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 
