@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Instagram, Heart, Phone, Mail, Clock } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const containerVariants = {
@@ -165,19 +166,22 @@ const Footer = () => {
             </p>
 
             <div className="flex items-center justify-center gap-6 text-sm text-[#6F675E] sm:justify-end">
-              <a
-                href="/privacy-policy"
-                className="hover:text-[#8E1B1B] transition"
-              >
-                Privacy Policy
-              </a>
-              <span className="opacity-40">•</span>
-              <a
-                href="/terms"
-                className="hover:text-[#8E1B1B] transition"
-              >
-                Terms
-              </a>
+              <Link
+  to="/privacy-policy"
+  className="hover:text-[#8E1B1B] transition"
+>
+  Privacy Policy
+</Link>
+
+<span className="opacity-40">•</span>
+
+<Link
+  to="/terms"
+  className="hover:text-[#8E1B1B] transition"
+>
+  Terms
+</Link>
+
             </div>
           </div>
         </div>
@@ -188,3 +192,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
