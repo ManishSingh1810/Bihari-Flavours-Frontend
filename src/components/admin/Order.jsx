@@ -8,6 +8,7 @@ import {
   X,
   User,
   MapPin,
+  Phone,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -135,6 +136,20 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
               <p className="flex items-center gap-2">
                 <User size={14} /> {shipping.name}
               </p>
+              {/* ✅ Phone */}
+{shipping.phone && (
+  <p className="flex items-center gap-2 text-[#6F675E]">
+    <Phone size={14} />
+    <a
+      href={`tel:${shipping.phone}`}
+      className="underline"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {shipping.phone}
+    </a>
+  </p>
+)}
+
               <p className="flex items-start gap-2 text-[#6F675E]">
                 <MapPin size={14} />
                 {shipping.street}, {shipping.city}, {shipping.state}
@@ -291,3 +306,4 @@ const AdminPendingOrdersPage = () => {
 };
 
 export default AdminPendingOrdersPage;
+
