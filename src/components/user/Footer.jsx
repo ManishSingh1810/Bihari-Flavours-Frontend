@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, Heart, Phone, Mail, Clock } from 'lucide-react';
+import { Instagram, Heart, Phone, Mail, Clock, MessageCircle } from 'lucide-react';
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -90,7 +90,8 @@ const Footer = () => {
                            hover:bg-[rgba(142,27,27,0.05)] transition"
                 aria-label="WhatsApp"
               >
-                <Phone className="h-4 w-4" />
+                <MessageCircle className="h-4 w-4" />
+
               </motion.a>
             </div>
           </motion.div>
@@ -167,20 +168,20 @@ const Footer = () => {
 
             <div className="flex items-center justify-center gap-6 text-sm text-[#6F675E] sm:justify-end">
               <Link
-  to="/privacy-policy"
-  className="hover:text-[#8E1B1B] transition"
->
-  Privacy Policy
-</Link>
+                 to="/privacy-policy"
+                 className="hover:text-[#8E1B1B] transition"
+                 >
+                Privacy Policy
+               </Link>
 
-<span className="opacity-40">•</span>
+               <span className="opacity-40">•</span>
 
-<Link
-  to="/terms"
-  className="hover:text-[#8E1B1B] transition"
->
-  Terms
-</Link>
+                <Link
+                 to="/terms"
+                  className="hover:text-[#8E1B1B] transition"
+                   >
+                 Terms
+                  </Link>
 
             </div>
           </div>
@@ -192,5 +193,6 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
 
