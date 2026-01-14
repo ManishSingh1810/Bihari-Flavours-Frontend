@@ -161,7 +161,7 @@ const Footer = () => {
         <div className="mt-16 pt-8 border-t border-[rgba(142,27,27,0.15)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-center justify-center gap-2 text-center text-sm text-[#6F675E] sm:justify-start">
-              Crafted with <Heart className="h-4 w-4 text-[#8E1B1B]" /> in Bihar • ©{" "}
+              Made with <Heart className="h-4 w-4 text-[#8E1B1B]" /> in Bihar • ©{" "}
               {new Date().getFullYear()} Bihari Flavours
             </p>
 
@@ -192,4 +192,5 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
