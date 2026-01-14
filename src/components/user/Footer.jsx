@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, Heart, Mail, Clock } from 'lucide-react';
+import { Instagram, Heart, Mail, Clock, Phone} from 'lucide-react';
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -195,6 +195,7 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
 
 
