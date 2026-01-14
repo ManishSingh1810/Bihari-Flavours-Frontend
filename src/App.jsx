@@ -1,10 +1,9 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useUser } from './Context/userContext'; // only useUser here
+import { useUser } from "./Context/userContext";
 
 // Auth & Route Protection
 import Login from "./auth/Login";
-import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminRoute from "./auth/AdminRoute";
 
 // Layouts
@@ -17,6 +16,10 @@ import Product from "./components/user/Product";
 import Cart from "./components/user/Cart";
 import Order from "./components/user/Order";
 import ProductDetailsPage from "./components/user/ProductDetailsPage";
+
+// ✅ New pages
+import PrivacyPolicy from "./components/user/PrivacyPolicy";
+import Terms from "./components/user/Terms";
 
 // Admin Pages
 import AdminDashboard from "./components/admin/Dashboard";
@@ -35,7 +38,11 @@ const App = () => {
         path="/login"
         element={
           user ? (
-            user.role === "admin" ? <Navigate to="/admin" replace /> : <Navigate to="/" replace />
+            user.role === "admin" ? (
+              <Navigate to="/admin" replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
           ) : (
             <Login />
           )
@@ -43,16 +50,17 @@ const App = () => {
       />
 
       {/* User Routes */}
-      
-        <Route path="/" element={<UserLayout />}>
-          <Route index element={<UserDashboard />} />
-          <Route path="product" element={<Product />} />
-          <Route path="cart" element={<Cart />} />
-          <Route path="order" element={<Order />} />
-          <Route path="product/:id" element={<ProductDetailsPage />} />
+      <Route path="/" element={<UserLayout />}>
+        <Route index element={<UserDashboard />} />
+        <Route path="product" element={<Product />} />
+        <Route path="cart" element={<Cart />} />
+        <Route path="order" element={<Order />} />
+        <Route path="product/:id" element={<ProductDetailsPage />} />
 
-        </Route>
-  
+        {/* ✅ Legal pages */}
+        <Route path="privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="terms" element={<Terms />} />
+      </Route>
 
       {/* Admin Routes */}
       <Route element={<AdminRoute />}>
