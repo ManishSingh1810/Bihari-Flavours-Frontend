@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Instagram, Heart, Mail, Clock } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -91,7 +90,9 @@ const Footer = () => {
                            hover:bg-[rgba(142,27,27,0.05)] transition"
                 aria-label="WhatsApp"
               >
-                <FaWhatsapp className="h-4 w-4" />
+                <svg viewBox="0 0 32 32" className="h-4 w-4 fill-current">
+    <path d="M16 .5C7.4.5.5 7.4.5 16c0 2.8.7 5.5 2.1 7.9L.4 31.6l7.9-2.1c2.3 1.3 5 2 7.7 2C24.6 31.5 31.5 24.6 31.5 16S24.6.5 16 .5zm0 29c-2.5 0-5-.7-7.1-2l-.5-.3-4.7 1.2 1.2-4.6-.3-.5C3.3 21 2.5 18.5 2.5 16 2.5 8.6 8.6 2.5 16 2.5S29.5 8.6 29.5 16 23.4 29.5 16 29.5zm7.3-9.1c-.4-.2-2.3-1.1-2.6-1.2-.3-.1-.6-.2-.9.2-.3.4-1 1.2-1.3 1.5-.2.3-.4.3-.8.1-2.3-1.1-3.8-2-5.4-4.5-.4-.6.4-.6 1.1-2 .1-.3.1-.6 0-.8-.1-.2-.9-2.2-1.2-3-.3-.7-.6-.6-.9-.6h-.8c-.3 0-.8.1-1.2.6-.4.5-1.6 1.6-1.6 3.9s1.7 4.6 1.9 4.9c.2.3 3.3 5 8 6.8 1.1.4 2 .7 2.7.9 1.1.3 2.1.3 2.9.2.9-.1 2.3-.9 2.6-1.8.3-.9.3-1.6.2-1.8-.1-.2-.4-.3-.8-.5z"/>
+  </svg>
 
               </motion.a>
             </div>
@@ -194,6 +195,7 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
 
 
