@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, Heart, Phone, Mail, Clock, MessageCircle } from 'lucide-react';
+import { Instagram, Heart, Mail, Clock } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -90,7 +91,7 @@ const Footer = () => {
                            hover:bg-[rgba(142,27,27,0.05)] transition"
                 aria-label="WhatsApp"
               >
-                <MessageCircle className="h-4 w-4" />
+                <FaWhatsapp className="h-4 w-4" />
 
               </motion.a>
             </div>
@@ -193,6 +194,7 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
 
 
