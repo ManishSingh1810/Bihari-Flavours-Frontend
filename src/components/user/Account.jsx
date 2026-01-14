@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useUser } from "../../Context/userContext";
@@ -7,6 +7,16 @@ export default function Account() {
   const { user, logout } = useUser();
   const navigate = useNavigate();
 
+  // ✅ Always go to top when opening Account
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
+  // ✅ If not logged in, redirect to login (instead of showing blank)
+  useEffect(() => {
+    if (!user) navigate("/login", { replace: true });
+  }, [user, navigate]);
+
   const handleLogout = async () => {
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
@@ -14,17 +24,18 @@ export default function Account() {
         credentials: "include",
       });
     } catch (e) {
-      // ignore network logout errors
+      // ignore logout errors
     } finally {
       logout();
       navigate("/login", { replace: true });
     }
   };
 
-  if (!user) return null; // protected by route, but safe
+  // While redirecting
+  if (!user) return null;
 
   return (
-    <main className="bg-[#FAF7F2] text-[#1F1B16]">
+    <main className="bg-[#FAF7F2] text-[#1F1B16] min-h-[70vh]">
       <section className="mx-auto max-w-5xl px-6 pt-24 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
@@ -34,7 +45,9 @@ export default function Account() {
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-[#8E1B1B]">My Account</h1>
+              <h1 className="text-3xl font-semibold text-[#8E1B1B]">
+                My Account
+              </h1>
               <p className="mt-1 text-sm text-[#6F675E]">
                 Manage your profile and quick actions.
               </p>
@@ -50,7 +63,7 @@ export default function Account() {
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {/* Profile card */}
+            {/* Profile */}
             <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-[#FAF7F2] p-5">
               <h2 className="text-lg font-semibold">Profile</h2>
 
@@ -64,9 +77,7 @@ export default function Account() {
 
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-[#6F675E]">Email</span>
-                  <span className="font-medium">
-                    {user?.email || "—"}
-                  </span>
+                  <span className="font-medium">{user?.email || "—"}</span>
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
@@ -78,18 +89,12 @@ export default function Account() {
 
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-[#6F675E]">Role</span>
-                  <span className="font-medium">
-                    {user?.role || "user"}
-                  </span>
+                  <span className="font-medium">{user?.role || "user"}</span>
                 </div>
               </div>
-
-              <p className="mt-4 text-xs text-[#6F675E]">
-                (If some fields show “—”, it means your backend/user model isn’t sending those yet.)
-              </p>
             </div>
 
-            {/* Quick actions */}
+            {/* Actions */}
             <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-[#FAF7F2] p-5">
               <h2 className="text-lg font-semibold">Quick Actions</h2>
 
