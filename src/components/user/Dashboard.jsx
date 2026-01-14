@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Star, Plus, Minus } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import api from "../../api/axios";
 import hero from "../../assets/hero.jpg";
 import { Link, useNavigate } from "react-router-dom";
@@ -27,186 +27,22 @@ const AddToCartButton = ({ productId, onAdd, disabled }) => (
   </button>
 );
 
-/* ---------------- Product Details Modal ---------------- */
-const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
-  if (!product) return null;
-
-  const [qty, setQty] = useState(0);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-
-  // 🔁 Backend images (ORDER PRESERVED)
-  const images =
-    Array.isArray(product.photos) && product.photos.length > 0
-      ? product.photos
-      : [
-          product.photo ||
-            "https://placehold.co/1200x800/EEE/AAA?text=No+Image",
-        ];
-
-  /* Reset state when modal opens for a new product */
-  useEffect(() => {
-    setQty(0);
-    setActiveImageIndex(0); // ✅ FIRST IMAGE ALWAYS
-  }, [product?._id]);
-
-  const handleAdd = async () => {
-    await onAdd(product._id);
-    setQty(1);
-  };
-
-  const handleIncrease = async () => {
-    await onAdd(product._id);
-    setQty((q) => q + 1);
-  };
-
-  const handleDecrease = () => {
-    setQty((q) => Math.max(0, q - 1));
-  };
-
-  return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center
-                 bg-black/50 backdrop-blur-sm p-4"
-    >
-      <motion.div
-        onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.96, y: 18 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 18 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-        className="relative w-[min(980px,95vw)] max-h-[85vh] overflow-hidden
-                   rounded-2xl bg-[#FAF7F2]
-                   border border-[rgba(142,27,27,0.25)]
-                   shadow-2xl"
-      >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 h-9 w-9 grid place-items-center
-                     rounded-full bg-white/70 border border-[rgba(142,27,27,0.15)]
-                     text-[#6F675E] hover:text-[#1F1B16] transition"
-          aria-label="Close"
-        >
-          ✕
-        </button>
-
-        {/* IMAGE AREA */}
-        <div className="bg-white">
-          {/* MAIN IMAGE */}
-          <motion.img
-            key={images[activeImageIndex]}
-            src={images[activeImageIndex]}
-            alt={product.name}
-            initial={{ opacity: 0.6 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25 }}
-            className="w-full h-[240px] sm:h-[320px] md:h-[380px] object-contain"
-            loading="lazy"
-          />
-        </div>
-
-        {/* THUMBNAILS */}
-        {images.length > 1 && (
-          <div className="flex gap-3 overflow-x-auto px-5 py-3 bg-[#FAF7F2]">
-            {images.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImageIndex(idx)}
-                className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border transition
-                  ${
-                    idx === activeImageIndex
-                      ? "border-[#8E1B1B]"
-                      : "border-[rgba(142,27,27,0.15)] hover:border-[rgba(142,27,27,0.35)]"
-                  } bg-white`}
-                aria-label={`View image ${idx + 1}`}
-              >
-                <img
-                  src={img}
-                  alt={`thumbnail-${idx}`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* CONTENT */}
-        <div className="p-6 space-y-5 overflow-auto max-h-[calc(85vh-380px)]">
-          <div>
-            <h2 className="text-2xl font-semibold text-[#1F1B16]">
-              {product.name}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#6F675E]">
-              {product.desc}
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t border-[rgba(142,27,27,0.15)]">
-            <span className="text-xl font-semibold text-[#8E1B1B]">
-              ₹{product.price}
-            </span>
-
-            {/* ACTION AREA */}
-            {qty === 0 ? (
-              <button
-                onClick={handleAdd}
-                disabled={adding === product._id}
-                className="rounded-md border border-[#8E1B1B]
-                           px-5 py-2 text-sm font-medium
-                           text-[#8E1B1B]
-                           transition-all
-                           hover:bg-[#8E1B1B]
-                           hover:text-white
-                           hover:shadow-md
-                           disabled:opacity-50"
-              >
-                {adding === product._id ? "Adding…" : "Add to Cart"}
-              </button>
-            ) : (
-              <div
-                className="flex items-center gap-3 rounded-md
-                           border border-[#8E1B1B] px-3 py-1 bg-white"
-              >
-                <button
-                  onClick={handleDecrease}
-                  className="text-[#8E1B1B] hover:scale-110 transition"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus size={16} />
-                </button>
-
-                <span className="min-w-[1.5rem] text-center font-medium text-[#1F1B16]">
-                  {qty}
-                </span>
-
-                <button
-                  onClick={handleIncrease}
-                  className="text-[#8E1B1B] hover:scale-110 transition"
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
 /* ---------------- Product Card ------------------------- */
-const ProductCard = ({ product, handleAddToCart, adding, onOpen }) => {
+const ProductCard = ({ product, handleAddToCart, adding }) => {
+  const navigate = useNavigate();
+
   const img =
     Array.isArray(product.photos) && product.photos.length > 0
       ? product.photos[0]
       : product.photo || "https://placehold.co/1200x800/EEE/AAA?text=No+Image";
 
+  const openProductPage = () => {
+    navigate(`/product/${product._id}`);
+  };
+
   return (
     <article
-      onClick={() => onOpen(product)}
+      onClick={openProductPage}
       className="flex cursor-pointer flex-col rounded-lg
                  border border-[rgba(142,27,27,0.25)]
                  bg-[#F3EFE8] p-4 transition
@@ -235,8 +71,12 @@ const ProductCard = ({ product, handleAddToCart, adding, onOpen }) => {
             ₹{product.price}
           </span>
 
-          {/* Prevent modal open when clicking button */}
-          <div onClick={(e) => e.stopPropagation()}>
+          {/* Prevent navigation when clicking Add to Cart */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <AddToCartButton
               productId={product._id}
               onAdd={handleAddToCart}
@@ -308,18 +148,15 @@ const ScrollHighlights = () => {
   );
 };
 
-/* ------------------------- HERO (HOME) ------------------------ */
-const Hero = () => {
+/* ------------------------- HOME ------------------------ */
+const Dashboard = () => {
   const { scrollYProgress } = useScroll();
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
-
-  const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(null);
   const [error, setError] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     async function loadProducts() {
@@ -376,8 +213,8 @@ const Hero = () => {
               </h1>
 
               <p className="mb-6 max-w-xl text-lg text-[#6F675E] lg:text-xl">
-                Food shaped by memory, patience, and the quiet confidence of home
-                kitchens across Bihar.
+                Food shaped by memory, patience, and the quiet confidence of
+                home kitchens across Bihar.
               </p>
 
               <p className="mb-8 max-w-xl text-sm leading-relaxed text-[#6F675E]">
@@ -426,11 +263,7 @@ const Hero = () => {
         </div>
       </motion.section>
 
-      {/* Floating quote + highlights (optional but you already have them) */}
-      <FloatingQuote />
-      <ScrollHighlights />
-
-      {/* ALL PRODUCTS */}
+      {/* ALL PRODUCTS (Home Grid) */}
       <section
         className="bg-[#F3EFE8] py-16 px-6
                    border-t border-[rgba(142,27,27,0.25)]"
@@ -451,7 +284,6 @@ const Hero = () => {
                   product={product}
                   handleAddToCart={handleAddToCart}
                   adding={adding}
-                  onOpen={setSelectedProduct}
                 />
               ))}
             </div>
@@ -459,18 +291,13 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* MODAL */}
-      <ProductDetailsModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAdd={handleAddToCart}
-        adding={adding}
-      />
+      {/* ✅ Quote & Highlights AFTER products */}
+      <FloatingQuote />
+      <ScrollHighlights />
     </>
   );
 };
 
-export default Hero;
-
+export default Dashboard;
 
 
