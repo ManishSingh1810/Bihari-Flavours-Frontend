@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useUser } from "./Context/userContext";
+import Account from "./components/user/Account";
 
 // Auth & Route Protection
 import Login from "./auth/Login";
@@ -56,6 +57,9 @@ const App = () => {
         <Route path="cart" element={<Cart />} />
         <Route path="order" element={<Order />} />
         <Route path="product/:id" element={<ProductDetailsPage />} />
+        <Route path="account" element={<ProtectedRoute><Account /></ProtectedRoute>}
+/>
+
 
         {/* ✅ Legal pages */}
         <Route path="privacy-policy" element={<PrivacyPolicy />} />
