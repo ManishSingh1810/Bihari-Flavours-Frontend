@@ -3,6 +3,8 @@ import api from "../../api/axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { Minus, Plus } from "lucide-react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
 
 /* ---------------- Add To Cart Button ---------------- */
 const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
@@ -163,6 +165,8 @@ export default function ProductsPage() {
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
+
 
   const logoutUser = () => {
     localStorage.clear();
@@ -254,7 +258,9 @@ export default function ProductsPage() {
             return (
               <article
                 key={product._id}
-                onClick={() => setSelectedProduct(product)}
+                onClick={() => navigate(`/product/${product._id}`)}
+
+                {/* onClick={() => setSelectedProduct(product)} */}
                 className="cursor-pointer rounded-lg border
                            border-[rgba(142,27,27,0.25)]
                            bg-[#F3EFE8] p-4 hover:bg-[#FAF7F2]"
@@ -295,3 +301,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+
