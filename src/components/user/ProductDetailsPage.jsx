@@ -246,8 +246,19 @@ export default function ProductDetailsPage() {
                   {product.name}
                 </h1>
 
+                {/* REVIEWS */}
+<div className="mt-6 rounded-xl bg-[#FAF7F2] p-4">
+  <h3 className="font-semibold text-[#1F1B16]">Reviews</h3>
+  <p className="text-sm text-[#6F675E] mt-1">
+    Share your experience to help others.
+  </p>
+
+  <ReviewBox productId={product._id} />
+</div>
+
+
                 {/* Rating placeholder */}
-                <div className="mt-2 flex items-center gap-2 text-sm">
+                {/* <div className="mt-2 flex items-center gap-2 text-sm">
                   <div className="flex items-center gap-1 text-[#8E1B1B]">
                     <Star size={16} fill="currentColor" />
                     <span className="font-semibold">{rating}</span>
@@ -255,7 +266,7 @@ export default function ProductDetailsPage() {
                   <span className="text-[#6F675E]">({reviewCount} reviews)</span>
                   <span className="text-[#6F675E]">•</span>
                   <span className="text-[#6F675E]">Trusted snack brand</span>
-                </div>
+                </div> */}
 
                 <p className="mt-3 text-sm text-[#6F675E]">
                   {product.desc}
@@ -396,3 +407,145 @@ function Badge({ icon, text }) {
     </div>
   );
 }
+
+function ReviewBox({ productId }) {
+  const [rating, setRating] = React.useState(0);
+  const [comment, setComment] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+
+  const [reviews, setReviews] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/products/${productId}/reviews`);
+      if (res.data.success) setReviews(res.data.reviews || []);
+    } catch (e) {
+      // silently ignore
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchReviews();
+    // eslint-disable-next-line
+  }, [productId]);
+
+  const submitReview = async () => {
+    if (!user) {
+      toast.error("Please login to write a review");
+      return;
+    }
+    if (!rating) {
+      toast.error("Please select a rating");
+      return;
+    }
+    if (!comment.trim()) {
+      toast.error("Please write a short review");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const res = await api.post(`/products/${productId}/reviews`, {
+        rating,
+        comment: comment.trim(),
+      });
+
+      if (!res.data.success) throw new Error(res.data.message);
+
+      toast.success("Thanks! Your review was submitted.");
+      setRating(0);
+      setComment("");
+      fetchReviews();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to submit review");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 space-y-4">
+      {/* Rate */}
+      <div className="rounded-lg border border-black/10 bg-white p-4">
+        <p className="text-sm font-medium text-[#1F1B16] mb-2">Rate this product</p>
+
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setRating(n)}
+              className={`h-10 w-10 rounded-lg border text-lg ${
+                rating >= n
+                  ? "border-[#8E1B1B] bg-[#8E1B1B] text-white"
+                  : "border-black/10 bg-white text-[#6F675E]"
+              }`}
+              aria-label={`${n} star`}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Write your review (taste, packaging, delivery, etc.)"
+          rows={3}
+          className="mt-3 w-full rounded-lg border border-black/10 bg-[#FAF7F2] p-3 text-sm outline-none focus:border-[#8E1B1B]"
+        />
+
+        <button
+          type="button"
+          onClick={submitReview}
+          disabled={submitting}
+          className="mt-3 rounded-lg bg-[#8E1B1B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {submitting ? "Submitting..." : "Submit Review"}
+        </button>
+      </div>
+
+      {/* Show reviews */}
+      <div className="rounded-lg border border-black/10 bg-white p-4">
+        <p className="text-sm font-medium text-[#1F1B16] mb-3">Customer reviews</p>
+
+        {loading ? (
+          <p className="text-sm text-[#6F675E]">Loading reviews…</p>
+        ) : reviews.length === 0 ? (
+          <p className="text-sm text-[#6F675E]">
+            No reviews yet. Be the first to review this product.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((r) => (
+              <div key={r._id} className="rounded-lg bg-[#FAF7F2] p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-[#1F1B16]">
+                    {r.userName || "Customer"}
+                  </p>
+                  <p className="text-sm text-[#8E1B1B] font-semibold">
+                    {"★".repeat(r.rating)}
+                    <span className="text-[#6F675E] font-normal">
+                      {"★".repeat(5 - r.rating)}
+                    </span>
+                  </p>
+                </div>
+                <p className="text-sm text-[#6F675E] mt-2">{r.comment}</p>
+                <p className="text-[11px] text-[#6F675E] mt-2">
+                  {new Date(r.createdAt).toLocaleDateString("en-IN")}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
