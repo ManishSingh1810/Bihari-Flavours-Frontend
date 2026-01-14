@@ -8,7 +8,15 @@ import logo from "../../assets/logo.png";
 
 /* Menu */
 const MenuIcon = (p) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    {...p}
+  >
     <line x1="3" y1="6" x2="21" y2="6" />
     <line x1="3" y1="12" x2="21" y2="12" />
     <line x1="3" y1="18" x2="21" y2="18" />
@@ -16,9 +24,36 @@ const MenuIcon = (p) => (
 );
 
 const XIcon = (p) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    {...p}
+  >
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+/* Home */
+const HomeIcon = (p) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...p}
+  >
+    <path d="M3 10.5L12 3l9 7.5" />
+    <path d="M5 9.5V21h14V9.5" />
+    <path d="M9 21v-6h6v6" />
   </svg>
 );
 
@@ -133,6 +168,11 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-2">
+          {/* ✅ Home button */}
+          <MotionNavLink to="/" className={navLinkClass}>
+            <HomeIcon className="h-4 w-4" /> Home
+          </MotionNavLink>
+
           <MotionNavLink to="/product" className={navLinkClass}>
             <ProductsIcon className="h-4 w-4" /> Products
           </MotionNavLink>
@@ -165,7 +205,8 @@ export default function Header() {
         {/* Mobile Toggle */}
         <button
           className="lg:hidden h-10 w-10"
-          onClick={() => setMenuOpen(v => !v)}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           {menuOpen ? <XIcon /> : <MenuIcon />}
         </button>
@@ -184,20 +225,69 @@ export default function Header() {
                      lg:hidden"
         >
           <div className="flex flex-col space-y-2 px-4 py-6">
-            <NavLink to="/product" className={navLinkClass} onClick={() => setMenuOpen(false)}>
+            {/* ✅ Home button (mobile) */}
+            <NavLink
+              to="/"
+              className={navLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
+              <HomeIcon className="h-4 w-4" /> Home
+            </NavLink>
+
+            <NavLink
+              to="/product"
+              className={navLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
               <ProductsIcon className="h-4 w-4" /> Products
             </NavLink>
 
-            <NavLink to={user ? "/order" : "/login"} className={navLinkClass} onClick={() => setMenuOpen(false)}>
+            <NavLink
+              to={user ? "/order" : "/login"}
+              className={navLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
               <OrdersIcon className="h-4 w-4" /> Orders
             </NavLink>
 
-            <NavLink to={user ? "/cart" : "/login"} className={navLinkClass} onClick={() => setMenuOpen(false)}>
+            <NavLink
+              to={user ? "/cart" : "/login"}
+              className={navLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
               <CartIcon className="h-4 w-4" /> Cart
             </NavLink>
+
+            {/* Optional: show Login/Logout inside mobile menu too (nice UX) */}
+            {user ? (
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition
+                           border border-transparent text-[#1F1B16] hover:text-[#8E1B1B]
+                           hover:border-[rgba(142,27,27,0.25)] text-left"
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate("/login");
+                }}
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition
+                           border border-transparent text-[#1F1B16] hover:text-[#8E1B1B]
+                           hover:border-[rgba(142,27,27,0.25)] text-left"
+              >
+                Login
+              </button>
+            )}
           </div>
         </motion.div>
       )}
     </motion.header>
   );
 }
+
