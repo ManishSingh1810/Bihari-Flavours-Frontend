@@ -197,7 +197,7 @@ const Dashboard = () => {
     <>
       {/* HERO */}
       <motion.section
-        className="relative min-h-screen bg-[#FAF7F2]
+        className="relative bg-[#FAF7F2]
                    border-b border-[rgba(142,27,27,0.25)]"
       >
         <div className="mx-auto max-w-7xl px-6 pt-32 pb-20">
@@ -299,5 +299,6 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 
 
