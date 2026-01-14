@@ -16,6 +16,7 @@ import UserDashboard from "./components/user/Dashboard";
 import Product from "./components/user/Product";
 import Cart from "./components/user/Cart";
 import Order from "./components/user/Order";
+import ProductDetailsPage from "./components/user/ProductDetailsPage";
 
 // Admin Pages
 import AdminDashboard from "./components/admin/Dashboard";
@@ -48,6 +49,8 @@ const App = () => {
           <Route path="product" element={<Product />} />
           <Route path="cart" element={<Cart />} />
           <Route path="order" element={<Order />} />
+          <Route path="/product/:id" element={<ProductDetailsPage />} />
+
         </Route>
   
 
