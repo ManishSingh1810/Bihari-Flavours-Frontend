@@ -11,6 +11,7 @@ createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <UserProvider>
+        <ScrollToTop />
 
         {/* 🔔 GLOBAL TOASTER */}
         <Toaster
