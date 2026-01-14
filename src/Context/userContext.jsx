@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-// import api from "../../api/axios";
+import api from "../api/axios";
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
@@ -85,6 +85,7 @@ export const UserProvider = ({ children }) => {
 };
 
 export const useUser = () => useContext(UserContext);
+
 
 
 
