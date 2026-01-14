@@ -34,6 +34,8 @@ const ProductDetailsModal = ({ product, onClose, onAdd, adding }) => {
 
   const [qty, setQty] = useState(0);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const navigate = useNavigate();
+
 
   // 🔁 Backend images (ORDER PRESERVED)
   const images =
@@ -456,6 +458,7 @@ const Hero = () => {
 };
 
 export default Hero;
+
 
 
 
