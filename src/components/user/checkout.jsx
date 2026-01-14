@@ -120,13 +120,22 @@ const Checkout = ({ cart, setShowCheckout }) => {
       setCouponLoading(true);
       setError("");
 
-      const res = await api.post("/coupons/validate", {
+      const res = await api.post("/coupons/apply", {
         code: couponCode.trim().toUpperCase(),
         cartAmount: cart.totalAmount
       });
 
       if (!res.data.success) throw new Error(res.data.message);
-      setCouponApplied(res.data.coupon);
+      setCouponApplied({
+  code: res.data.coupon.code,
+  discountPercentage: res.data.coupon.discountPercentage,
+  discount: res.data.discount,
+  finalTotal: res.data.finalTotal,
+});
+
+
+      // if (!res.data.success) throw new Error(res.data.message);
+      // setCouponApplied(res.data.coupon);
 toast.success(
   `Coupon ${res.data.coupon.code} applied (${res.data.coupon.discountPercentage}% off)`
 );
