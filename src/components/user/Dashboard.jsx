@@ -5,6 +5,7 @@ import api from "../../api/axios";
 import hero from "../../assets/hero.jpg";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
@@ -298,7 +299,9 @@ const Hero = () => {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(null);
   const [error, setError] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  //const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     async function loadProducts() {
@@ -441,7 +444,8 @@ const Hero = () => {
       {/* MODAL */}
       <ProductDetailsModal
         product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
+        //onClose={() => setSelectedProduct(null)}
+        onClick={() => navigate(`/product/${product._id}`)}
         onAdd={handleAddToCart}
         adding={adding}
       />
@@ -450,4 +454,5 @@ const Hero = () => {
 };
 
 export default Hero;
+
 
