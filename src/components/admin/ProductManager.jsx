@@ -111,7 +111,13 @@ const handleStatusChange = async (id, newStatus) => {
       formData.append("desc", data.description);
       formData.append("price", data.price);
       formData.append("quantity", data.stockStatus);
+      formData.append("netQuantity", data.netQuantity || "");
+      formData.append("shelfLife", data.shelfLife || "");
+      formData.append("ingredients", data.ingredients || "");
+      formData.append("storage", data.storage || "");
+
       images.forEach((img) => formData.append("photos", img));
+    
 
       const res = await api.post("/products", formData);
       if (res.data.success) {
@@ -190,6 +196,30 @@ const handleStatusChange = async (id, newStatus) => {
           <h2 className="mb-6 text-2xl font-bold text-[#1F1B16]">Add New Product</h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
+              <input
+  {...register("netQuantity")}
+  placeholder="Net Quantity (e.g. 500 g)"
+  className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+/>
+
+<input
+  {...register("shelfLife")}
+  placeholder="Shelf Life (e.g. 6 months)"
+  className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+/>
+
+<input
+  {...register("ingredients")}
+  placeholder="Ingredients (short)"
+  className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+/>
+
+<input
+  {...register("storage")}
+  placeholder="Storage (e.g. Cool & dry place)"
+  className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+/>
+
               <input {...register("name", { required: true })} placeholder="Product name" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
               <input {...register("price", { required: true })} type="number" placeholder="Price (₹)" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
               <select {...register("stockStatus", { required: true })} className="rounded-md p-3 border border-gray-300">
