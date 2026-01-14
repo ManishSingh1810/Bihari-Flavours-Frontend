@@ -57,25 +57,7 @@ const HomeIcon = (p) => (
   </svg>
 );
 
-/* Account (User) */
-const AccountIcon = (p) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="22"
-    height="22"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...p}
-  >
-    <path d="M20 21a8 8 0 0 0-16 0" />
-    <circle cx="12" cy="8" r="4" />
-  </svg>
-);
-
-/* Cart */
+/* Cart (already good) */
 const CartIcon = (p) => (
   <svg
     viewBox="0 0 24 24"
@@ -94,7 +76,7 @@ const CartIcon = (p) => (
   </svg>
 );
 
-/* Products */
+/* Products – softened */
 const ProductsIcon = (p) => (
   <svg
     viewBox="0 0 24 24"
@@ -113,7 +95,7 @@ const ProductsIcon = (p) => (
   </svg>
 );
 
-/* Orders */
+/* Orders – list-style, lighter */
 const OrdersIcon = (p) => (
   <svg
     viewBox="0 0 24 24"
@@ -167,9 +149,6 @@ export default function Header() {
          : "border-transparent text-[#1F1B16] hover:border-[rgba(142,27,27,0.25)]"
      }`;
 
-  // ✅ account destination based on login
-  const accountPath = user ? "/account" : "/login";
-
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
@@ -189,6 +168,7 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-2">
+          {/* ✅ Home button */}
           <MotionNavLink to="/" className={navLinkClass}>
             <HomeIcon className="h-4 w-4" /> Home
           </MotionNavLink>
@@ -203,11 +183,6 @@ export default function Header() {
 
           <MotionNavLink to={user ? "/cart" : "/login"} className={navLinkClass}>
             <CartIcon className="h-4 w-4" /> Cart
-          </MotionNavLink>
-
-          {/* ✅ Account */}
-          <MotionNavLink to={accountPath} className={navLinkClass}>
-            <AccountIcon className="h-4 w-4" /> Account
           </MotionNavLink>
 
           {user ? (
@@ -250,6 +225,7 @@ export default function Header() {
                      lg:hidden"
         >
           <div className="flex flex-col space-y-2 px-4 py-6">
+            {/* ✅ Home button (mobile) */}
             <NavLink
               to="/"
               className={navLinkClass}
@@ -282,16 +258,7 @@ export default function Header() {
               <CartIcon className="h-4 w-4" /> Cart
             </NavLink>
 
-            {/* ✅ Account (mobile) */}
-            <NavLink
-              to={accountPath}
-              className={navLinkClass}
-              onClick={() => setMenuOpen(false)}
-            >
-              <AccountIcon className="h-4 w-4" /> Account
-            </NavLink>
-
-            {/* Login/Logout inside mobile menu */}
+            {/* Optional: show Login/Logout inside mobile menu too (nice UX) */}
             {user ? (
               <button
                 onClick={() => {
@@ -322,4 +289,5 @@ export default function Header() {
       )}
     </motion.header>
   );
-}
+} 
+
