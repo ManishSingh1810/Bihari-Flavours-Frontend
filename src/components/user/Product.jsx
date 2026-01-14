@@ -260,7 +260,7 @@ export default function ProductsPage() {
                 key={product._id}
                 onClick={() => navigate(`/product/${product._id}`)}
 
-                {/* onClick={() => setSelectedProduct(product)} */}
+     
                 className="cursor-pointer rounded-lg border
                            border-[rgba(142,27,27,0.25)]
                            bg-[#F3EFE8] p-4 hover:bg-[#FAF7F2]"
@@ -301,4 +301,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
