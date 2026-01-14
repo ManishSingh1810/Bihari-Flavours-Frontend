@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Star } from "lucide-react";
 import api from "../../api/axios";
-import hero from "../../assets/hero.jpg";
+import hero from "../../assets/code.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -299,6 +299,7 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 
 
 
