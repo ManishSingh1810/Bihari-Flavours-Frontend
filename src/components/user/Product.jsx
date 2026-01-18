@@ -126,7 +126,7 @@ const filtered = items.filter(p => {
 
         {/* Grid: 2 cols on mobile so it looks like real ecom */}
         <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {items.map((product) => {
+          {filtered.map((product) => {
             const img =
               product.photos?.[0] ||
               product.photo ||
@@ -209,6 +209,7 @@ const filtered = items.filter(p => {
     </div>
   );
 }
+
 
 
 
