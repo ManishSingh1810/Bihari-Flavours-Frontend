@@ -39,13 +39,6 @@ const filtered = items.filter(p => {
     (p.desc || "").toLowerCase().includes(q)
   );
 });
-<input
-  value={search}
-  onChange={(e) => setSearch(e.target.value)}
-  placeholder="Search products…"
-  className="w-full rounded-md border px-4 py-2"
-/>
-
 
   const logoutUser = () => {
     localStorage.clear();
@@ -117,6 +110,19 @@ const filtered = items.filter(p => {
             Premium homemade snacks • Hygienic packing • Fast delivery
           </p>
         </div>
+        {/* Search */}
+<div className="mb-6">
+  <input
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="Search products…"
+    className="w-full rounded-xl border border-[rgba(142,27,27,0.25)]
+               bg-white px-4 py-3 text-sm text-[#1F1B16]
+               outline-none transition
+               focus:border-[#8E1B1B] focus:ring-2 focus:ring-[rgba(142,27,27,0.12)]"
+  />
+</div>
+
 
         {/* Grid: 2 cols on mobile so it looks like real ecom */}
         <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -203,6 +209,7 @@ const filtered = items.filter(p => {
     </div>
   );
 }
+
 
 
 
