@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -20,25 +20,16 @@ const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
   </button>
 );
 
-
-
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(null);
 
-  const navigate = useNavigate();
-  /* Search Button */ 
-const [search, setSearch] = useState("");
+  // ✅ Search
+  const [search, setSearch] = useState("");
 
-const filtered = items.filter(p => {
-  const q = search.toLowerCase();
-  return (
-    (p.name || "").toLowerCase().includes(q) ||
-    (p.desc || "").toLowerCase().includes(q)
-  );
-});
+  const navigate = useNavigate();
 
   const logoutUser = () => {
     localStorage.clear();
@@ -52,16 +43,29 @@ const filtered = items.filter(p => {
         const res = await api.get("/products");
         if (!res.data.success) throw new Error("Failed to fetch products");
         setItems(res.data.products || []);
+        setError("");
       } catch (e) {
         const status = e?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        setError(e?.message || "Failed to load products");
+        setError(e?.response?.data?.message || e?.message || "Failed to load products");
       } finally {
         setLoading(false);
       }
     }
     loadProducts();
   }, []);
+
+  // ✅ Filtered products (safe + fast)
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return items;
+
+    return items.filter((p) => {
+      const name = (p?.name || "").toLowerCase();
+      const desc = (p?.desc || "").toLowerCase();
+      return name.includes(q) || desc.includes(q);
+    });
+  }, [items, search]);
 
   const handleAddToCart = async (productId) => {
     const product = items.find((p) => p._id === productId);
@@ -102,7 +106,7 @@ const filtered = items.filter(p => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-24">
+    <div className="min-h-screen bg-[#FAF7F2] px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-semibold text-[#1F1B16]">Our Products</h1>
@@ -110,41 +114,40 @@ const filtered = items.filter(p => {
             Premium homemade snacks • Hygienic packing • Fast delivery
           </p>
         </div>
-        {/* Search */}
-<div className="mb-6">
-  <input
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    placeholder="Search products…"
-    className="w-full rounded-xl border border-[rgba(142,27,27,0.25)]
-               bg-white px-4 py-3 text-sm text-[#1F1B16]
-               outline-none transition
-               focus:border-[#8E1B1B] focus:ring-2 focus:ring-[rgba(142,27,27,0.12)]"
-  />
-</div>
 
+        {/* ✅ Search Bar */}
+        <div className="mb-6">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products…"
+            className="w-full rounded-xl border border-[rgba(142,27,27,0.25)]
+                       bg-white px-4 py-3 text-sm text-[#1F1B16]
+                       outline-none transition
+                       focus:border-[#8E1B1B] focus:ring-2 focus:ring-[rgba(142,27,27,0.12)]"
+          />
+        </div>
 
-        {/* Grid: 2 cols on mobile so it looks like real ecom */}
-        <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {/* Grid */}
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
           {filtered.map((product) => {
             const img =
-              product.photos?.[0] ||
-              product.photo ||
+              product?.photos?.[0] ||
+              product?.photo ||
               "https://placehold.co/900x900/EEE/AAA?text=No+Image";
 
-            const out = product.quantity === "outofstock";
+            const out = product?.quantity === "outofstock";
 
             return (
               <article
                 key={product._id}
                 onClick={() => navigate(`/product/${product._id}`)}
                 className="group cursor-pointer rounded-2xl border border-[rgba(142,27,27,0.18)]
-                           bg-[#F3EFE8] p-3 sm:p-4 shadow-sm
-                           hover:bg-[#FAF7F2] hover:shadow-md hover:-translate-y-0.5
-                           transition-all"
+                           bg-[#F3EFE8] p-3 shadow-sm transition-all
+                           hover:-translate-y-0.5 hover:bg-[#FAF7F2] hover:shadow-md sm:p-4"
               >
-                {/* Image box: fixed ratio + contain (NO ugly cropping) */}
-                <div className="relative w-full overflow-hidden rounded-xl bg-white border border-black/10">
+                {/* Image */}
+                <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-white">
                   <div className="aspect-square w-full">
                     <img
                       src={img}
@@ -157,7 +160,7 @@ const filtered = items.filter(p => {
 
                   {/* Stock badge */}
                   <span
-                    className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-semibold border bg-white/90
+                    className={`absolute left-2 top-2 rounded-full border bg-white/90 px-2 py-1 text-[10px] font-semibold
                       ${
                         out
                           ? "border-gray-300 text-gray-500"
@@ -169,18 +172,18 @@ const filtered = items.filter(p => {
                 </div>
 
                 {/* Title */}
-                <h3 className="mt-3 text-sm sm:text-base font-semibold text-[#1F1B16] line-clamp-1">
+                <h3 className="mt-3 line-clamp-1 text-sm font-semibold text-[#1F1B16] sm:text-base">
                   {product.name}
                 </h3>
 
-                {/* Short description */}
-                <p className="mt-1 text-xs sm:text-sm text-[#6F675E] line-clamp-2 leading-relaxed">
+                {/* Description */}
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#6F675E] sm:text-sm">
                   {product.desc}
                 </p>
 
                 {/* Price + CTA */}
                 <div className="mt-4 flex items-center justify-between gap-2">
-                  <span className="text-base sm:text-lg font-semibold text-[#8E1B1B]">
+                  <span className="text-base font-semibold text-[#8E1B1B] sm:text-lg">
                     ₹{product.price}
                   </span>
 
@@ -199,8 +202,8 @@ const filtered = items.filter(p => {
           })}
         </div>
 
-        {/* Empty state */}
-        {items.length === 0 && (
+        {/* ✅ Empty state should check filtered */}
+        {filtered.length === 0 && (
           <div className="mt-14 text-center text-sm text-[#6F675E]">
             No products found.
           </div>
@@ -209,6 +212,7 @@ const filtered = items.filter(p => {
     </div>
   );
 }
+
 
 
 
