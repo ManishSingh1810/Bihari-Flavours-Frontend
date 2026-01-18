@@ -20,6 +20,24 @@ const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
   </button>
 );
 
+/* Search Button */ 
+const [search, setSearch] = useState("");
+
+const filtered = items.filter(p => {
+  const q = search.toLowerCase();
+  return (
+    (p.name || "").toLowerCase().includes(q) ||
+    (p.desc || "").toLowerCase().includes(q)
+  );
+});
+<input
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  placeholder="Search products…"
+  className="w-full rounded-md border px-4 py-2"
+/>
+
+
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,6 +202,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 
