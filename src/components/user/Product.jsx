@@ -20,7 +20,16 @@ const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
   </button>
 );
 
-/* Search Button */ 
+
+
+export default function ProductsPage() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [adding, setAdding] = useState(null);
+
+  const navigate = useNavigate();
+  /* Search Button */ 
 const [search, setSearch] = useState("");
 
 const filtered = items.filter(p => {
@@ -37,14 +46,6 @@ const filtered = items.filter(p => {
   className="w-full rounded-md border px-4 py-2"
 />
 
-
-export default function ProductsPage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [adding, setAdding] = useState(null);
-
-  const navigate = useNavigate();
 
   const logoutUser = () => {
     localStorage.clear();
@@ -202,6 +203,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 
