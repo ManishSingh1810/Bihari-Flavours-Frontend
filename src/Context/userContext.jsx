@@ -127,7 +127,19 @@ export const UserProvider = ({ children }) => {
   // =====================
   const logout = async () => {
   try {
-    await api.post("/users/logout"); // or "/auth/logout" depending on your route
+    // Preferred + aliases (backend supports these)
+    const endpoints = ["/users/logout", "/logout", "/admin/logout"];
+    let lastErr = null;
+    for (const ep of endpoints) {
+      try {
+        await api.post(ep);
+        lastErr = null;
+        break;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    if (lastErr) throw lastErr;
   } catch (e) {
     // Even if API fails, still clear local state
     console.log("Backend logout failed:", e?.response?.data || e.message);

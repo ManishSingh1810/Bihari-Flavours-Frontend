@@ -115,15 +115,8 @@ export default function Header() {
   }, [menuOpen]);
 
   const handleLogout = async () => {
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } finally {
-      logout();
-      navigate("/", { replace: true });
-    }
+    await logout();
+    navigate("/", { replace: true });
   };
 
   const navLinkClass = ({ isActive }) =>

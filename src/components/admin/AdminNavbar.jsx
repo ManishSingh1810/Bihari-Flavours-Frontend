@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { LogOut } from "lucide-react";
-import axios from "axios";
 import { useUser } from "../../Context/userContext";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const AdminNavbar = () => {
   const { logout } = useUser();
@@ -14,14 +11,7 @@ const AdminNavbar = () => {
   const handleLogout = async () => {
     try {
       setError(null);
-
-      await axios.post(
-        `${API_BASE_URL}/users/logout`,
-        {},
-        { withCredentials: true }
-      );
-
-      logout();
+      await logout(); // calls backend /api/users/logout (and aliases)
       navigate("/login", { replace: true });
     } catch (err) {
       console.error("Logout failed:", err);

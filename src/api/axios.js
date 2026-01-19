@@ -1,12 +1,15 @@
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
+const BACKEND_BASE =
+  import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
+
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api`,
+  baseURL: `${BACKEND_BASE}/api`,
   withCredentials: true,
 });
 
-console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
+console.log("API BASE =", `${BACKEND_BASE}/api`);
 
 // Attach token ONLY if it exists (HTTP / dev)
 api.interceptors.request.use(
