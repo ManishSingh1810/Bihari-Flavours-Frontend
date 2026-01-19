@@ -520,38 +520,6 @@ function FAQAccordion() {
   );
 }
 
-function InstagramGrid() {
-  const cells = Array.from({ length: 8 });
-
-  return (
-    <section className="bg-[#F8FAFC]">
-      <div className={cn(container, "py-14 sm:py-16")}>
-        <div className="flex items-end justify-between gap-4">
-          <SectionHeading
-            eyebrow="Instagram"
-            title="See it styled"
-            subtitle="A quick preview of our community photos. (Placeholder)"
-          />
-          <SecondaryButton as="a" href="#" onClick={(e) => e.preventDefault()} className="hidden sm:inline-flex">
-            Follow us
-          </SecondaryButton>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {cells.map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-2xl border border-black/5 bg-white shadow-sm overflow-hidden"
-            >
-              <div className="h-full w-full bg-gradient-to-br from-[#F8FAFC] to-white" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ------------------------- HOME ------------------------ */
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -635,7 +603,6 @@ export default function Dashboard() {
       <BrandStory />
       <ReviewsSection />
       <FAQAccordion />
-      <InstagramGrid />
 
       {/* Premium CTA strip (footer-like) */}
       <section className="bg-white border-t border-black/5">
