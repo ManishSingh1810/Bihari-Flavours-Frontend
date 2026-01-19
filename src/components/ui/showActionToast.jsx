@@ -13,7 +13,7 @@ export function showActionToast({
       <div
         className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-xl border border-black/10 bg-white shadow-xl
                     transition-all ${t.visible ? "opacity-100" : "opacity-0"}`}
-        style={{ zIndex: 99999 }}
+        style={{ zIndex: 250000 }}
       >
         <div className="flex items-start gap-3 p-4">
           <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#8E1B1B]" />

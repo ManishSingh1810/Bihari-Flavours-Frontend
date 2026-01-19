@@ -6,6 +6,7 @@ import hero from "../../assets/code.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useUser } from "../../Context/userContext";
+import { showActionToast } from "../ui/showActionToast.jsx";
 
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
@@ -186,6 +187,7 @@ const ScrollHighlights = () => {
 const Dashboard = () => {
   const { scrollYProgress } = useScroll();
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
+  const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -218,7 +220,13 @@ const Dashboard = () => {
     try {
       const res = await addToCart(productId);
       if (!res?.success) throw new Error("Failed to add to cart");
-      toast.success("Added to cart");
+      showActionToast({
+        title: "Added to cart",
+        message: "Item added successfully.",
+        actionLabel: "View cart",
+        onAction: () => navigate("/cart"),
+        duration: 4500,
+      });
     } catch (err) {
       const status = err?.response?.status;
       if (status === 401 || status === 403) return logoutUser();

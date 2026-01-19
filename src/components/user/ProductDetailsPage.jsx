@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { useUser } from "../../Context/userContext";
+import { showActionToast } from "../ui/showActionToast.jsx";
 import {
   ChevronLeft,
   ChevronRight,
@@ -145,7 +146,13 @@ export default function ProductDetailsPage() {
     try {
       const res = await addToCart(product._id);
       if (!res?.success) throw new Error("Add to cart failed");
-      toast.success("Added to cart");
+      showActionToast({
+        title: "Added to cart",
+        message: "Item added successfully.",
+        actionLabel: "View cart",
+        onAction: () => navigate("/cart"),
+        duration: 4500,
+      });
     } catch (e) {
       const status = e?.response?.status;
       if (status === 401 || status === 403) return logoutUser();

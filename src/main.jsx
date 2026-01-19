@@ -15,16 +15,29 @@ createRoot(document.getElementById('root')).render(
 
         {/* 🔔 GLOBAL TOASTER */}
         <Toaster
-          position="top"
+          position="top-right"
           reverseOrder={false}
-          containerStyle={{ zIndex: 99999 }}
+          // Must be ABOVE checkout/order modals (those use z-index ~100000)
+          containerStyle={{ zIndex: 250000 }}
           toastOptions={{
-            duration: 3000,
+            duration: 3500,
             style: {
-              background: "#1F1B16",
-              color: "#FAF7F2",
-              borderRadius: "10px",
-              fontWeight: "500",
+              background: "#FFFFFF",
+              color: "#0F172A",
+              borderRadius: "14px",
+              border: "1px solid rgba(15, 23, 42, 0.08)",
+              boxShadow:
+                "0 12px 30px rgba(2, 6, 23, 0.12), 0 2px 8px rgba(2, 6, 23, 0.06)",
+              padding: "12px 14px",
+              fontWeight: 600,
+            },
+            success: {
+              iconTheme: { primary: "#15803D", secondary: "#FFFFFF" },
+              duration: 3000,
+            },
+            error: {
+              iconTheme: { primary: "#DC2626", secondary: "#FFFFFF" },
+              duration: 4500,
             },
           }}
         />
