@@ -184,7 +184,7 @@ toast.error(msg);
             setShowCheckout(false);
             navigate("/order");
           },
-          duration: 5000,
+          duration: 3500,
         });
 
         setTimeout(() => {
@@ -235,7 +235,7 @@ toast.error(msg);
             setShowCheckout(false);
             navigate("/order");
           },
-          duration: 5000,
+          duration: 3500,
         });
 
         setTimeout(() => {

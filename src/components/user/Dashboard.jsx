@@ -115,10 +115,10 @@ function TrustBadges() {
 function CategoryCards() {
   const navigate = useNavigate();
   const categories = [
-    { title: "Everyday Snacks", desc: "Crunchy, fresh & addictive.", icon: <Sparkles className="h-5 w-5" />, q: "snack" },
-    { title: "Sattu & Staples", desc: "Protein-rich traditional pantry.", icon: <Leaf className="h-5 w-5" />, q: "sattu" },
-    { title: "Gift Packs", desc: "Curated combos for festivals.", icon: <Gift className="h-5 w-5" />, q: "combo" },
-    { title: "Best Sellers", desc: "Our most-loved picks.", icon: <BadgeCheck className="h-5 w-5" />, q: "bestseller" },
+    { title: "Thekua", desc: "Festival-style sweet crunch.", icon: <Sparkles className="h-5 w-5" />, q: "thekua" },
+    { title: "Chana Sattu", desc: "Classic + Jaljeera flavour.", icon: <Leaf className="h-5 w-5" />, q: "sattu" },
+    { title: "Mixture & Nimki", desc: "Chiwda + nimki for chai time.", icon: <BadgeCheck className="h-5 w-5" />, q: "chiwda" },
+    { title: "Banana Chips & Makhana", desc: "Premium crunchy snacks.", icon: <Gift className="h-5 w-5" />, q: "makhana" },
   ];
 
   return (
@@ -241,49 +241,133 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
   );
 }
 
-function BestSellers({ products, loading, error, cartItemsByProductId, updating, onAdd, onMinus }) {
-  const best = useMemo(() => (products || []).slice(0, 8), [products]);
+function ProductsShowcase({
+  products,
+  loading,
+  error,
+  cartItemsByProductId,
+  updating,
+  onAdd,
+  onMinus,
+}) {
+  const [mode, setMode] = useState("premium"); // premium | standard
+  const list = useMemo(() => products || [], [products]);
 
   return (
     <section className="bg-white border-y border-black/5">
       <div className={cn(container, "py-14 sm:py-16")}>
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
-            eyebrow="Bestsellers"
-            title="Most-loved favourites"
-            subtitle="Freshly prepared, packed with care — discover what customers reorder the most."
+            eyebrow="Shop"
+            title="All products"
+            subtitle="Thekua, Sattu (Classic + Jaljeera), Chiwda Mixture, Banana Chips, Nimki, Makhana."
           />
-          <SecondaryButton as={Link} to="/product" className="hidden sm:inline-flex">
-            View all <ArrowRight className="h-4 w-4" />
-          </SecondaryButton>
+
+          <div className="inline-flex rounded-2xl border border-black/10 bg-[#F8FAFC] p-1">
+            <button
+              type="button"
+              onClick={() => setMode("standard")}
+              className={cn(
+                "px-4 py-2 text-xs font-semibold rounded-xl",
+                mode === "standard"
+                  ? "bg-white text-[#0F172A] shadow-sm"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              )}
+              aria-pressed={mode === "standard"}
+            >
+              Standard
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("premium")}
+              className={cn(
+                "px-4 py-2 text-xs font-semibold rounded-xl",
+                mode === "premium"
+                  ? "bg-white text-[#0F172A] shadow-sm"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              )}
+              aria-pressed={mode === "premium"}
+            >
+              Premium
+            </button>
+          </div>
         </div>
 
         {loading && <p className="text-sm text-[#64748B]">Loading…</p>}
         {error && <p className="text-sm text-[#8E1B1B]">{error}</p>}
 
         {!loading && !error && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {best.map((p) => {
-              const qty = cartItemsByProductId?.get(String(p._id)) || 0;
-              return (
-                <ProductTile
-                  key={p._id}
-                  product={p}
-                  qty={qty}
-                  updating={updating}
-                  onAdd={() => onAdd(p._id)}
-                  onMinus={() => onMinus(p._id, qty)}
-                />
-              );
-            })}
-          </div>
-        )}
+          <>
+            {mode === "premium" ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {list.map((p) => {
+                  const qty = cartItemsByProductId?.get(String(p._id)) || 0;
+                  return (
+                    <ProductTile
+                      key={p._id}
+                      product={p}
+                      qty={qty}
+                      updating={updating}
+                      onAdd={() => onAdd(p._id)}
+                      onMinus={() => onMinus(p._id, qty)}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="divide-y divide-black/5 overflow-hidden rounded-3xl border border-black/5 bg-white">
+                {list.map((p) => {
+                  const qty = cartItemsByProductId?.get(String(p._id)) || 0;
+                  const img =
+                    p?.photos?.[0] ||
+                    p?.photo ||
+                    "https://placehold.co/200x200/EEE/AAA?text=No+Image";
+                  return (
+                    <div key={p._id} className="flex items-center gap-4 p-4 sm:p-5">
+                      <div className="h-16 w-16 overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
+                        <img src={img} alt={p.name} className="h-full w-full object-contain p-2" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-[#0F172A] line-clamp-1">
+                          {p.name}
+                        </p>
+                        <p className="mt-1 text-xs text-[#64748B] line-clamp-1">
+                          {p.desc}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <p className="text-sm font-semibold text-[#8E1B1B]">₹{p.price}</p>
+                        {qty > 0 ? (
+                          <QtyPill
+                            qty={qty}
+                            disabled={updating === p._id}
+                            onMinus={() => onMinus(p._id, qty)}
+                            onPlus={() => onAdd(p._id)}
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onAdd(p._id)}
+                            disabled={updating === p._id}
+                            className="inline-flex items-center gap-2 rounded-xl bg-[#8E1B1B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#741616] disabled:opacity-50"
+                          >
+                            Add <Plus className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-        <div className="mt-10 sm:hidden">
-          <SecondaryButton as={Link} to="/product" className="w-full">
-            View all <ArrowRight className="h-4 w-4" />
-          </SecondaryButton>
-        </div>
+            <div className="mt-10">
+              <SecondaryButton as={Link} to="/product" className="w-full sm:w-auto">
+                View all products <ArrowRight className="h-4 w-4" />
+              </SecondaryButton>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
@@ -583,7 +667,7 @@ export default function Dashboard() {
         message: "Item added successfully.",
         actionLabel: "View cart",
         onAction: () => navigate("/cart"),
-        duration: 4500,
+        duration: 3000,
       });
     } catch (err) {
       const status = err?.response?.status;
@@ -613,8 +697,8 @@ export default function Dashboard() {
     <main className="bg-[#F8FAFC]">
       <HeroSwiper />
       <TrustBadges />
-      <CategoryCards />
-      <BestSellers
+      {/* All products showcase before categories (standard + premium) */}
+      <ProductsShowcase
         products={items}
         loading={loading}
         error={error}
@@ -623,6 +707,7 @@ export default function Dashboard() {
         onAdd={handleAddToCart}
         onMinus={handleMinus}
       />
+      <CategoryCards />
       <CombosSection />
       <BrandStory />
       <ReviewsSection />
@@ -639,7 +724,7 @@ export default function Dashboard() {
               </p>
               <h3 className="mt-2 text-2xl text-[#0F172A]">Ready to order?</h3>
               <p className="mt-2 text-sm text-[#64748B]">
-                Explore our bestsellers, combos, and staples — prepared in small batches and delivered with care.
+                Explore snacks and staples — prepared in small batches and delivered with care.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">

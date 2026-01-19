@@ -121,7 +121,7 @@ export default function ProductsPage() {
         message: "Item added successfully.",
         actionLabel: "View cart",
         onAction: () => navigate("/cart"),
-        duration: 4500,
+        duration: 3000,
       });
     } catch (e) {
       const status = e?.response?.status;

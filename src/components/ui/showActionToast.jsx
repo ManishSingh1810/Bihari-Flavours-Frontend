@@ -6,7 +6,7 @@ export function showActionToast({
   message,
   actionLabel,
   onAction,
-  duration = 4500,
+  duration = 3000,
 }) {
   return toast.custom(
     (t) => (

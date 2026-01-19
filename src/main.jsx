@@ -37,7 +37,7 @@ createRoot(document.getElementById('root')).render(
             },
             error: {
               iconTheme: { primary: "#DC2626", secondary: "#FFFFFF" },
-              duration: 4500,
+              duration: 3500,
             },
           }}
         />

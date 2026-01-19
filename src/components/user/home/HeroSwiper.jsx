@@ -54,7 +54,7 @@ export default function HeroSwiper() {
       title: "Taste Bihar, delivered fresh.",
       subtitle:
         "Small-batch flavours crafted with care — perfect for gifting, daily cravings, and festivals.",
-      cta: { label: "Shop Bestsellers", to: "/product?q=bestseller" },
+      cta: { label: "Shop Products", to: "/product" },
       secondary: { label: "Explore Products", to: "/product" },
     },
     {
@@ -69,11 +69,11 @@ export default function HeroSwiper() {
     {
       id: "s3",
       image: hero3,
-      eyebrow: "Gift-ready combos",
-      title: "Curated packs for every mood.",
+      eyebrow: "Gift-ready packs",
+      title: "Gift packs for every occasion.",
       subtitle:
-        "Try our combos and discover your new favourites — great value, great taste.",
-      cta: { label: "Shop Combos", to: "/product?q=combo" },
+        "Perfect for festivals & family — curated picks with premium packaging.",
+      cta: { label: "Explore Gifts", to: "/product" },
       secondary: { label: "Browse All", to: "/product" },
     },
   ];
@@ -164,27 +164,27 @@ export default function HeroSwiper() {
         <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur sm:grid-cols-3">
           <button
             type="button"
+            onClick={() => navigate("/product?q=thekua")}
+            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
+          >
+            <p className="text-sm font-semibold">Thekua</p>
+            <p className="mt-1 text-xs text-white/70">Traditional sweet crunch</p>
+          </button>
+          <button
+            type="button"
             onClick={() => navigate("/product?q=sattu")}
             className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
           >
-            <p className="text-sm font-semibold">Sattu</p>
-            <p className="mt-1 text-xs text-white/70">Protein-packed staple</p>
+            <p className="text-sm font-semibold">Chana Sattu</p>
+            <p className="mt-1 text-xs text-white/70">Classic + Jaljeera flavour</p>
           </button>
           <button
             type="button"
-            onClick={() => navigate("/product?q=pickle")}
+            onClick={() => navigate("/product?q=makhana")}
             className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
           >
-            <p className="text-sm font-semibold">Pickles</p>
-            <p className="mt-1 text-xs text-white/70">Bold, traditional taste</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/product?q=snack")}
-            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
-          >
-            <p className="text-sm font-semibold">Snacks</p>
-            <p className="mt-1 text-xs text-white/70">Crunchy favourites</p>
+            <p className="text-sm font-semibold">Makhana</p>
+            <p className="mt-1 text-xs text-white/70">Light & premium snack</p>
           </button>
         </div>
       </div>
