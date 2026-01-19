@@ -1,10 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Star } from "lucide-react";
-import api from "../../api/axios";
-import hero from "../../assets/code.jpg";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Truck,
+  BadgeCheck,
+  Leaf,
+  Sparkles,
+  Gift,
+  Star,
+  Plus,
+  Minus,
+  ChevronDown,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "../../api/axios";
+import hero1 from "../../assets/hero.jpg";
+import hero2 from "../../assets/hero.png";
+import hero3 from "../../assets/code.jpg";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 
@@ -15,180 +31,725 @@ const logoutUser = () => {
   window.location.href = "/login";
 };
 
-/* ---------------- Add To Cart Button ------------------- */
-const AddToCartButton = ({ productId, onAdd, disabled }) => (
-  <button
-    onClick={() => onAdd(productId)}
-    disabled={disabled}
-    className="rounded-md border border-[#8E1B1B] px-4 py-2 text-sm
-               text-[#8E1B1B] transition
-               hover:bg-[rgba(142,27,27,0.05)]
-               disabled:opacity-50"
-  >
-    {disabled ? "Adding…" : "Add to Cart"}
-  </button>
-);
+const container = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
 
-const QtyControls = ({ qty, onMinus, onPlus, disabled }) => (
-  <div className="inline-flex items-center overflow-hidden rounded-md border border-[rgba(142,27,27,0.35)] bg-white text-sm font-semibold">
-    <button
-      type="button"
-      onClick={onMinus}
-      disabled={disabled}
-      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
-      aria-label="Decrease quantity"
-    >
-      -
-    </button>
-    <span className="min-w-[32px] text-center">{qty}</span>
-    <button
-      type="button"
-      onClick={onPlus}
-      disabled={disabled}
-      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
-      aria-label="Increase quantity"
-    >
-      +
-    </button>
-  </div>
-);
+function useInterval(callback, delay) {
+  const saved = useRef(callback);
+  useEffect(() => {
+    saved.current = callback;
+  }, [callback]);
+  useEffect(() => {
+    if (delay == null) return;
+    const id = setInterval(() => saved.current(), delay);
+    return () => clearInterval(id);
+  }, [delay]);
+}
 
-/* ---------------- Product Card ------------------------- */
-const ProductCard = ({ product, qty, onAdd, onMinus, updating }) => {
+function cn(...xs) {
+  return xs.filter(Boolean).join(" ");
+}
+
+/* --------------------- UI Pieces ---------------------- */
+function PrimaryButton({ as: As = "button", className = "", ...props }) {
+  return (
+    <As
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-xl bg-[#8E1B1B] px-5 py-3 text-sm font-semibold text-white shadow-sm",
+        "hover:bg-[#741616] focus:outline-none focus:ring-4 focus:ring-[rgba(142,27,27,0.18)]",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function SecondaryButton({ as: As = "button", className = "", ...props }) {
+  return (
+    <As
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-[#1F1B16] shadow-sm",
+        "hover:bg-[#F8FAFC] focus:outline-none focus:ring-4 focus:ring-black/5",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function SectionHeading({ eyebrow, title, subtitle, align = "left" }) {
+  return (
+    <div className={cn("mb-8", align === "center" && "text-center")}>
+      {eyebrow && (
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8E1B1B]">
+          {eyebrow}
+        </p>
+      )}
+      <h2 className="mt-2 text-3xl sm:text-4xl text-[#0F172A]">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="mt-3 text-sm sm:text-base text-[#475569]">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TrustBadges() {
+  const badges = [
+    { icon: <ShieldCheck className="h-5 w-5" />, title: "Hygienic Packing", desc: "Sealed & quality-checked" },
+    { icon: <Truck className="h-5 w-5" />, title: "Fast Delivery", desc: "Pan-India shipping" },
+    { icon: <BadgeCheck className="h-5 w-5" />, title: "Trusted Recipes", desc: "Home-style taste" },
+    { icon: <Leaf className="h-5 w-5" />, title: "Small Batch", desc: "Freshly prepared" },
+  ];
+
+  return (
+    <section className="bg-white border-y border-black/5">
+      <div className={cn(container, "py-8")}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {badges.map((b) => (
+            <div
+              key={b.title}
+              className="flex items-start gap-3 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"
+            >
+              <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#8E1B1B] border border-black/5">
+                {b.icon}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#0F172A]">{b.title}</p>
+                <p className="mt-0.5 text-xs text-[#64748B]">{b.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HeroCarousel() {
   const navigate = useNavigate();
+  const slides = useMemo(
+    () => [
+      {
+        id: "s1",
+        image: hero1,
+        eyebrow: "Premium Homemade Snacks",
+        title: "Taste Bihar, delivered fresh.",
+        subtitle: "Small-batch flavours crafted with care — perfect for gifting, daily cravings, and festivals.",
+        cta: { label: "Shop Bestsellers", to: "/product?q=bestseller" },
+        secondary: { label: "Explore Products", to: "/product" },
+      },
+      {
+        id: "s2",
+        image: hero2,
+        eyebrow: "Authentic • Hygienic • Fast",
+        title: "Crunchy classics. Honest ingredients.",
+        subtitle: "From sattu to snacks — pantry staples made the traditional way.",
+        cta: { label: "Shop Snacks", to: "/product?q=snack" },
+        secondary: { label: "View Cart", to: "/cart" },
+      },
+      {
+        id: "s3",
+        image: hero3,
+        eyebrow: "Gift-ready combos",
+        title: "Curated packs for every mood.",
+        subtitle: "Try our combos and discover your new favourites — great value, great taste.",
+        cta: { label: "Shop Combos", to: "/product?q=combo" },
+        secondary: { label: "Browse All", to: "/product" },
+      },
+    ],
+    []
+  );
 
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useInterval(
+    () => setIdx((i) => (i + 1) % slides.length),
+    paused ? null : 6000
+  );
+
+  const prev = () => setIdx((i) => (i - 1 + slides.length) % slides.length);
+  const next = () => setIdx((i) => (i + 1) % slides.length);
+
+  return (
+    <section
+      className="relative w-full overflow-hidden bg-[#0B1220]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      aria-roledescription="carousel"
+      aria-label="Homepage hero"
+    >
+      <div className="absolute inset-0">
+        <img
+          src={slides[idx].image}
+          alt=""
+          className="h-full w-full object-cover opacity-60"
+          draggable="false"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/20" />
+      </div>
+
+      <div className={cn(container, "relative py-14 sm:py-20 lg:py-24")}>
+        <div className="max-w-2xl">
+          <motion.p
+            key={`${slides[idx].id}-eyebrow`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80"
+          >
+            {slides[idx].eyebrow}
+          </motion.p>
+
+          <motion.h1
+            key={`${slides[idx].id}-title`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            className="mt-3 text-4xl sm:text-5xl lg:text-6xl text-white"
+          >
+            {slides[idx].title}
+          </motion.h1>
+
+          <motion.p
+            key={`${slides[idx].id}-subtitle`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
+            className="mt-4 text-sm sm:text-base text-white/80 leading-relaxed"
+          >
+            {slides[idx].subtitle}
+          </motion.p>
+
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <PrimaryButton as={Link} to={slides[idx].cta.to}>
+              {slides[idx].cta.label} <ArrowRight className="h-4 w-4" />
+            </PrimaryButton>
+            <SecondaryButton as={Link} to={slides[idx].secondary.to}>
+              {slides[idx].secondary.label}
+            </SecondaryButton>
+          </div>
+
+          <div className="mt-10 flex items-center gap-3">
+            <div className="flex items-center gap-1 text-[#FDE68A]" aria-label="Rating 5 out of 5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-current" />
+              ))}
+            </div>
+            <p className="text-xs text-white/70">Loved by families across India</p>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 items-center justify-between lg:flex">
+          <button
+            type="button"
+            onClick={prev}
+            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/15"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/15"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Dots */}
+        <div className="mt-10 flex items-center gap-2">
+          {slides.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setIdx(i)}
+              className={cn(
+                "h-2.5 rounded-full transition-all",
+                i === idx ? "w-10 bg-white" : "w-2.5 bg-white/40 hover:bg-white/60"
+              )}
+              aria-label={`Go to slide ${i + 1}`}
+              aria-current={i === idx ? "true" : "false"}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Quick actions (mobile) */}
+      <div className={cn(container, "relative -mt-10 pb-10")}>
+        <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur sm:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => navigate("/product?q=sattu")}
+            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
+          >
+            <p className="text-sm font-semibold">Sattu</p>
+            <p className="mt-1 text-xs text-white/70">Protein-packed staple</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/product?q=pickle")}
+            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
+          >
+            <p className="text-sm font-semibold">Pickles</p>
+            <p className="mt-1 text-xs text-white/70">Bold, traditional taste</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/product?q=snack")}
+            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
+          >
+            <p className="text-sm font-semibold">Snacks</p>
+            <p className="mt-1 text-xs text-white/70">Crunchy favourites</p>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CategoryCards() {
+  const navigate = useNavigate();
+  const categories = [
+    { title: "Everyday Snacks", desc: "Crunchy, fresh & addictive.", icon: <Sparkles className="h-5 w-5" />, q: "snack" },
+    { title: "Sattu & Staples", desc: "Protein-rich traditional pantry.", icon: <Leaf className="h-5 w-5" />, q: "sattu" },
+    { title: "Gift Packs", desc: "Curated combos for festivals.", icon: <Gift className="h-5 w-5" />, q: "combo" },
+    { title: "Best Sellers", desc: "Our most-loved picks.", icon: <BadgeCheck className="h-5 w-5" />, q: "bestseller" },
+  ];
+
+  return (
+    <section className="bg-[#F8FAFC]">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <SectionHeading
+          eyebrow="Shop by category"
+          title="Find your next favourite"
+          subtitle="Browse quick categories to explore what you love — from snacks to gift-ready combos."
+          align="center"
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {categories.map((c) => (
+            <button
+              key={c.title}
+              type="button"
+              onClick={() => navigate(`/product?q=${encodeURIComponent(c.q)}`)}
+              className="group rounded-3xl border border-black/5 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-base font-semibold text-[#0F172A]">{c.title}</p>
+                  <p className="mt-1 text-sm text-[#64748B]">{c.desc}</p>
+                </div>
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F8FAFC] text-[#8E1B1B] border border-black/5 group-hover:bg-white">
+                  {c.icon}
+                </span>
+              </div>
+              <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#8E1B1B]">
+                Explore <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function QtyPill({ qty, onMinus, onPlus, disabled }) {
+  return (
+    <div className="inline-flex items-center overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
+      <button
+        type="button"
+        onClick={onMinus}
+        disabled={disabled}
+        className="inline-flex h-10 w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
+        aria-label="Decrease quantity"
+      >
+        <Minus className="h-4 w-4" />
+      </button>
+      <span className="min-w-[40px] text-center text-sm font-semibold text-[#0F172A]">
+        {qty}
+      </span>
+      <button
+        type="button"
+        onClick={onPlus}
+        disabled={disabled}
+        className="inline-flex h-10 w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
+        aria-label="Increase quantity"
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function ProductTile({ product, qty, updating, onAdd, onMinus }) {
+  const navigate = useNavigate();
   const img =
-    Array.isArray(product.photos) && product.photos.length > 0
-      ? product.photos[0]
-      : product.photo || "https://placehold.co/1200x800/EEE/AAA?text=No+Image";
-
-  const openProductPage = () => {
-    navigate(`/product/${product._id}`);
-  };
+    product?.photos?.[0] ||
+    product?.photo ||
+    "https://placehold.co/900x900/EEE/AAA?text=No+Image";
 
   return (
     <article
-      onClick={openProductPage}
-      className="flex cursor-pointer flex-col rounded-lg
-                 border border-[rgba(142,27,27,0.25)]
-                 bg-white p-4 transition
-                 hover:shadow-md"
+      className="group rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      onClick={() => navigate(`/product/${product._id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && navigate(`/product/${product._id}`)}
+      aria-label={`View ${product.name}`}
     >
-      <div className="rounded-md bg-white border border-[rgba(142,27,27,0.12)] overflow-hidden">
-        <img
-          src={img}
-          alt={product.name}
-          className="h-40 w-full object-contain"
-          loading="lazy"
-        />
+      <div className="relative overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
+        <div className="aspect-square w-full">
+          <img src={img} alt={product.name} className="h-full w-full object-contain p-4" />
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col pt-3">
-        <h3 className="text-lg font-semibold text-[#1F1B16]">
-          {product.name}
-        </h3>
+      <div className="mt-4">
+        <p className="text-sm font-semibold text-[#0F172A] line-clamp-1">{product.name}</p>
+        <p className="mt-1 text-xs text-[#64748B] line-clamp-2">{product.desc}</p>
 
-        <p className="mt-1 flex-grow text-sm text-[#6F675E] line-clamp-2">
-          {product.desc}
-        </p>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <p className="text-base font-semibold text-[#8E1B1B]">₹{product.price}</p>
 
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <span className="text-lg font-semibold text-[#8E1B1B]">
-            ₹{product.price}
-          </span>
-
-          {/* Prevent navigation when clicking Add to Cart */}
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
+          <div onClick={(e) => e.stopPropagation()}>
             {qty > 0 ? (
-              <QtyControls
+              <QtyPill
                 qty={qty}
                 disabled={updating === product._id}
                 onMinus={onMinus}
                 onPlus={onAdd}
               />
             ) : (
-              <AddToCartButton
-                productId={product._id}
-                onAdd={onAdd}
+              <button
+                type="button"
+                onClick={onAdd}
                 disabled={updating === product._id}
-              />
+                className="inline-flex items-center gap-2 rounded-xl bg-[#8E1B1B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#741616] disabled:opacity-50"
+              >
+                Add <Plus className="h-4 w-4" />
+              </button>
             )}
           </div>
         </div>
       </div>
     </article>
   );
-};
+}
 
-const FloatingQuote = () => {
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className="bg-[#F8FAFC] px-6 py-20"
-    >
-      <div className="mx-auto max-w-4xl text-center">
-        <p
-          className="font-[var(--font-heading)]
-                     text-3xl sm:text-4xl
-                     text-[#1F1B16]
-                     leading-relaxed"
-        >
-          “Flavours aren’t rushed.
-          <span className="block text-[#8E1B1B] mt-2">
-            They are remembered.”
-          </span>
-        </p>
-
-        <p className="mt-6 text-sm text-[#6F675E] italic">
-          — Inspired by Bihar’s home kitchens
-        </p>
-      </div>
-    </motion.section>
-  );
-};
-
-const ScrollHighlights = () => {
-  const items = [
-    "Small-batch preparation",
-    "Traditional recipes passed down generations",
-    "No shortcuts. No dilution.",
-  ];
+function BestSellers({ products, loading, error, cartItemsByProductId, updating, onAdd, onMinus }) {
+  const best = useMemo(() => (products || []).slice(0, 8), [products]);
 
   return (
-    <section className="bg-[#F8FAFC] px-6 pb-20">
-      <div className="mx-auto max-w-5xl grid gap-8 sm:grid-cols-3 text-center">
-        {items.map((text, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.15 }}
-            className="rounded-xl border
-                       border-[rgba(142,27,27,0.2)]
-                       bg-white/60 p-6"
-          >
-            <p className="text-sm text-[#1F1B16]">{text}</p>
-          </motion.div>
-        ))}
+    <section className="bg-white border-y border-black/5">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <div className="flex items-end justify-between gap-4">
+          <SectionHeading
+            eyebrow="Bestsellers"
+            title="Most-loved favourites"
+            subtitle="Freshly prepared, packed with care — discover what customers reorder the most."
+          />
+          <SecondaryButton as={Link} to="/product" className="hidden sm:inline-flex">
+            View all <ArrowRight className="h-4 w-4" />
+          </SecondaryButton>
+        </div>
+
+        {loading && <p className="text-sm text-[#64748B]">Loading…</p>}
+        {error && <p className="text-sm text-[#8E1B1B]">{error}</p>}
+
+        {!loading && !error && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {best.map((p) => {
+              const qty = cartItemsByProductId?.get(String(p._id)) || 0;
+              return (
+                <ProductTile
+                  key={p._id}
+                  product={p}
+                  qty={qty}
+                  updating={updating}
+                  onAdd={() => onAdd(p._id)}
+                  onMinus={() => onMinus(p._id, qty)}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-10 sm:hidden">
+          <SecondaryButton as={Link} to="/product" className="w-full">
+            View all <ArrowRight className="h-4 w-4" />
+          </SecondaryButton>
+        </div>
       </div>
     </section>
   );
-};
+}
+
+function CombosSection() {
+  const navigate = useNavigate();
+  const combos = [
+    {
+      title: "Starter Combo",
+      desc: "A balanced mix for first-time buyers.",
+      points: ["Best for gifting", "Great value", "Customer favourites"],
+      tag: "Popular",
+      q: "combo starter",
+    },
+    {
+      title: "Snack Lover Pack",
+      desc: "Crunchy assortment for daily cravings.",
+      points: ["Perfect with chai", "Family-size", "Fresh batch"],
+      tag: "New",
+      q: "combo snack",
+    },
+    {
+      title: "Protein Pantry",
+      desc: "Staples focused on energy & nutrition.",
+      points: ["Sattu-first", "Traditional prep", "High satiety"],
+      tag: "Value",
+      q: "sattu combo",
+    },
+  ];
+
+  return (
+    <section className="bg-[#F8FAFC]">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <SectionHeading
+          eyebrow="Combos"
+          title="Curated packs, premium value"
+          subtitle="Try combo packs built for taste, gifting, and everyday pantry essentials."
+          align="center"
+        />
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          {combos.map((c) => (
+            <div
+              key={c.title}
+              className="relative overflow-hidden rounded-3xl border border-black/5 bg-white p-6 shadow-sm"
+            >
+              <div className="absolute right-4 top-4 rounded-full bg-[#F8FAFC] px-3 py-1 text-[11px] font-semibold text-[#8E1B1B] border border-black/5">
+                {c.tag}
+              </div>
+
+              <p className="text-lg font-semibold text-[#0F172A]">{c.title}</p>
+              <p className="mt-2 text-sm text-[#64748B]">{c.desc}</p>
+
+              <ul className="mt-5 space-y-2 text-sm text-[#334155]">
+                {c.points.map((p) => (
+                  <li key={p} className="flex items-center gap-2">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#F8FAFC] border border-black/5 text-[#8E1B1B]">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 flex items-center justify-between gap-3">
+                <SecondaryButton
+                  type="button"
+                  onClick={() => navigate(`/product?q=${encodeURIComponent(c.q)}`)}
+                >
+                  Explore
+                </SecondaryButton>
+                <PrimaryButton
+                  type="button"
+                  onClick={() => navigate(`/product?q=${encodeURIComponent(c.q)}`)}
+                >
+                  Shop combo <ArrowRight className="h-4 w-4" />
+                </PrimaryButton>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BrandStory() {
+  return (
+    <section className="bg-white border-y border-black/5">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div>
+            <SectionHeading
+              eyebrow="Our story"
+              title="Food that feels like home."
+              subtitle="We preserve recipes shaped by seasons, festivals, and everyday hunger — prepared patiently, packed hygienically, delivered with care."
+            />
+
+            <div className="space-y-4 text-sm text-[#475569] leading-relaxed">
+              <p>
+                At Bihari Flavours, we build for consistency — that first bite that tastes the same every time,
+                because the process doesn’t change: small batches, honest ingredients, and attention to detail.
+              </p>
+              <p>
+                Whether you’re ordering for your home, gifting to family, or stocking your pantry, we want the experience to feel premium — from taste to packaging.
+              </p>
+            </div>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <PrimaryButton as={Link} to="/product">
+                Shop now <ArrowRight className="h-4 w-4" />
+              </PrimaryButton>
+              <SecondaryButton as={Link} to="/privacy-policy">
+                Learn more
+              </SecondaryButton>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-[#0B1220] shadow-sm">
+            <img src={hero1} alt="" className="h-full w-full object-cover opacity-70" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <p className="text-white text-lg">“Flavours aren’t rushed. They are remembered.”</p>
+              <p className="mt-2 text-white/70 text-sm">Inspired by Bihar’s home kitchens</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ReviewsSection() {
+  const reviews = [
+    { name: "Aditi", city: "Bengaluru", text: "Packaging was premium and the taste felt truly homemade. Reordered within a week.", rating: 5 },
+    { name: "Rohit", city: "Delhi", text: "Fast delivery and the flavours are spot on. Great for gifting too.", rating: 5 },
+    { name: "Neha", city: "Mumbai", text: "Loved the consistency and freshness. The combo packs are great value.", rating: 5 },
+  ];
+
+  return (
+    <section className="bg-[#F8FAFC]">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <SectionHeading
+          eyebrow="Reviews"
+          title="Loved by customers"
+          subtitle="Real words from people who reorder for taste, freshness, and trust."
+          align="center"
+        />
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          {reviews.map((r) => (
+            <div key={r.name} className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-[#0F172A]">{r.name}</p>
+                  <p className="text-xs text-[#64748B]">{r.city}</p>
+                </div>
+                <div className="flex items-center gap-1 text-[#F59E0B]" aria-label={`Rating ${r.rating} out of 5`}>
+                  {Array.from({ length: r.rating }).map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-[#475569] leading-relaxed">{r.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQAccordion() {
+  const faqs = [
+    { q: "Do you deliver across India?", a: "Yes, we ship pan-India with hygienic packing and careful handling." },
+    { q: "How do you ensure freshness?", a: "We prepare in small batches and pack in sealed, quality-checked packaging." },
+    { q: "Do you support COD and Online payment?", a: "Yes, COD and Online are supported depending on your location/pincode." },
+    { q: "How can I track my order?", a: "After placing an order, you can view status updates in the Orders section." },
+  ];
+
+  const [openIdx, setOpenIdx] = useState(0);
+
+  return (
+    <section className="bg-white border-y border-black/5">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Quick answers"
+          subtitle="Everything you need to know about ordering, delivery, and quality."
+        />
+
+        <div className="space-y-3">
+          {faqs.map((f, i) => {
+            const open = i === openIdx;
+            const panelId = `faq-panel-${i}`;
+            const buttonId = `faq-button-${i}`;
+
+            return (
+              <div key={f.q} className="rounded-2xl border border-black/5 bg-[#F8FAFC] overflow-hidden">
+                <button
+                  id={buttonId}
+                  type="button"
+                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                  aria-expanded={open}
+                  aria-controls={panelId}
+                  onClick={() => setOpenIdx(open ? -1 : i)}
+                >
+                  <span className="text-sm font-semibold text-[#0F172A]">{f.q}</span>
+                  <ChevronDown className={cn("h-5 w-5 text-[#64748B] transition", open && "rotate-180")} />
+                </button>
+
+                <div
+                  id={panelId}
+                  role="region"
+                  aria-labelledby={buttonId}
+                  className={cn("px-5 pb-5 text-sm text-[#475569] leading-relaxed", !open && "hidden")}
+                >
+                  {f.a}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InstagramGrid() {
+  const cells = Array.from({ length: 8 });
+
+  return (
+    <section className="bg-[#F8FAFC]">
+      <div className={cn(container, "py-14 sm:py-16")}>
+        <div className="flex items-end justify-between gap-4">
+          <SectionHeading
+            eyebrow="Instagram"
+            title="See it styled"
+            subtitle="A quick preview of our community photos. (Placeholder)"
+          />
+          <SecondaryButton as="a" href="#" onClick={(e) => e.preventDefault()} className="hidden sm:inline-flex">
+            Follow us
+          </SecondaryButton>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {cells.map((_, i) => (
+            <div
+              key={i}
+              className="aspect-square rounded-2xl border border-black/5 bg-white shadow-sm overflow-hidden"
+            >
+              <div className="h-full w-full bg-gradient-to-br from-[#F8FAFC] to-white" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /* ------------------------- HOME ------------------------ */
-const Dashboard = () => {
-  const { scrollYProgress } = useScroll();
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
+export default function Dashboard() {
   const navigate = useNavigate();
-
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(null);
@@ -201,7 +762,6 @@ const Dashboard = () => {
         setLoading(true);
         const res = await api.get("/products");
         if (!res.data.success) throw new Error("Failed to fetch products");
-
         setItems(res.data.products || []);
         setError("");
       } catch (err) {
@@ -252,118 +812,52 @@ const Dashboard = () => {
   };
 
   return (
-    <>
-      {/* HERO */}
-      <motion.section
-        className="relative bg-[#F8FAFC]
-                   border-b border-[rgba(142,27,27,0.25)]"
-      >
-        <div className="mx-auto max-w-7xl px-6 pt-32 pb-20">
-          <motion.div
-            style={{ y: contentY }}
-            className="grid items-center gap-14 lg:grid-cols-2"
-          >
-            {/* LEFT */}
-            <div className="text-center lg:text-left">
-              <h1 className="mb-6 text-6xl lg:text-7xl font-semibold text-[#1F1B16]">
-                Bihari
-                <span className="block text-[#8E1B1B]">Flavours</span>
-              </h1>
+    <main className="bg-[#F8FAFC]">
+      <HeroCarousel />
+      <TrustBadges />
+      <CategoryCards />
+      <BestSellers
+        products={items}
+        loading={loading}
+        error={error}
+        cartItemsByProductId={cartItemsByProductId}
+        updating={updating}
+        onAdd={handleAddToCart}
+        onMinus={handleMinus}
+      />
+      <CombosSection />
+      <BrandStory />
+      <ReviewsSection />
+      <FAQAccordion />
+      <InstagramGrid />
 
-              <p className="mb-6 max-w-xl text-lg text-[#6F675E] lg:text-xl">
-                Food shaped by memory, patience, and the quiet confidence of
-                home kitchens across Bihar.
+      {/* Premium CTA strip (footer-like) */}
+      <section className="bg-white border-t border-black/5">
+        <div className={cn(container, "py-12")}>
+          <div className="grid gap-6 rounded-3xl border border-black/5 bg-[#F8FAFC] p-8 lg:grid-cols-2 lg:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8E1B1B]">
+                Premium experience
               </p>
-
-              <p className="mb-8 max-w-xl text-sm leading-relaxed text-[#6F675E]">
-                Our products are prepared in small batches using methods that
-                favour care over speed.
+              <h3 className="mt-2 text-2xl text-[#0F172A]">Ready to order?</h3>
+              <p className="mt-2 text-sm text-[#64748B]">
+                Explore our bestsellers, combos, and staples — prepared in small batches and delivered with care.
               </p>
-
-              <Link
-                to="/product"
-                className="inline-flex items-center gap-2
-                           rounded-md border border-[#8E1B1B]
-                           px-6 py-3 text-[#8E1B1B]
-                           hover:bg-[rgba(142,27,27,0.05)]"
-              >
-                Shop Now <ArrowRight className="h-4 w-4" />
-              </Link>
-
-              <div className="mt-10 space-y-4">
-                <div className="flex items-center gap-4 justify-center lg:justify-start">
-                  <div className="flex text-[#8E1B1B]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-[#6F675E] text-sm">
-                    Trusted by 50+ families across India
-                  </span>
-                </div>
-              </div>
             </div>
-
-            {/* RIGHT IMAGE */}
-            <div className="relative">
-              <img
-                src={hero}
-                alt="Bihari Flavours"
-                className="mx-auto
-                           h-[15rem] w-[25rem]
-                           sm:h-[20rem] sm:w-[35rem]
-                           lg:h-[20rem] lg:w-[35rem]
-                           rounded-2xl object-cover
-                           border border-[rgba(142,27,27,0.25)]"
-              />
+            <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
+              <SecondaryButton as={Link} to="/cart">
+                View cart
+              </SecondaryButton>
+              <PrimaryButton as={Link} to="/product">
+                Shop now <ArrowRight className="h-4 w-4" />
+              </PrimaryButton>
             </div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* ALL PRODUCTS (Home Grid) */}
-      <section
-        className="bg-[#F8FAFC] py-16 px-6
-                   border-t border-[rgba(142,27,27,0.25)]"
-      >
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-10 text-center text-3xl font-semibold text-[#1F1B16]">
-            All Products
-          </h2>
-
-          {loading && <p className="text-center">Loading…</p>}
-          {error && <p className="text-center text-[#8E1B1B]">{error}</p>}
-
-          {!loading && !error && (
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {items.map((product) => (
-                (() => {
-                  const qty = cartItemsByProductId?.get(String(product._id)) || 0;
-                  return (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  qty={qty}
-                  updating={updating}
-                  onAdd={() => handleAddToCart(product._id)}
-                  onMinus={() => handleMinus(product._id, qty)}
-                />
-                  );
-                })()
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       </section>
-
-      {/* ✅ Quote & Highlights AFTER products */}
-      <FloatingQuote />
-      <ScrollHighlights />
-    </>
+    </main>
   );
-};
-
-export default Dashboard;
+}
 
 
 
