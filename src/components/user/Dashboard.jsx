@@ -1,9 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
   ShieldCheck,
   Truck,
   BadgeCheck,
@@ -19,10 +16,9 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../api/axios";
 import hero1 from "../../assets/hero.jpg";
-import hero2 from "../../assets/hero.png";
-import hero3 from "../../assets/code.jpg";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
+import HeroSwiper from "./home/HeroSwiper";
 
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
@@ -32,18 +28,6 @@ const logoutUser = () => {
 };
 
 const container = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
-
-function useInterval(callback, delay) {
-  const saved = useRef(callback);
-  useEffect(() => {
-    saved.current = callback;
-  }, [callback]);
-  useEffect(() => {
-    if (delay == null) return;
-    const id = setInterval(() => saved.current(), delay);
-    return () => clearInterval(id);
-  }, [delay]);
-}
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -122,192 +106,6 @@ function TrustBadges() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HeroCarousel() {
-  const navigate = useNavigate();
-  const slides = useMemo(
-    () => [
-      {
-        id: "s1",
-        image: hero1,
-        eyebrow: "Premium Homemade Snacks",
-        title: "Taste Bihar, delivered fresh.",
-        subtitle: "Small-batch flavours crafted with care — perfect for gifting, daily cravings, and festivals.",
-        cta: { label: "Shop Bestsellers", to: "/product?q=bestseller" },
-        secondary: { label: "Explore Products", to: "/product" },
-      },
-      {
-        id: "s2",
-        image: hero2,
-        eyebrow: "Authentic • Hygienic • Fast",
-        title: "Crunchy classics. Honest ingredients.",
-        subtitle: "From sattu to snacks — pantry staples made the traditional way.",
-        cta: { label: "Shop Snacks", to: "/product?q=snack" },
-        secondary: { label: "View Cart", to: "/cart" },
-      },
-      {
-        id: "s3",
-        image: hero3,
-        eyebrow: "Gift-ready combos",
-        title: "Curated packs for every mood.",
-        subtitle: "Try our combos and discover your new favourites — great value, great taste.",
-        cta: { label: "Shop Combos", to: "/product?q=combo" },
-        secondary: { label: "Browse All", to: "/product" },
-      },
-    ],
-    []
-  );
-
-  const [idx, setIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  useInterval(
-    () => setIdx((i) => (i + 1) % slides.length),
-    paused ? null : 6000
-  );
-
-  const prev = () => setIdx((i) => (i - 1 + slides.length) % slides.length);
-  const next = () => setIdx((i) => (i + 1) % slides.length);
-
-  return (
-    <section
-      className="relative w-full overflow-hidden bg-[#0B1220]"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      aria-roledescription="carousel"
-      aria-label="Homepage hero"
-    >
-      <div className="absolute inset-0">
-        <img
-          src={slides[idx].image}
-          alt=""
-          className="h-full w-full object-cover opacity-60"
-          draggable="false"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/20" />
-      </div>
-
-      <div className={cn(container, "relative py-14 sm:py-20 lg:py-24")}>
-        <div className="max-w-2xl">
-          <motion.p
-            key={`${slides[idx].id}-eyebrow`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80"
-          >
-            {slides[idx].eyebrow}
-          </motion.p>
-
-          <motion.h1
-            key={`${slides[idx].id}-title`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="mt-3 text-4xl sm:text-5xl lg:text-6xl text-white"
-          >
-            {slides[idx].title}
-          </motion.h1>
-
-          <motion.p
-            key={`${slides[idx].id}-subtitle`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55 }}
-            className="mt-4 text-sm sm:text-base text-white/80 leading-relaxed"
-          >
-            {slides[idx].subtitle}
-          </motion.p>
-
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <PrimaryButton as={Link} to={slides[idx].cta.to}>
-              {slides[idx].cta.label} <ArrowRight className="h-4 w-4" />
-            </PrimaryButton>
-            <SecondaryButton as={Link} to={slides[idx].secondary.to}>
-              {slides[idx].secondary.label}
-            </SecondaryButton>
-          </div>
-
-          <div className="mt-10 flex items-center gap-3">
-            <div className="flex items-center gap-1 text-[#FDE68A]" aria-label="Rating 5 out of 5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-current" />
-              ))}
-            </div>
-            <p className="text-xs text-white/70">Loved by families across India</p>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 items-center justify-between lg:flex">
-          <button
-            type="button"
-            onClick={prev}
-            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/15"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={next}
-            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/15"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Dots */}
-        <div className="mt-10 flex items-center gap-2">
-          {slides.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setIdx(i)}
-              className={cn(
-                "h-2.5 rounded-full transition-all",
-                i === idx ? "w-10 bg-white" : "w-2.5 bg-white/40 hover:bg-white/60"
-              )}
-              aria-label={`Go to slide ${i + 1}`}
-              aria-current={i === idx ? "true" : "false"}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Quick actions (mobile) */}
-      <div className={cn(container, "relative -mt-10 pb-10")}>
-        <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur sm:grid-cols-3">
-          <button
-            type="button"
-            onClick={() => navigate("/product?q=sattu")}
-            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
-          >
-            <p className="text-sm font-semibold">Sattu</p>
-            <p className="mt-1 text-xs text-white/70">Protein-packed staple</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/product?q=pickle")}
-            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
-          >
-            <p className="text-sm font-semibold">Pickles</p>
-            <p className="mt-1 text-xs text-white/70">Bold, traditional taste</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/product?q=snack")}
-            className="rounded-2xl bg-white/10 px-4 py-3 text-left text-white hover:bg-white/15"
-          >
-            <p className="text-sm font-semibold">Snacks</p>
-            <p className="mt-1 text-xs text-white/70">Crunchy favourites</p>
-          </button>
         </div>
       </div>
     </section>
@@ -813,7 +611,7 @@ export default function Dashboard() {
 
   return (
     <main className="bg-[#F8FAFC]">
-      <HeroCarousel />
+      <HeroSwiper />
       <TrustBadges />
       <CategoryCards />
       <BestSellers
