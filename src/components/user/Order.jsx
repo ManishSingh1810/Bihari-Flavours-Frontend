@@ -235,32 +235,48 @@ const Order = () => {
     try {
       setLoading(true);
 
-      // Active orders (pending/shipped/etc.)
-      const activeRes = await api.get('/orders/my-orders');
-      const activeOrders = activeRes?.data?.success ? (activeRes.data.orders || []) : [];
+      // Different backends separate "active" vs "history" or filter out ONLINE.
+      // Try multiple variants and merge everything we can get.
+      const candidatePaths = [
+        // base
+        "/orders/my-orders",
 
-      // Some backends move Delivered/Cancelled to a history endpoint.
-      // Try a few common paths silently (no global toast if missing).
-      const historyPaths = [
+        // include flags (safe even if ignored server-side)
+        "/orders/my-orders?includeDelivered=true",
+        "/orders/my-orders?includeHistory=true",
+        "/orders/my-orders?includeAll=true",
+        "/orders/my-orders?all=true",
+        "/orders/my-orders?includeDelivered=true&includeAll=true",
+        "/orders/my-orders?includeOnline=true",
+        "/orders/my-orders?paymentMethod=all",
+        "/orders/my-orders?paymentStatus=all",
+
+        // dedicated history endpoints
         "/orders/my-orders/history",
         "/orders/my-history",
-        "/orders/my-orders?includeDelivered=true",
       ];
 
-      const historyResults = [];
-      for (const path of historyPaths) {
+      const merged = [];
+      let gotAny = false;
+      for (const path of candidatePaths) {
         try {
           const r = await api.get(path, { skipErrorToast: true });
           if (r?.data?.success && Array.isArray(r.data.orders)) {
-            historyResults.push(...r.data.orders);
-            break; // stop after first working endpoint
+            merged.push(...r.data.orders);
+            gotAny = true;
           }
         } catch {
-          // ignore
+          // ignore missing endpoints
         }
       }
 
-      const merged = [...activeOrders, ...historyResults];
+      // If everything failed, fall back to the original call (and show an error).
+      if (!gotAny) {
+        const res = await api.get("/orders/my-orders");
+        if (res?.data?.success) merged.push(...(res.data.orders || []));
+        else throw new Error("Failed to fetch orders");
+      }
+
       const dedup = new Map();
       for (const o of merged) {
         const key = String(o?.orderId || o?._id || Math.random());
@@ -273,11 +289,7 @@ const Order = () => {
         return bd - ad;
       });
 
-      if (activeRes?.data?.success) {
-        setOrders(sorted);
-      } else {
-        setError('Failed to fetch orders');
-      }
+      setOrders(sorted);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch orders');
     } finally {
@@ -339,4 +351,5 @@ const Order = () => {
   );
 };
 
+export default Order;
 export default Order;
