@@ -142,12 +142,7 @@ const Checkout = ({ cart, setShowCheckout }) => {
       showActionToast({
         title: "Coupon applied",
         message: `Code ${res.data.coupon.code} (${res.data.coupon.discountPercentage}% off)`,
-        actionLabel: "View cart",
-        onAction: () => {
-          setShowCheckout(false);
-          navigate("/cart");
-        },
-        duration: 4500,
+        duration: 3500,
       });
 
     } catch (err) {
