@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
-import { showActionToast } from "../ui/showActionToast";
+import { showActionToast } from "../ui/showActionToast.jsx";
 
 /* ================= LOGOUT ================= */
 const logoutUser = () => {

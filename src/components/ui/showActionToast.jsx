@@ -1,3 +1,4 @@
+import React from "react";
 import toast from "react-hot-toast";
 
 export function showActionToast({
@@ -27,7 +28,7 @@ export function showActionToast({
               </p>
             )}
 
-            {(actionLabel && onAction) && (
+            {actionLabel && onAction && (
               <button
                 type="button"
                 onClick={() => {
