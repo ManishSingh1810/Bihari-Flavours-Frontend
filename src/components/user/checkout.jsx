@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import {
   CreditCard,
   Truck,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
+import { showActionToast } from "../ui/showActionToast";
 
 /* ================= LOGOUT ================= */
 const logoutUser = () => {
@@ -33,6 +35,7 @@ const loadRazorpayScript = () =>
 
 const Checkout = ({ cart, setShowCheckout }) => {
   const savedUser = JSON.parse(localStorage.getItem("user")) || {};
+  const navigate = useNavigate();
 
   /* ================= STATE ================= */
   const [loading, setLoading] = useState(false);
@@ -136,9 +139,16 @@ const Checkout = ({ cart, setShowCheckout }) => {
 
       // if (!res.data.success) throw new Error(res.data.message);
       // setCouponApplied(res.data.coupon);
-toast.success(
-  `Coupon ${res.data.coupon.code} applied (${res.data.coupon.discountPercentage}% off)`
-);
+      showActionToast({
+        title: "Coupon applied",
+        message: `Code ${res.data.coupon.code} (${res.data.coupon.discountPercentage}% off)`,
+        actionLabel: "View cart",
+        onAction: () => {
+          setShowCheckout(false);
+          navigate("/cart");
+        },
+        duration: 4500,
+      });
 
     } catch (err) {
       const msg = err.response?.data?.message || "Invalid coupon";
@@ -171,12 +181,21 @@ toast.error(msg);
         contact: savedUser.phone || ""
       },
       handler: () => {
-  toast.success("Payment successful");
+        showActionToast({
+          title: "Payment successful",
+          message: "Your order is confirmed. You can track it in Order History.",
+          actionLabel: "View order",
+          onAction: () => {
+            setShowCheckout(false);
+            navigate("/order");
+          },
+          duration: 5000,
+        });
 
-  setTimeout(() => {
-    setShowCheckout(false);
-    window.location.href = "/orders";
-  }, 600);
+        setTimeout(() => {
+          setShowCheckout(false);
+          navigate("/order");
+        }, 800);
 },
       modal: {
         ondismiss: () => setLoading(false)
@@ -213,12 +232,21 @@ toast.error(msg);
       const res = await api.post("/orders/create", orderPayload);
 
       if (paymentMethod === "COD") {
-  toast.success("Order placed successfully");
+        showActionToast({
+          title: "Order placed",
+          message: "Thanks! Your order was placed successfully.",
+          actionLabel: "View order",
+          onAction: () => {
+            setShowCheckout(false);
+            navigate("/order");
+          },
+          duration: 5000,
+        });
 
-  setTimeout(() => {
-    setShowCheckout(false);
-    window.location.href = "/orders";
-  }, 600);
+        setTimeout(() => {
+          setShowCheckout(false);
+          navigate("/order");
+        }, 800);
       } else {
         await handleRazorpayPayment(res.data);
       }
@@ -240,7 +268,7 @@ setLoading(false);
       className="fixed inset-0 bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
       style={{ zIndex: 100000 }}
     >
-      <div className="mx-auto mt-10 max-w-4xl rounded-xl bg-[#FAF7F2] p-6 relative">
+      <div className="mx-auto mt-10 max-w-4xl rounded-xl bg-white p-6 relative">
         <button
           onClick={() => setShowCheckout(false)}
           className="absolute top-4 right-4"
@@ -260,7 +288,7 @@ setLoading(false);
         >
           {/* LEFT */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 bg-[#F3EFE8] rounded-xl">
+            <div className="p-6 bg-[#F8FAFC] rounded-xl border border-black/10">
               <h2 className="font-semibold mb-4 flex items-center gap-2">
                 <Truck size={18} /> Shipping Address
               </h2>
@@ -317,7 +345,7 @@ setLoading(false);
             </div>
 
             {/* PAYMENT */}
-            <div className="p-6 bg-[#F3EFE8] rounded-xl">
+            <div className="p-6 bg-[#F8FAFC] rounded-xl border border-black/10">
               <h2 className="font-semibold mb-3 flex items-center gap-2">
                 <CreditCard size={18} /> Payment Method
               </h2>
@@ -343,7 +371,7 @@ setLoading(false);
           </div>
 
           {/* SUMMARY */}
-          <div className="p-6 bg-[#F3EFE8] rounded-xl h-fit">
+          <div className="p-6 bg-[#F8FAFC] rounded-xl border border-black/10 h-fit">
             <input
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value)}

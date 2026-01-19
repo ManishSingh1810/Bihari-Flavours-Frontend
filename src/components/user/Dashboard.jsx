@@ -5,6 +5,7 @@ import api from "../../api/axios";
 import hero from "../../assets/code.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useUser } from "../../Context/userContext";
 
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
@@ -27,8 +28,32 @@ const AddToCartButton = ({ productId, onAdd, disabled }) => (
   </button>
 );
 
+const QtyControls = ({ qty, onMinus, onPlus, disabled }) => (
+  <div className="inline-flex items-center overflow-hidden rounded-md border border-[rgba(142,27,27,0.35)] bg-white text-sm font-semibold">
+    <button
+      type="button"
+      onClick={onMinus}
+      disabled={disabled}
+      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
+      aria-label="Decrease quantity"
+    >
+      -
+    </button>
+    <span className="min-w-[32px] text-center">{qty}</span>
+    <button
+      type="button"
+      onClick={onPlus}
+      disabled={disabled}
+      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
+      aria-label="Increase quantity"
+    >
+      +
+    </button>
+  </div>
+);
+
 /* ---------------- Product Card ------------------------- */
-const ProductCard = ({ product, handleAddToCart, adding }) => {
+const ProductCard = ({ product, qty, onAdd, onMinus, updating }) => {
   const navigate = useNavigate();
 
   const img =
@@ -45,8 +70,8 @@ const ProductCard = ({ product, handleAddToCart, adding }) => {
       onClick={openProductPage}
       className="flex cursor-pointer flex-col rounded-lg
                  border border-[rgba(142,27,27,0.25)]
-                 bg-[#F3EFE8] p-4 transition
-                 hover:bg-[#FAF7F2]"
+                 bg-white p-4 transition
+                 hover:shadow-md"
     >
       <div className="rounded-md bg-white border border-[rgba(142,27,27,0.12)] overflow-hidden">
         <img
@@ -77,11 +102,20 @@ const ProductCard = ({ product, handleAddToCart, adding }) => {
               e.stopPropagation();
             }}
           >
-            <AddToCartButton
-              productId={product._id}
-              onAdd={handleAddToCart}
-              disabled={adding === product._id}
-            />
+            {qty > 0 ? (
+              <QtyControls
+                qty={qty}
+                disabled={updating === product._id}
+                onMinus={onMinus}
+                onPlus={onAdd}
+              />
+            ) : (
+              <AddToCartButton
+                productId={product._id}
+                onAdd={onAdd}
+                disabled={updating === product._id}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -96,7 +130,7 @@ const FloatingQuote = () => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="bg-[#FAF7F2] px-6 py-20"
+      className="bg-[#F8FAFC] px-6 py-20"
     >
       <div className="mx-auto max-w-4xl text-center">
         <p
@@ -127,7 +161,7 @@ const ScrollHighlights = () => {
   ];
 
   return (
-    <section className="bg-[#FAF7F2] px-6 pb-20">
+    <section className="bg-[#F8FAFC] px-6 pb-20">
       <div className="mx-auto max-w-5xl grid gap-8 sm:grid-cols-3 text-center">
         {items.map((text, i) => (
           <motion.div
@@ -155,8 +189,9 @@ const Dashboard = () => {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(null);
+  const [updating, setUpdating] = useState(null);
   const [error, setError] = useState("");
+  const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   useEffect(() => {
     async function loadProducts() {
@@ -179,17 +214,32 @@ const Dashboard = () => {
   }, []);
 
   const handleAddToCart = async (productId) => {
-    setAdding(productId);
+    setUpdating(productId);
     try {
-      const res = await api.post("/cart", { productId });
-      if (!res.data.success) throw new Error("Failed to add to cart");
+      const res = await addToCart(productId);
+      if (!res?.success) throw new Error("Failed to add to cart");
       toast.success("Added to cart");
     } catch (err) {
       const status = err?.response?.status;
       if (status === 401 || status === 403) return logoutUser();
       toast.error(err?.response?.data?.message || err.message);
     } finally {
-      setAdding(null);
+      setUpdating(null);
+    }
+  };
+
+  const handleMinus = async (productId, currentQty) => {
+    const nextQty = Math.max(0, (Number(currentQty) || 0) - 1);
+    setUpdating(productId);
+    try {
+      const res = await setCartQuantity(productId, nextQty);
+      if (!res?.success) throw new Error("Failed to update cart");
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) return logoutUser();
+      toast.error(err?.response?.data?.message || err.message);
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -197,7 +247,7 @@ const Dashboard = () => {
     <>
       {/* HERO */}
       <motion.section
-        className="relative bg-[#FAF7F2]
+        className="relative bg-[#F8FAFC]
                    border-b border-[rgba(142,27,27,0.25)]"
       >
         <div className="mx-auto max-w-7xl px-6 pt-32 pb-20">
@@ -265,7 +315,7 @@ const Dashboard = () => {
 
       {/* ALL PRODUCTS (Home Grid) */}
       <section
-        className="bg-[#F3EFE8] py-16 px-6
+        className="bg-[#F8FAFC] py-16 px-6
                    border-t border-[rgba(142,27,27,0.25)]"
       >
         <div className="mx-auto max-w-6xl">
@@ -279,12 +329,19 @@ const Dashboard = () => {
           {!loading && !error && (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {items.map((product) => (
+                (() => {
+                  const qty = cartItemsByProductId?.get(String(product._id)) || 0;
+                  return (
                 <ProductCard
                   key={product._id}
                   product={product}
-                  handleAddToCart={handleAddToCart}
-                  adding={adding}
+                  qty={qty}
+                  updating={updating}
+                  onAdd={() => handleAddToCart(product._id)}
+                  onMinus={() => handleMinus(product._id, qty)}
                 />
+                  );
+                })()
               ))}
             </div>
           )}

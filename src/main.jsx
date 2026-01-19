@@ -17,6 +17,7 @@ createRoot(document.getElementById('root')).render(
         <Toaster
           position="top"
           reverseOrder={false}
+          containerStyle={{ zIndex: 99999 }}
           toastOptions={{
             duration: 3000,
             style: {

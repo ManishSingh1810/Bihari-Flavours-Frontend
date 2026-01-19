@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from "react-dom";
 import {
   Trash2,
   Plus,
@@ -8,8 +9,8 @@ import {
   X,
   Loader,
 } from 'lucide-react';
-import api from '../../api/axios';
 import Checkout from './checkout';
+import { useUser } from "../../Context/userContext";
 
 /* ---------------- Logout Helper ---------------- */
 const logoutUser = () => {
@@ -22,24 +23,22 @@ const logoutUser = () => {
 const CustomModal = ({ isOpen, message, onConfirm, onClose }) => {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       onClick={onClose}
-      className="fixed inset-0 z-40 flex items-center justify-center
+      className="fixed inset-0 z-[99999] flex items-center justify-center
                  bg-black/50 backdrop-blur-sm"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-lg
-                   bg-[#FAF7F2]
-                   border border-[rgba(142,27,27,0.25)]
-                   p-6"
+        className="w-full max-w-sm rounded-xl
+                   bg-white
+                   border border-[rgba(142,27,27,0.18)]
+                   p-6 shadow-2xl"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h4 className="text-lg font-semibold text-[#1F1B16]">
-            Confirm action
-          </h4>
-          <button onClick={onClose}>
+          <h4 className="text-lg font-semibold text-[#1F1B16]">Confirm action</h4>
+          <button onClick={onClose} aria-label="Close">
             <X />
           </button>
         </div>
@@ -49,64 +48,50 @@ const CustomModal = ({ isOpen, message, onConfirm, onClose }) => {
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="rounded-md border px-4 py-2 text-sm"
+            className="rounded-md border border-black/10 bg-white px-4 py-2 text-sm"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="rounded-md border border-[#8E1B1B]
-                       px-4 py-2 text-sm text-[#8E1B1B]"
+            className="rounded-md bg-[#8E1B1B] px-4 py-2 text-sm font-semibold text-white"
           >
             Confirm
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
 /* ---------------- Cart Page ---------------- */
 const Cart = () => {
-  const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
+  const { cart, refreshCart, setCartQuantity, clearCart: clearCartGlobal } = useUser();
 
   useEffect(() => {
-    fetchCart();
+    let mounted = true;
+    setLoading(true);
+    refreshCart()
+      .catch(() => {})
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /* ---------------- Fetch Cart ---------------- */
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get('/cart');
-      if (res.data.success) {
-        setCart(res.data.cart);
-        setError(null);
-      } else {
-        setError(res.data.message || 'Failed to fetch cart');
-      }
-    } catch (err) {
-      if ([401, 403].includes(err?.response?.status)) {
-        logoutUser();
-        return;
-      }
-      setError('Failed to fetch cart');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /* ---------------- Update Quantity ---------------- */
   const updateCartQuantity = async (productId, quantity) => {
     try {
       setUpdating(true);
-      const res = await api.put('/cart', { productId, quantity });
-      if (res.data.success) setCart(res.data.cart);
+      const res = await setCartQuantity(productId, quantity);
+      if (!res?.success) throw new Error("Failed to update cart");
     } catch (err) {
       if ([401, 403].includes(err?.response?.status)) {
         logoutUser();
@@ -125,8 +110,7 @@ const Cart = () => {
   const clearCart = async () => {
     try {
       setUpdating(true);
-      await api.delete('/cart');
-      setCart({ cartItems: [], totalAmount: 0 });
+      await clearCartGlobal();
       setShowClearModal(false);
     } catch (err) {
       if ([401, 403].includes(err?.response?.status)) {
@@ -143,7 +127,7 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="relative z-0 flex min-h-screen items-center justify-center
-                      bg-[#FAF7F2] pt-24">
+                      bg-[#F8FAFC] pt-24">
         <Loader className="h-8 w-8 animate-spin text-[#8E1B1B]" />
       </div>
     );
@@ -151,7 +135,7 @@ const Cart = () => {
 
   /* ---------------- Page ---------------- */
   return (
-    <div className="relative z-0 min-h-screen bg-[#FAF7F2] px-6 py-14 pt-24">
+    <div className="relative z-0 min-h-screen bg-[#F8FAFC] px-6 py-14 pt-24">
       <CustomModal
         isOpen={showClearModal}
         message="Are you sure you want to clear your cart?"
@@ -167,7 +151,7 @@ const Cart = () => {
           <ArrowLeft /> Back to shop
         </button>
 
-        <div className="rounded-lg border border-[rgba(142,27,27,0.25)] bg-[#F3EFE8] p-6">
+        <div className="rounded-xl border border-[rgba(142,27,27,0.18)] bg-white p-6">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="flex items-center gap-2 text-2xl font-semibold text-[#1F1B16]">
               <ShoppingCart /> Shopping Cart
@@ -195,7 +179,7 @@ const Cart = () => {
                   key={item.productId}
                   className="mb-3 flex items-center gap-4
                              rounded-md border border-[rgba(142,27,27,0.25)]
-                             bg-[#FAF7F2] p-4"
+                             bg-[#F8FAFC] p-4"
                 >
                   <img
                     src={item.photo}
@@ -258,7 +242,6 @@ const Cart = () => {
       {showCheckout && (
         <Checkout
           cart={cart}
-          setCart={setCart}
           setShowCheckout={setShowCheckout}
         />
       )}

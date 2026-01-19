@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useUser } from "../../Context/userContext";
 
 /* ---------------- Add To Cart Button ---------------- */
 const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
@@ -20,16 +21,45 @@ const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
   </button>
 );
 
+const QtyControls = ({ qty, onMinus, onPlus, disabled, outOfStock }) => (
+  <div
+    className={`inline-flex items-center overflow-hidden rounded-lg border text-sm font-semibold
+      ${outOfStock ? "border-black/10 bg-white/60 text-gray-400" : "border-[rgba(142,27,27,0.35)] bg-white text-[#1F1B16]"}`}
+  >
+    <button
+      type="button"
+      onClick={onMinus}
+      disabled={disabled || outOfStock}
+      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
+      aria-label="Decrease quantity"
+    >
+      -
+    </button>
+    <span className="min-w-[32px] text-center">{qty}</span>
+    <button
+      type="button"
+      onClick={onPlus}
+      disabled={disabled || outOfStock}
+      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
+      aria-label="Increase quantity"
+    >
+      +
+    </button>
+  </div>
+);
+
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [adding, setAdding] = useState(null);
+  const [updating, setUpdating] = useState(null);
 
   // ✅ Search
   const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
+  const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   const logoutUser = () => {
     localStorage.clear();
@@ -55,6 +85,12 @@ export default function ProductsPage() {
     loadProducts();
   }, []);
 
+  // Sync search from query param (?q=)
+  useEffect(() => {
+    const q = (searchParams.get("q") || "").trim();
+    setSearch(q);
+  }, [searchParams]);
+
   // ✅ Filtered products (safe + fast)
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -75,23 +111,38 @@ export default function ProductsPage() {
       return;
     }
 
-    setAdding(productId);
+    setUpdating(productId);
     try {
-      const res = await api.post("/cart", { productId });
-      if (!res.data.success) throw new Error("Add to cart failed");
+      const res = await addToCart(productId);
+      if (!res?.success) throw new Error("Add to cart failed");
       toast.success("Added to cart");
     } catch (e) {
       const status = e?.response?.status;
       if (status === 401 || status === 403) return logoutUser();
       toast.error(e?.response?.data?.message || e?.message || "Failed to add to cart");
     } finally {
-      setAdding(null);
+      setUpdating(null);
+    }
+  };
+
+  const handleMinus = async (productId, currentQty) => {
+    const nextQty = Math.max(0, (Number(currentQty) || 0) - 1);
+    setUpdating(productId);
+    try {
+      const res = await setCartQuantity(productId, nextQty);
+      if (!res?.success) throw new Error("Failed to update cart");
+    } catch (e) {
+      const status = e?.response?.status;
+      if (status === 401 || status === 403) return logoutUser();
+      toast.error(e?.response?.data?.message || e?.message || "Failed to update cart");
+    } finally {
+      setUpdating(null);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF7F2]">
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
         Loading…
       </div>
     );
@@ -99,14 +150,14 @@ export default function ProductsPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF7F2] px-6">
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-6">
         <p className="text-[#8E1B1B]">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 py-24 sm:px-6">
+    <div className="min-h-screen bg-[#F8FAFC] px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-semibold text-[#1F1B16]">Our Products</h1>
@@ -137,14 +188,15 @@ export default function ProductsPage() {
               "https://placehold.co/900x900/EEE/AAA?text=No+Image";
 
             const out = product?.quantity === "outofstock";
+            const qty = cartItemsByProductId?.get(String(product._id)) || 0;
 
             return (
               <article
                 key={product._id}
                 onClick={() => navigate(`/product/${product._id}`)}
                 className="group cursor-pointer rounded-2xl border border-[rgba(142,27,27,0.18)]
-                           bg-[#F3EFE8] p-3 shadow-sm transition-all
-                           hover:-translate-y-0.5 hover:bg-[#FAF7F2] hover:shadow-md sm:p-4"
+                           bg-white p-3 shadow-sm transition-all
+                           hover:-translate-y-0.5 hover:shadow-md sm:p-4"
               >
                 {/* Image */}
                 <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-white">
@@ -189,12 +241,22 @@ export default function ProductsPage() {
 
                   {/* Prevent card click when pressing button */}
                   <div onClick={(e) => e.stopPropagation()}>
-                    <AddToCartButton
-                      productId={product._id}
-                      onAdd={handleAddToCart}
-                      disabled={adding === product._id}
-                      outOfStock={out}
-                    />
+                    {qty > 0 ? (
+                      <QtyControls
+                        qty={qty}
+                        outOfStock={out}
+                        disabled={updating === product._id}
+                        onMinus={() => handleMinus(product._id, qty)}
+                        onPlus={() => handleAddToCart(product._id)}
+                      />
+                    ) : (
+                      <AddToCartButton
+                        productId={product._id}
+                        onAdd={handleAddToCart}
+                        disabled={updating === product._id}
+                        outOfStock={out}
+                      />
+                    )}
                   </div>
                 </div>
               </article>

@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useUser } from "../../Context/userContext";
 import logo from "../../assets/logo.png";
+import HeaderSearch from "./header/HeaderSearch";
+import HeaderCartButton from "./header/HeaderCartButton";
 
 /* ---------------- Icons ---------------- */
 
@@ -57,24 +59,7 @@ const HomeIcon = (p) => (
   </svg>
 );
 
-/* Cart (already good) */
-const CartIcon = (p) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="22"
-    height="22"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...p}
-  >
-    <circle cx="9" cy="21" r="1" />
-    <circle cx="20" cy="21" r="1" />
-    <path d="M1 1h4l2.7 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L23 6H6" />
-  </svg>
-);
+// Cart icon + badge is now a separate component: `HeaderCartButton`
 
 /* Products – softened */
 const ProductsIcon = (p) => (
@@ -154,7 +139,7 @@ export default function Header() {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-50 h-16 sm:h-20
-                 bg-[#FAF7F2]
+                 bg-white
                  border-b border-[rgba(142,27,27,0.25)]"
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
@@ -167,7 +152,9 @@ export default function Header() {
         </MotionNavLink>
 
         {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-3">
+          <HeaderSearch />
+
           {/* ✅ Home button */}
           <MotionNavLink to="/" className={navLinkClass}>
             <HomeIcon className="h-4 w-4" /> Home
@@ -181,9 +168,7 @@ export default function Header() {
             <OrdersIcon className="h-4 w-4" /> Orders
           </MotionNavLink>
 
-          <MotionNavLink to={user ? "/cart" : "/login"} className={navLinkClass}>
-            <CartIcon className="h-4 w-4" /> Cart
-          </MotionNavLink>
+          <HeaderCartButton />
 
           {user ? (
             <button
@@ -202,14 +187,19 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile Toggle */}
-        <button
-          className="lg:hidden h-10 w-10"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-        >
-          {menuOpen ? <XIcon /> : <MenuIcon />}
-        </button>
+        {/* Mobile Actions (Search + Cart + Menu) */}
+        <div className="lg:hidden flex items-center gap-1">
+          <HeaderSearch />
+          <HeaderCartButton />
+          <button
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg
+                       border border-transparent hover:border-[rgba(142,27,27,0.25)]"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            {menuOpen ? <XIcon /> : <MenuIcon />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -220,7 +210,7 @@ export default function Header() {
           className="fixed right-0 z-40
                      top-16 sm:top-20
                      h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)]
-                     w-64 bg-[#F3EFE8]
+                     w-64 bg-white
                      border-l border-[rgba(142,27,27,0.25)]
                      lg:hidden"
         >
@@ -255,7 +245,24 @@ export default function Header() {
               className={navLinkClass}
               onClick={() => setMenuOpen(false)}
             >
-              <CartIcon className="h-4 w-4" /> Cart
+              {/* Cart badge shown near hamburger (header); this is just the menu link */}
+              <span className="inline-flex h-4 w-4 items-center justify-center">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.7 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L23 6H6" />
+                </svg>
+              </span>{" "}
+              Cart
             </NavLink>
 
             {/* Optional: show Login/Logout inside mobile menu too (nice UX) */}

@@ -48,7 +48,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl shadow-2xl
-                   bg-[#FAF7F2] border border-[rgba(142,27,27,0.25)] overflow-hidden"
+                   bg-white border border-[rgba(142,27,27,0.18)] overflow-hidden"
       >
         <button
           onClick={onClose}
@@ -57,7 +57,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
           <X size={24} />
         </button>
 
-        <div className="border-b border-[rgba(142,27,27,0.25)] px-6 py-5 bg-[#F3EFE8]">
+        <div className="border-b border-[rgba(142,27,27,0.18)] px-6 py-5 bg-[#F8FAFC]">
           <h2 className="text-xl font-semibold text-[#1F1B16]">
             Order Summary
           </h2>
@@ -145,12 +145,12 @@ const OrderItem = ({ order, onSelect }) => {
     <button
       onClick={() => onSelect(order)}
       className="w-full rounded-lg border border-[rgba(142,27,27,0.15)]
-                 bg-[#F3EFE8] p-5 text-left transition shadow-sm
+                 bg-white p-5 text-left transition shadow-sm
                  hover:bg-white hover:border-[#8E1B1B] group"
     >
       <div className="flex justify-between items-start">
         <div className="flex gap-3">
-          <div className="p-3 bg-white rounded-lg border border-[rgba(142,27,27,0.1)] group-hover:bg-[#FAF7F2]">
+          <div className="p-3 bg-white rounded-lg border border-[rgba(142,27,27,0.1)] group-hover:bg-[#F8FAFC]">
              <Calendar className="h-5 w-5 text-[#8E1B1B]" />
           </div>
           <div>
@@ -220,7 +220,7 @@ const Order = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 py-14 pt-24">
+    <div className="min-h-screen bg-[#F8FAFC] px-4 py-14 pt-24">
       <div className="mx-auto max-w-2xl">
         <header className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-[#1F1B16]">Order History</h1>
@@ -238,7 +238,7 @@ const Order = () => {
              <button onClick={fetchOrders} className="mt-4 text-sm font-bold text-[#8E1B1B] underline">Try Again</button>
           </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-24 bg-[#F3EFE8] rounded-2xl border-2 border-dashed border-[rgba(142,27,27,0.1)]">
+          <div className="text-center py-24 bg-white rounded-2xl border-2 border-dashed border-[rgba(142,27,27,0.1)]">
             <Package className="mx-auto mb-4 h-20 w-20 text-[#8E1B1B] opacity-20" />
             <p className="text-lg font-medium text-[#1F1B16]">No orders found</p>
             <p className="text-sm text-[#6F675E]">Once you make a purchase, they will appear here.</p>

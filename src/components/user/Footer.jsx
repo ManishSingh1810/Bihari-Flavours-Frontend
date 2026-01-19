@@ -27,7 +27,7 @@ const Footer = () => {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      className="bg-[#FAF7F2] border-t border-[rgba(142,27,27,0.25)] text-[#1F1B16]"
+      className="bg-white border-t border-[rgba(142,27,27,0.18)] text-[#1F1B16]"
     >
       <div className="mx-auto max-w-7xl px-6 py-16">
 

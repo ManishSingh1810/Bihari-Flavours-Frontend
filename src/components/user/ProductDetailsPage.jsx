@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
+import { useUser } from "../../Context/userContext";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,14 +12,42 @@ import {
   Package,
 } from "lucide-react";
 
+const QtyControls = ({ qty, onMinus, onPlus, disabled, outOfStock }) => (
+  <div
+    className={`inline-flex items-center overflow-hidden rounded-lg border text-sm font-semibold
+      ${outOfStock ? "border-black/10 bg-white/60 text-gray-400" : "border-[rgba(142,27,27,0.35)] bg-white text-[#1F1B16]"}`}
+  >
+    <button
+      type="button"
+      onClick={onMinus}
+      disabled={disabled || outOfStock}
+      className="px-4 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
+      aria-label="Decrease quantity"
+    >
+      -
+    </button>
+    <span className="min-w-[40px] text-center">{qty}</span>
+    <button
+      type="button"
+      onClick={onPlus}
+      disabled={disabled || outOfStock}
+      className="px-4 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
+      aria-label="Increase quantity"
+    >
+      +
+    </button>
+  </div>
+);
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
-  const [adding, setAdding] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   // gallery
   const [active, setActive] = useState(0);
@@ -112,23 +141,40 @@ export default function ProductDetailsPage() {
     if (!product) return;
     if (isOutOfStock) return toast.error("This product is currently out of stock");
 
-    setAdding(true);
+    setUpdating(true);
     try {
-      const res = await api.post("/cart", { productId: product._id });
-      if (!res.data.success) throw new Error("Add to cart failed");
+      const res = await addToCart(product._id);
+      if (!res?.success) throw new Error("Add to cart failed");
       toast.success("Added to cart");
     } catch (e) {
       const status = e?.response?.status;
       if (status === 401 || status === 403) return logoutUser();
       toast.error(e?.response?.data?.message || "Failed to add to cart");
     } finally {
-      setAdding(false);
+      setUpdating(false);
+    }
+  };
+
+  const handleMinus = async () => {
+    if (!product) return;
+    const currentQty = cartItemsByProductId?.get(String(product._id)) || 0;
+    const nextQty = Math.max(0, (Number(currentQty) || 0) - 1);
+    setUpdating(true);
+    try {
+      const res = await setCartQuantity(product._id, nextQty);
+      if (!res?.success) throw new Error("Failed to update cart");
+    } catch (e) {
+      const status = e?.response?.status;
+      if (status === 401 || status === 403) return logoutUser();
+      toast.error(e?.response?.data?.message || "Failed to update cart");
+    } finally {
+      setUpdating(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         Loading…
       </div>
     );
@@ -136,7 +182,7 @@ export default function ProductDetailsPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         Product not found
       </div>
     );
@@ -148,8 +194,10 @@ export default function ProductDetailsPage() {
   const storage = product.storage || "Store in a cool, dry place";
   const country = product.country || "India";
 
+  const qty = cartItemsByProductId?.get(String(product._id)) || 0;
+
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-4 sm:px-6 py-24 pb-28">
+    <div className="min-h-screen bg-[#F8FAFC] px-4 sm:px-6 py-24 pb-28">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <button
@@ -162,7 +210,7 @@ export default function ProductDetailsPage() {
           <button
             onClick={shareOnWhatsApp}
             className="inline-flex items-center gap-2 rounded-md border border-[rgba(142,27,27,0.35)]
-                       bg-[#FAF7F2] px-3 py-2 text-sm text-[#8E1B1B]
+                       bg-white px-3 py-2 text-sm text-[#8E1B1B]
                        hover:bg-[#8E1B1B] hover:text-white"
           >
             <Share2 size={16} /> Share
@@ -171,7 +219,7 @@ export default function ProductDetailsPage() {
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* GALLERY */}
-          <div className="rounded-2xl border border-[rgba(142,27,27,0.25)] bg-[#F3EFE8] p-4">
+          <div className="rounded-2xl border border-[rgba(142,27,27,0.18)] bg-white p-4">
             <div
               className="relative overflow-hidden rounded-xl bg-white"
               onTouchStart={onTouchStart}
@@ -247,7 +295,7 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* DETAILS */}
-          <div className="rounded-2xl border border-[rgba(142,27,27,0.25)] bg-[#F3EFE8] p-6">
+          <div className="rounded-2xl border border-[rgba(142,27,27,0.18)] bg-white p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 {/* Title */}
@@ -279,14 +327,24 @@ export default function ProductDetailsPage() {
 
             {/* Add to cart row (price already shown above) */}
             <div className="mt-6 flex items-center justify-end border-t pt-6">
-              <button
-                onClick={handleAddToCart}
-                disabled={adding || isOutOfStock}
-                className="w-full sm:w-auto rounded-md border border-[#8E1B1B] px-6 py-2 text-sm text-[#8E1B1B]
-                           hover:bg-[#8E1B1B] hover:text-white disabled:opacity-50"
-              >
-                {isOutOfStock ? "Out of Stock" : adding ? "Adding…" : "Add to Cart"}
-              </button>
+              {qty > 0 ? (
+                <QtyControls
+                  qty={qty}
+                  outOfStock={isOutOfStock}
+                  disabled={updating}
+                  onMinus={handleMinus}
+                  onPlus={handleAddToCart}
+                />
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={updating || isOutOfStock}
+                  className="w-full sm:w-auto rounded-md border border-[#8E1B1B] px-6 py-2 text-sm text-[#8E1B1B]
+                             hover:bg-[#8E1B1B] hover:text-white disabled:opacity-50"
+                >
+                  {isOutOfStock ? "Out of Stock" : updating ? "Adding…" : "Add to Cart"}
+                </button>
+              )}
             </div>
 
             {/* badges */}
@@ -297,7 +355,7 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Product Information (kept before reviews) */}
-            <div className="mt-6 rounded-xl bg-[#FAF7F2] p-4">
+            <div className="mt-6 rounded-xl bg-[#F8FAFC] p-4">
               <h3 className="font-semibold text-[#1F1B16]">
                 Product Information
               </h3>
@@ -318,7 +376,7 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* ✅ REVIEWS moved to LAST (after description + product info) */}
-            <div className="mt-6 rounded-xl bg-[#FAF7F2] p-4">
+            <div className="mt-6 rounded-xl bg-[#F8FAFC] p-4">
               <h3 className="font-semibold text-[#1F1B16]">Reviews</h3>
               <p className="text-sm text-[#6F675E] mt-1">
                 Share your experience to help others.
@@ -348,7 +406,7 @@ export default function ProductDetailsPage() {
                   key={p._id}
                   onClick={() => navigate(`/product/${p._id}`)}
                   className="text-left rounded-xl border border-[rgba(142,27,27,0.25)]
-                             bg-[#F3EFE8] p-4 hover:bg-[#FAF7F2]"
+                             bg-white p-4 hover:bg-[#F8FAFC]"
                 >
                   <div className="aspect-square w-full bg-white rounded-lg overflow-hidden">
                     <img src={img} alt={p.name} className="h-full w-full object-contain p-2" />
@@ -381,20 +439,32 @@ export default function ProductDetailsPage() {
       </div>
 
       {/* STICKY ADD TO CART BAR (mobile only) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#FAF7F2]/95 backdrop-blur border-t border-[rgba(142,27,27,0.25)] p-3 sm:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-[rgba(142,27,27,0.18)] p-3 sm:hidden">
         <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
           <div>
             <p className="text-xs text-[#6F675E]">Total</p>
             <p className="text-lg font-semibold text-[#8E1B1B]">₹{product.price}</p>
           </div>
 
-          <button
-            onClick={handleAddToCart}
-            disabled={adding || isOutOfStock}
-            className="flex-1 rounded-lg bg-[#8E1B1B] py-3 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {isOutOfStock ? "Out of Stock" : adding ? "Adding…" : "Add to Cart"}
-          </button>
+          {qty > 0 ? (
+            <div className="flex-1 flex justify-end">
+              <QtyControls
+                qty={qty}
+                outOfStock={isOutOfStock}
+                disabled={updating}
+                onMinus={handleMinus}
+                onPlus={handleAddToCart}
+              />
+            </div>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={updating || isOutOfStock}
+              className="flex-1 rounded-lg bg-[#8E1B1B] py-3 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {isOutOfStock ? "Out of Stock" : updating ? "Adding…" : "Add to Cart"}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -412,7 +482,7 @@ function InfoRow({ label, value }) {
 
 function Badge({ icon, text }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg bg-[#FAF7F2] p-3 text-xs text-[#6F675E]">
+    <div className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] p-3 text-xs text-[#6F675E]">
       <span className="text-[#8E1B1B]">{icon}</span>
       {text}
     </div>
@@ -511,7 +581,7 @@ function ReviewBox({ productId }) {
           onChange={(e) => setComment(e.target.value)}
           placeholder="Write your review (taste, packaging, delivery, etc.)"
           rows={3}
-          className="mt-3 w-full rounded-lg border border-black/10 bg-[#FAF7F2] p-3 text-sm outline-none focus:border-[#8E1B1B]"
+          className="mt-3 w-full rounded-lg border border-black/10 bg-[#F8FAFC] p-3 text-sm outline-none focus:border-[#8E1B1B]"
         />
 
         <button
@@ -539,7 +609,7 @@ function ReviewBox({ productId }) {
         ) : (
           <div className="space-y-3">
             {reviews.map((r) => (
-              <div key={r._id} className="rounded-lg bg-[#FAF7F2] p-3">
+              <div key={r._id} className="rounded-lg bg-[#F8FAFC] p-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-[#1F1B16]">
                     {r.userName || "Customer"}
