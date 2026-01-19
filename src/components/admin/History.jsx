@@ -10,6 +10,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import api from "../../api/axios";
+import { getDisplayOrderId } from "../../utils/orderId";
 
 /* ---------------- Status Map ---------------- */
 const statusInfo = {
@@ -59,7 +60,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
             Order Details
           </h2>
           <p className="text-xs font-mono text-[#6F675E]">
-            #{order.originalOrderId?.slice(-8)}
+            #{getDisplayOrderId(order)}
           </p>
         </div>
 
@@ -231,7 +232,7 @@ const AdminHistoryPage = () => {
                           className={`cursor-pointer ${rowColor}`}
                         >
                           <td className="px-6 py-4 font-mono text-[#6F675E]">
-                            #{order.originalOrderId?.slice(-8)}
+                            #{getDisplayOrderId(order)}
                           </td>
                           <td className="px-6 py-4">
                             {order.shippingAddress?.name}

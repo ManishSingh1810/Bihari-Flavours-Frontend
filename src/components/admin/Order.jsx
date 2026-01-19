@@ -11,6 +11,7 @@ import {
   Phone,
 } from "lucide-react";
 import api from "../../api/axios";
+import { getDisplayOrderId } from "../../utils/orderId";
 
 /* ---------------- Status Map ---------------- */
 const statusInfo = {
@@ -101,7 +102,7 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
             Order Details
           </h2>
           <p className="text-xs text-[#6F675E] font-mono">
-            #{order._id.slice(-8)}
+            #{getDisplayOrderId(order)}
           </p>
         </div>
 
@@ -275,7 +276,7 @@ const AdminPendingOrdersPage = () => {
                       onClick={() => setSelectedOrder(order)}
                     >
                       <td className="px-6 py-4 font-mono text-[#6F675E]">
-                        #{order._id.slice(-8)}
+                        #{getDisplayOrderId(order)}
                       </td>
                       <td className="px-6 py-4">{order.shippingAddress?.name}</td>
                       <td className="px-6 py-4">{order.paymentMethod}</td>

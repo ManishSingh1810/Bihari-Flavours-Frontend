@@ -11,6 +11,7 @@ import {
   Calendar
 } from 'lucide-react';
 import api from '../../api/axios';
+import { getDisplayOrderId, getInternalOrderId } from "../../utils/orderId";
 
 /* ---------------- Status Map ---------------- */
 const statusInfo = {
@@ -61,7 +62,12 @@ const OrderDetailsModal = ({ order, onClose }) => {
           <h2 className="text-xl font-semibold text-[#1F1B16]">
             Order Summary
           </h2>
-          <p className="text-xs text-[#6F675E] mt-1">ID: {order._id}</p>
+          <p className="text-xs text-[#6F675E] mt-1">
+            Order ID: <span className="font-mono">#{getDisplayOrderId(order)}</span>
+          </p>
+          <p className="text-[11px] text-[#6F675E] mt-1">
+            Internal: <span className="font-mono">{getInternalOrderId(order)}</span>
+          </p>
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto space-y-6 p-6 text-sm">
