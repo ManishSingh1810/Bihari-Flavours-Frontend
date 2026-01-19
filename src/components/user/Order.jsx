@@ -11,7 +11,8 @@ import {
   Calendar
 } from 'lucide-react';
 import api from '../../api/axios';
-import { getDisplayOrderId, getInternalOrderId } from "../../utils/orderId";
+import toast from "react-hot-toast";
+import { getDisplayOrderId } from "../../utils/orderId";
 
 /* ---------------- Status Map ---------------- */
 const statusInfo = {
@@ -64,9 +65,6 @@ const OrderDetailsModal = ({ order, onClose }) => {
           </h2>
           <p className="text-xs text-[#6F675E] mt-1">
             Order ID: <span className="font-mono">#{getDisplayOrderId(order)}</span>
-          </p>
-          <p className="text-[11px] text-[#6F675E] mt-1">
-            Internal: <span className="font-mono">{getInternalOrderId(order)}</span>
           </p>
         </div>
 
@@ -204,6 +202,30 @@ const Order = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const fetchOrderDetails = async (order) => {
+    const id = order?.orderId || order?._id;
+    if (!id) return;
+
+    try {
+      setDetailsLoading(true);
+      const res = await api.get(`/orders/my-orders/${id}`);
+      const detailed =
+        res?.data?.order ||
+        res?.data?.data?.order ||
+        res?.data?.orders?.[0] ||
+        res?.data?.orderDetails ||
+        null;
+
+      setSelectedOrder(detailed || order);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Failed to load order details");
+      setSelectedOrder(order); // fallback to list object
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     fetchOrders();
@@ -241,7 +263,7 @@ const Order = () => {
       const merged = [...activeOrders, ...historyResults];
       const dedup = new Map();
       for (const o of merged) {
-        const key = String(o?._id || o?.originalOrderId || getInternalOrderId(o) || Math.random());
+        const key = String(o?.orderId || o?._id || Math.random());
         if (!dedup.has(key)) dedup.set(key, o);
       }
 
@@ -293,7 +315,10 @@ const Order = () => {
               <OrderItem
                 key={order._id}
                 order={order}
-                onSelect={setSelectedOrder}
+                onSelect={(o) => {
+                  setSelectedOrder(o);
+                  fetchOrderDetails(o);
+                }}
               />
             ))}
           </div>
@@ -304,6 +329,12 @@ const Order = () => {
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
       />
+
+      {detailsLoading && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none">
+          {/* lightweight indicator; modal stays usable */}
+        </div>
+      )}
     </div>
   );
 };

@@ -227,7 +227,7 @@ const AdminHistoryPage = () => {
                         statusInfo[order.orderStatus] || {};
                       return (
                         <tr
-                          key={order.originalOrderId}
+                          key={order.orderId || order.originalOrderId}
                           onClick={() => setSelectedOrder(order)}
                           className={`cursor-pointer ${rowColor}`}
                         >

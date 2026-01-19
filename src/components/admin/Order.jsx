@@ -182,7 +182,7 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
           <div className="flex gap-3 pt-4 border-t">
             {order.orderStatus === "Pending" && (
               <button
-                onClick={() => onStatusUpdate(order._id, "Shipped")}
+                onClick={() => onStatusUpdate(order.orderId || order._id, "Shipped")}
                 className="flex-1 rounded-md border
                            border-[#1F4E79] py-2 text-sm text-[#1F4E79]"
               >
@@ -191,7 +191,7 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
             )}
             {order.orderStatus === "Shipped" && (
               <button
-                onClick={() => onStatusUpdate(order._id, "Delivered")}
+                onClick={() => onStatusUpdate(order.orderId || order._id, "Delivered")}
                 className="flex-1 rounded-md border
                            border-[#1F7A3F] py-2 text-sm text-[#1F7A3F]"
               >
@@ -199,7 +199,7 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
               </button>
             )}
             <button
-              onClick={() => onStatusUpdate(order._id, "Cancelled")}
+              onClick={() => onStatusUpdate(order.orderId || order._id, "Cancelled")}
               className="flex-1 rounded-md border
                          border-[#8E1B1B] py-2 text-sm text-[#8E1B1B]"
             >
@@ -271,7 +271,7 @@ const AdminPendingOrdersPage = () => {
                     statusInfo[order.orderStatus] || {};
                   return (
                     <tr
-                      key={order._id}
+                      key={order.orderId || order._id}
                       className={`${rowColor} cursor-pointer`}
                       onClick={() => setSelectedOrder(order)}
                     >
