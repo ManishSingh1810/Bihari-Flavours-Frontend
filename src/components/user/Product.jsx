@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
+import { ArrowRight } from "lucide-react";
 
 /* ---------------- Add To Cart Button ---------------- */
 const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
@@ -164,27 +165,48 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-semibold text-[#1F1B16]">Our Products</h1>
-          <p className="mt-2 text-sm text-[#6F675E]">
-            Premium homemade snacks • Hygienic packing • Fast delivery
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#F8FAFC] pb-20">
+      {/* Premium header */}
+      <div className="border-b border-black/5 bg-white pt-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="py-10 sm:py-12">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8E1B1B]">
+                  Shop
+                </p>
+                <h1 className="mt-2 text-3xl sm:text-4xl text-[#0F172A]">
+                  Our Products
+                </h1>
+                <p className="mt-2 text-sm text-[#64748B]">
+                  Thekua • Chana Sattu (Classic + Jaljeera) • Chiwda Mixture • Banana Chips • Nimki • Makhana
+                </p>
+              </div>
 
-        {/* ✅ Search Bar */}
-        <div className="mb-6">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products…"
-            className="w-full rounded-xl border border-[rgba(142,27,27,0.25)]
-                       bg-white px-4 py-3 text-sm text-[#1F1B16]
-                       outline-none transition
-                       focus:border-[#8E1B1B] focus:ring-2 focus:ring-[rgba(142,27,27,0.12)]"
-          />
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-[#F8FAFC]"
+              >
+                Back to Home <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="mt-6">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search products…"
+                className="w-full rounded-2xl border border-black/10 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A]
+                           outline-none transition focus:border-[#8E1B1B] focus:ring-4 focus:ring-[rgba(142,27,27,0.12)]"
+              />
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10">
 
         {/* Grid */}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">

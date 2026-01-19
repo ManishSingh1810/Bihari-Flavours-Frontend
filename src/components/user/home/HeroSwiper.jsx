@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, A11y } from "swiper/modules";
 import "swiper/css";
@@ -7,6 +7,7 @@ import "swiper/css/pagination";
 import { ArrowRight, Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
+import api from "../../../api/axios";
 import hero1 from "../../../assets/hero.jpg";
 import hero2 from "../../../assets/hero.png";
 import hero3 from "../../../assets/code.jpg";
@@ -46,37 +47,77 @@ function SecondaryButton({ as: As = "button", className = "", ...props }) {
 export default function HeroSwiper() {
   const navigate = useNavigate();
 
-  const slides = [
-    {
-      id: "s1",
-      image: hero1,
-      eyebrow: "Premium Homemade Snacks",
-      title: "Taste Bihar, delivered fresh.",
-      subtitle:
-        "Small-batch flavours crafted with care — perfect for gifting, daily cravings, and festivals.",
-      cta: { label: "Shop Products", to: "/product" },
-      secondary: { label: "Explore Products", to: "/product" },
-    },
-    {
-      id: "s2",
-      image: hero2,
-      eyebrow: "Authentic • Hygienic • Fast",
-      title: "Crunchy classics. Honest ingredients.",
-      subtitle: "From sattu to snacks — pantry staples made the traditional way.",
-      cta: { label: "Shop Snacks", to: "/product?q=snack" },
-      secondary: { label: "View Cart", to: "/cart" },
-    },
-    {
-      id: "s3",
-      image: hero3,
-      eyebrow: "Gift-ready packs",
-      title: "Gift packs for every occasion.",
-      subtitle:
-        "Perfect for festivals & family — curated picks with premium packaging.",
-      cta: { label: "Explore Gifts", to: "/product" },
-      secondary: { label: "Browse All", to: "/product" },
-    },
-  ];
+  const defaultSlides = useMemo(
+    () => [
+      {
+        id: "s1",
+        image: hero1,
+        eyebrow: "Premium Homemade Snacks",
+        title: "Taste Bihar, delivered fresh.",
+        subtitle:
+          "Small-batch flavours crafted with care — perfect for gifting, daily cravings, and festivals.",
+        cta: { label: "Shop Products", to: "/product" },
+        secondary: { label: "Explore Products", to: "/product" },
+      },
+      {
+        id: "s2",
+        image: hero2,
+        eyebrow: "Authentic • Hygienic • Fast",
+        title: "Crunchy classics. Honest ingredients.",
+        subtitle:
+          "From sattu to snacks — pantry staples made the traditional way.",
+        cta: { label: "Shop Products", to: "/product" },
+        secondary: { label: "View Cart", to: "/cart" },
+      },
+      {
+        id: "s3",
+        image: hero3,
+        eyebrow: "Gift-ready packs",
+        title: "Gift packs for every occasion.",
+        subtitle:
+          "Perfect for festivals & family — curated picks with premium packaging.",
+        cta: { label: "Explore Products", to: "/product" },
+        secondary: { label: "Browse All", to: "/product" },
+      },
+    ],
+    []
+  );
+
+  const [slides, setSlides] = useState(defaultSlides);
+
+  // Load hero images/titles from backend (admin uploads) with fallback to local assets.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get("/homepage", { skipErrorToast: true });
+        const heroSlides =
+          res?.data?.homepage?.heroSlides ||
+          res?.data?.heroSlides ||
+          res?.data?.homepage ||
+          null;
+
+        if (!Array.isArray(heroSlides) || heroSlides.length === 0) return;
+
+        setSlides((prev) =>
+          prev.map((s, i) => {
+            const fromApi = heroSlides[i] || {};
+            const imageUrl = fromApi.imageUrl || fromApi.image || fromApi.url;
+            return {
+              ...s,
+              image: imageUrl || s.image,
+              eyebrow: fromApi.eyebrow || s.eyebrow,
+              title: fromApi.title || s.title,
+              subtitle: fromApi.subtitle || s.subtitle,
+              cta: fromApi.cta || s.cta,
+              secondary: fromApi.secondary || s.secondary,
+            };
+          })
+        );
+      } catch {
+        // ignore; fallback to bundled images
+      }
+    })();
+  }, [defaultSlides]);
 
   return (
     <section

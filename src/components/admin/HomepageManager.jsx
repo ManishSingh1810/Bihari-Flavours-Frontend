@@ -118,6 +118,18 @@ export default function HomepageManager() {
 
       if (!res?.data?.success) throw new Error(res?.data?.message || "Save failed");
       toast.success("Homepage images updated");
+
+      // If backend returns updated homepage config, refresh previews instantly.
+      const heroSlides =
+        res?.data?.homepage?.heroSlides || res?.data?.heroSlides || null;
+      if (Array.isArray(heroSlides) && heroSlides.length) {
+        setSlide1(heroSlides[0]?.imageUrl || slide1);
+        setSlide2(heroSlides[1]?.imageUrl || slide2);
+        setSlide3(heroSlides[2]?.imageUrl || slide3);
+        setTitle1(heroSlides[0]?.title || title1);
+        setTitle2(heroSlides[1]?.title || title2);
+        setTitle3(heroSlides[2]?.title || title3);
+      }
     } catch (e) {
       toast.error(
         e?.response?.data?.message ||
