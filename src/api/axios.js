@@ -27,6 +27,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    // Allow specific requests to opt out of global toasts
+    if (err?.config?.skipErrorToast) {
+      return Promise.reject(err);
+    }
+
     const status = err.response?.status;
     const message = err.response?.data?.message || "Something went wrong";
 

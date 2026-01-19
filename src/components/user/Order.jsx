@@ -212,9 +212,47 @@ const Order = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/orders/my-orders');
-      if (res.data.success) {
-        setOrders(res.data.orders);
+
+      // Active orders (pending/shipped/etc.)
+      const activeRes = await api.get('/orders/my-orders');
+      const activeOrders = activeRes?.data?.success ? (activeRes.data.orders || []) : [];
+
+      // Some backends move Delivered/Cancelled to a history endpoint.
+      // Try a few common paths silently (no global toast if missing).
+      const historyPaths = [
+        "/orders/my-orders/history",
+        "/orders/my-history",
+        "/orders/my-orders?includeDelivered=true",
+      ];
+
+      const historyResults = [];
+      for (const path of historyPaths) {
+        try {
+          const r = await api.get(path, { skipErrorToast: true });
+          if (r?.data?.success && Array.isArray(r.data.orders)) {
+            historyResults.push(...r.data.orders);
+            break; // stop after first working endpoint
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const merged = [...activeOrders, ...historyResults];
+      const dedup = new Map();
+      for (const o of merged) {
+        const key = String(o?._id || o?.originalOrderId || getInternalOrderId(o) || Math.random());
+        if (!dedup.has(key)) dedup.set(key, o);
+      }
+
+      const sorted = Array.from(dedup.values()).sort((a, b) => {
+        const ad = new Date(a?.completedAt || a?.createdAt || 0).getTime();
+        const bd = new Date(b?.completedAt || b?.createdAt || 0).getTime();
+        return bd - ad;
+      });
+
+      if (activeRes?.data?.success) {
+        setOrders(sorted);
       } else {
         setError('Failed to fetch orders');
       }
