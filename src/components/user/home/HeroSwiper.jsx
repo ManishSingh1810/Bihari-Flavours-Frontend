@@ -98,7 +98,7 @@ export default function HeroSwiper() {
             pauseOnMouseEnter: true,
           }}
           a11y={{ enabled: true }}
-          className="h-full"
+          className="h-full hero-swiper"
         >
           {slides.map((s, idx) => (
             <SwiperSlide key={s.id}>
@@ -160,7 +160,8 @@ export default function HeroSwiper() {
       </div>
 
       {/* Quick actions (premium chips) */}
-      <div className={cn(container, "-mt-10 pb-10 relative")}>
+      {/* Removed negative margin to prevent overlap/unorganized look */}
+      <div className={cn(container, "pt-6 pb-10 relative")}>
         <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur sm:grid-cols-3">
           <button
             type="button"

@@ -27,6 +27,7 @@ import AdminOrder from "./components/admin/Order";
 import History from "./components/admin/History";
 import ProductManager from "./components/admin/ProductManager";
 import CouponManager from "./components/admin/CouponManager";
+import HomepageManager from "./components/admin/HomepageManager";
 
 const App = () => {
   const { user } = useUser();
@@ -72,6 +73,7 @@ const App = () => {
           <Route path="history" element={<History />} />
           <Route path="products" element={<ProductManager />} />
           <Route path="coupons" element={<CouponManager />} />
+          <Route path="homepage" element={<HomepageManager />} />
         </Route>
       </Route>
 

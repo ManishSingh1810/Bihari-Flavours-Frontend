@@ -24,3 +24,20 @@ h6 {
     font-weight: 600;
     letter-spacing: -0.01em;
 }
+
+/* Swiper (Hero) styling */
+.hero-swiper .swiper-pagination {
+  bottom: 18px !important;
+  z-index: 20;
+}
+.hero-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  opacity: 1;
+}
+.hero-swiper .swiper-pagination-bullet-active {
+  width: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+}

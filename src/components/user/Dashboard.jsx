@@ -250,7 +250,6 @@ function ProductsShowcase({
   onAdd,
   onMinus,
 }) {
-  const [mode, setMode] = useState("premium"); // premium | standard
   const list = useMemo(() => products || [], [products]);
 
   return (
@@ -262,35 +261,6 @@ function ProductsShowcase({
             title="All products"
             subtitle="Thekua, Sattu (Classic + Jaljeera), Chiwda Mixture, Banana Chips, Nimki, Makhana."
           />
-
-          <div className="inline-flex rounded-2xl border border-black/10 bg-[#F8FAFC] p-1">
-            <button
-              type="button"
-              onClick={() => setMode("standard")}
-              className={cn(
-                "px-4 py-2 text-xs font-semibold rounded-xl",
-                mode === "standard"
-                  ? "bg-white text-[#0F172A] shadow-sm"
-                  : "text-[#64748B] hover:text-[#0F172A]"
-              )}
-              aria-pressed={mode === "standard"}
-            >
-              Standard
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("premium")}
-              className={cn(
-                "px-4 py-2 text-xs font-semibold rounded-xl",
-                mode === "premium"
-                  ? "bg-white text-[#0F172A] shadow-sm"
-                  : "text-[#64748B] hover:text-[#0F172A]"
-              )}
-              aria-pressed={mode === "premium"}
-            >
-              Premium
-            </button>
-          </div>
         </div>
 
         {loading && <p className="text-sm text-[#64748B]">Loading…</p>}
@@ -298,68 +268,21 @@ function ProductsShowcase({
 
         {!loading && !error && (
           <>
-            {mode === "premium" ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {list.map((p) => {
-                  const qty = cartItemsByProductId?.get(String(p._id)) || 0;
-                  return (
-                    <ProductTile
-                      key={p._id}
-                      product={p}
-                      qty={qty}
-                      updating={updating}
-                      onAdd={() => onAdd(p._id)}
-                      onMinus={() => onMinus(p._id, qty)}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="divide-y divide-black/5 overflow-hidden rounded-3xl border border-black/5 bg-white">
-                {list.map((p) => {
-                  const qty = cartItemsByProductId?.get(String(p._id)) || 0;
-                  const img =
-                    p?.photos?.[0] ||
-                    p?.photo ||
-                    "https://placehold.co/200x200/EEE/AAA?text=No+Image";
-                  return (
-                    <div key={p._id} className="flex items-center gap-4 p-4 sm:p-5">
-                      <div className="h-16 w-16 overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
-                        <img src={img} alt={p.name} className="h-full w-full object-contain p-2" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-[#0F172A] line-clamp-1">
-                          {p.name}
-                        </p>
-                        <p className="mt-1 text-xs text-[#64748B] line-clamp-1">
-                          {p.desc}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <p className="text-sm font-semibold text-[#8E1B1B]">₹{p.price}</p>
-                        {qty > 0 ? (
-                          <QtyPill
-                            qty={qty}
-                            disabled={updating === p._id}
-                            onMinus={() => onMinus(p._id, qty)}
-                            onPlus={() => onAdd(p._id)}
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => onAdd(p._id)}
-                            disabled={updating === p._id}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#8E1B1B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#741616] disabled:opacity-50"
-                          >
-                            Add <Plus className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {list.map((p) => {
+                const qty = cartItemsByProductId?.get(String(p._id)) || 0;
+                return (
+                  <ProductTile
+                    key={p._id}
+                    product={p}
+                    qty={qty}
+                    updating={updating}
+                    onAdd={() => onAdd(p._id)}
+                    onMinus={() => onMinus(p._id, qty)}
+                  />
+                );
+              })}
+            </div>
 
             <div className="mt-10">
               <SecondaryButton as={Link} to="/product" className="w-full sm:w-auto">
