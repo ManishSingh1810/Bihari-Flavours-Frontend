@@ -97,7 +97,7 @@ export default function HomepageManager() {
       setLoading(true);
 
       // Backend requirement (recommended):
-      // PUT /api/admin/homepage (multipart/form-data)
+      // POST /api/admin/homepage (multipart/form-data)
       // - hero1, hero2, hero3 files (optional)
       // - heroSlides JSON string (titles/ctas/etc.)
       const fd = new FormData();
@@ -114,9 +114,7 @@ export default function HomepageManager() {
         ])
       );
 
-      const res = await api.put("/admin/homepage", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post("/admin/homepage", fd);
 
       if (!res?.data?.success) throw new Error(res?.data?.message || "Save failed");
       toast.success("Homepage images updated");
@@ -210,7 +208,7 @@ export default function HomepageManager() {
               <br />
               - GET <span className="font-mono">/api/homepage</span> (current homepage config)
               <br />
-              - PUT <span className="font-mono">/api/admin/homepage</span> (multipart upload + save)
+              - POST <span className="font-mono">/api/admin/homepage</span> (multipart upload + save)
             </p>
           </div>
         </div>
