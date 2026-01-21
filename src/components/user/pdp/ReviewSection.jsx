@@ -3,7 +3,7 @@ import api from "../../../api/axios";
 import toast from "react-hot-toast";
 import Card from "../../ui/Card.jsx";
 import Button from "../../ui/Button.jsx";
-import Input from "../../ui/Input.jsx";
+import { Star } from "lucide-react";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -30,6 +30,71 @@ function getLocation(r) {
     r?.user?.location ||
     "";
   return String(raw || "").trim();
+}
+
+function StarPicker({ value, onChange, disabled }) {
+  const [hover, setHover] = useState(0);
+  const display = hover || value || 0;
+
+  const set = (n) => {
+    if (disabled) return;
+    // click same rating again to clear (easy unselect)
+    onChange(n === value ? 0 : n);
+  };
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Rating"
+      className={cn(
+        "flex items-center gap-1 rounded-2xl bg-[#F8FAFC] p-2 ring-1 ring-black/10",
+        disabled && "opacity-60"
+      )}
+      onMouseLeave={() => setHover(0)}
+    >
+      {Array.from({ length: 5 }).map((_, i) => {
+        const n = i + 1;
+        const active = n <= display;
+        return (
+          <button
+            key={n}
+            type="button"
+            role="radio"
+            aria-checked={value === n}
+            disabled={disabled}
+            onClick={() => set(n)}
+            onMouseEnter={() => setHover(n)}
+            onFocus={() => setHover(n)}
+            onBlur={() => setHover(0)}
+            className={cn(
+              "inline-flex h-11 w-11 items-center justify-center rounded-xl transition",
+              "focus:outline-none focus:ring-4 focus:ring-[rgba(142,27,27,0.18)]",
+              "hover:bg-white",
+              disabled ? "cursor-not-allowed" : "cursor-pointer"
+            )}
+            aria-label={`${n} star`}
+          >
+            <Star
+              className={cn(
+                "h-5 w-5 transition",
+                active ? "text-[#8E1B1B]" : "text-[#CBD5E1]"
+              )}
+              fill={active ? "currentColor" : "none"}
+            />
+          </button>
+        );
+      })}
+
+      <div className="ml-2 hidden sm:block pr-2">
+        <p className="text-xs font-semibold text-[#0F172A] tabular-nums">
+          {value ? `${value}/5` : "Select"}
+        </p>
+        <p className="text-[11px] text-[#64748B]">
+          Click again to clear
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default function ReviewSection({ productId }) {
@@ -109,50 +174,43 @@ export default function ReviewSection({ productId }) {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         {/* Review form */}
-        <Card className="p-5 lg:col-span-2" hover={false}>
+        <Card className="p-6 lg:col-span-2" hover={false}>
           <p className="text-sm font-semibold text-[#0F172A]">Write a review</p>
           <p className="mt-1 text-sm text-[#64748B]">
             {reviews.length === 0 ? "Be the first to review this product." : "Help others choose confidently."}
           </p>
 
-          <div className="mt-4">
+          <div className="mt-5">
             <p className="text-xs font-semibold text-[#64748B]">Rating</p>
-            <div className="mt-2 flex items-center gap-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRating(n)}
-                  className={cn(
-                    "h-10 w-10 rounded-xl text-lg ring-1 transition",
-                    "focus:outline-none focus:ring-4 focus:ring-[rgba(142,27,27,0.18)]",
-                    rating >= n
-                      ? "bg-[#8E1B1B] text-white ring-[rgba(142,27,27,0.35)]"
-                      : "bg-white text-[#64748B] ring-black/10 hover:bg-[#F8FAFC]"
-                  )}
-                  aria-label={`${n} star`}
-                >
-                  ★
-                </button>
-              ))}
+            <div className="mt-2">
+              <StarPicker value={rating} onChange={setRating} disabled={submitting} />
             </div>
           </div>
 
-          <div className="mt-4">
-            <p className="text-xs font-semibold text-[#64748B]">Your review</p>
+          <div className="mt-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-[#64748B]">Your review</p>
+              <p className="text-[11px] text-[#94A3B8] tabular-nums">
+                {Math.min(500, comment.length)}/500
+              </p>
+            </div>
             <textarea
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Taste, packaging, delivery…"
-              rows={4}
-              className="mt-2 w-full rounded-2xl border border-black/10 bg-[#F8FAFC] p-3 text-sm outline-none focus:border-[#8E1B1B] focus:ring-4 focus:ring-[rgba(142,27,27,0.12)]"
+              onChange={(e) => setComment(e.target.value.slice(0, 500))}
+              placeholder="Share what you liked—taste, freshness, packaging, delivery…"
+              rows={5}
+              className="mt-2 w-full rounded-2xl border border-black/10 bg-[#F8FAFC] p-3 text-sm leading-relaxed
+                         outline-none transition focus:border-[#8E1B1B] focus:ring-4 focus:ring-[rgba(142,27,27,0.12)]"
             />
+            <p className="mt-2 text-[11px] text-[#64748B]">
+              Tip: You can click the selected star again to remove it.
+            </p>
           </div>
 
           <Button
             onClick={submitReview}
-            disabled={submitting}
-            className="mt-4 h-11 w-full"
+            disabled={submitting || !rating || !comment.trim()}
+            className="mt-5 h-12 w-full"
           >
             {submitting ? "Submitting…" : "Submit review"}
           </Button>
