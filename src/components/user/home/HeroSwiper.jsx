@@ -180,10 +180,22 @@ export default function HeroSwiper() {
               {slides.map((s, idx) => (
                 <SwiperSlide key={s.id}>
                   <div className="relative h-full">
+                    {/* Background fill (decorative) */}
+                    <img
+                      src={s.image}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 h-full w-full object-cover blur-xl scale-110 opacity-40"
+                      draggable="false"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      fetchpriority={idx === 0 ? "high" : "auto"}
+                    />
+
+                    {/* Foreground image (no crop, no zoom) */}
                     <img
                       src={s.image}
                       alt="Bihari Flavours"
-                      className="absolute inset-0 h-full w-full object-cover"
+                      className="absolute inset-0 h-full w-full object-contain"
                       draggable="false"
                       loading={idx === 0 ? "eager" : "lazy"}
                       fetchpriority={idx === 0 ? "high" : "auto"}
