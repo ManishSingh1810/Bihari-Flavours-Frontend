@@ -181,13 +181,6 @@ export default function ProductCard({
               </Button>
             )}
           </div>
-          <Button
-            variant="secondary"
-            className="h-10 px-3 text-[12px]"
-            onClick={() => navigate(`/product/${product._id}`)}
-          >
-            View details
-          </Button>
         </div>
 
         {/* Trust summary */}
