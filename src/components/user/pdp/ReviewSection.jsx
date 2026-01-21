@@ -19,6 +19,19 @@ function Stars({ value }) {
   );
 }
 
+function getLocation(r) {
+  const raw =
+    r?.city ||
+    r?.location ||
+    r?.userCity ||
+    r?.userLocation ||
+    r?.address?.city ||
+    r?.user?.city ||
+    r?.user?.location ||
+    "";
+  return String(raw || "").trim();
+}
+
 export default function ReviewSection({ productId }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -169,9 +182,16 @@ export default function ReviewSection({ productId }) {
               {reviews.map((r) => (
                 <Card key={r._id} className="p-5" hover={false}>
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-[#0F172A]">
-                      {r.userName || "Customer"}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#0F172A]">
+                        {r.userName || "Customer"}
+                      </p>
+                      {getLocation(r) ? (
+                        <p className="mt-0.5 text-xs text-[#64748B] line-clamp-1">
+                          {getLocation(r)}
+                        </p>
+                      ) : null}
+                    </div>
                     <div className="text-sm font-semibold">
                       <Stars value={r.rating} />
                     </div>

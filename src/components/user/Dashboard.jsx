@@ -288,6 +288,19 @@ function ReviewsSection({ products }) {
 
   const candidates = useMemo(() => (products || []).slice(0, 10), [products]);
 
+  const getLocation = (rv) => {
+    const raw =
+      rv?.city ||
+      rv?.location ||
+      rv?.userCity ||
+      rv?.userLocation ||
+      rv?.address?.city ||
+      rv?.user?.city ||
+      rv?.user?.location ||
+      "";
+    return String(raw || "").trim();
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -323,10 +336,10 @@ function ReviewsSection({ products }) {
             all.push({
               id: rv?._id || `${product?._id}-${rv?.createdAt || comment.slice(0, 10)}`,
               name: rv?.userName || "Customer",
+              location: getLocation(rv),
               text: comment,
               rating: 5,
               createdAt: rv?.createdAt || null,
-              productName: product?.name || "",
             });
           }
         }
@@ -387,8 +400,8 @@ function ReviewsSection({ products }) {
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#0F172A]">{r.name}</p>
-                    {r.productName ? (
-                      <p className="text-xs text-[#64748B] line-clamp-1">{r.productName}</p>
+                    {r.location ? (
+                      <p className="text-xs text-[#64748B] line-clamp-1">{r.location}</p>
                     ) : null}
                   </div>
                   <div className="flex items-center gap-1 text-[#F59E0B]" aria-label={`Rating ${r.rating} out of 5`}>
