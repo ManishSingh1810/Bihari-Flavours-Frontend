@@ -106,7 +106,10 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 text-[#8E1B1B]" />
                 <span className="text-[#6F675E]">
-                  Address: <span className="text-[#1F1B16]">Coming soon</span>
+                  Address:{" "}
+                  <span className="text-[#1F1B16]">
+                    Near RK Central School, Yusufpur, Hajipur, Vaishali, Bihar, 844101
+                  </span>
                   <span className="block text-xs text-[#6F675E] mt-1">
                     (For support, contact us on WhatsApp / Email)
                   </span>
