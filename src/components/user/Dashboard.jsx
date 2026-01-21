@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  ShieldCheck,
-  Truck,
   BadgeCheck,
   Leaf,
   Sparkles,
@@ -77,38 +75,6 @@ function SectionHeading({ eyebrow, title, subtitle, align = "left" }) {
         </p>
       )}
     </div>
-  );
-}
-
-function TrustBadges() {
-  const badges = [
-    { icon: <ShieldCheck className="h-5 w-5" />, title: "Hygienic Packing", desc: "Sealed & quality-checked" },
-    { icon: <Truck className="h-5 w-5" />, title: "Fast Delivery", desc: "Pan-India shipping" },
-    { icon: <BadgeCheck className="h-5 w-5" />, title: "Trusted Recipes", desc: "Home-style taste" },
-    { icon: <Leaf className="h-5 w-5" />, title: "Small Batch", desc: "Freshly prepared" },
-  ];
-
-  return (
-    <section className="bg-white border-y border-black/5">
-      <div className={cn(container, "py-8")}>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {badges.map((b) => (
-            <div
-              key={b.title}
-              className="flex items-start gap-3 rounded-2xl border border-black/5 bg-[#F8FAFC] p-4"
-            >
-              <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#8E1B1B] border border-black/5">
-                {b.icon}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#0F172A]">{b.title}</p>
-                <p className="mt-0.5 text-xs text-[#64748B]">{b.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -259,7 +225,7 @@ function ProductsShowcase({
           <SectionHeading
             eyebrow="Shop"
             title="All products"
-            subtitle="Thekua, Sattu (Classic + Jaljeera), Chiwda Mixture, Banana Chips, Nimki, Makhana."
+            subtitle="Explore our premium snacks & staples."
           />
         </div>
 
@@ -587,7 +553,7 @@ export default function Dashboard() {
   return (
     <main className="bg-[#F8FAFC]">
       <HeroSwiper />
-      <TrustBadges />
+
       {/* All products showcase before categories (standard + premium) */}
       <ProductsShowcase
         products={items}
