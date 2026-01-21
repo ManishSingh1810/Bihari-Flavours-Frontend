@@ -223,17 +223,17 @@ export default function ProductsPage() {
               <article
                 key={product._id}
                 onClick={() => navigate(`/product/${product._id}`)}
-                className="group cursor-pointer rounded-2xl border border-[rgba(142,27,27,0.18)]
-                           bg-white p-3 shadow-sm transition-all
-                           hover:shadow-md sm:p-4"
+                className="group cursor-pointer rounded-3xl bg-white p-3 sm:p-4
+                           ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]
+                           transition hover:shadow-md hover:ring-black/10"
               >
                 {/* Image */}
-                <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-white">
+                <div className="relative w-full overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5">
                   <div className="aspect-square w-full">
                     <img
                       src={img}
                       alt={product.name}
-                      className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.02]"
+                      className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03]"
                       loading="lazy"
                       draggable="false"
                     />
@@ -241,11 +241,9 @@ export default function ProductsPage() {
 
                   {/* Stock badge */}
                   <span
-                    className={`absolute left-2 top-2 rounded-full border bg-white/90 px-2 py-1 text-[10px] font-semibold
+                    className={`absolute left-2 top-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold ring-1 ring-black/10
                       ${
-                        out
-                          ? "border-gray-300 text-gray-500"
-                          : "border-[rgba(142,27,27,0.35)] text-[#8E1B1B]"
+                        out ? "text-gray-500" : "text-[#8E1B1B]"
                       }`}
                   >
                     {out ? "Out of stock" : "In stock"}

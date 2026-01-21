@@ -162,19 +162,23 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
 
   return (
     <article
-      className="group rounded-3xl border border-black/5 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md"
+      className={cn(
+        "group rounded-3xl bg-white p-3 sm:p-4",
+        "ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]",
+        "transition hover:shadow-md hover:ring-black/10"
+      )}
       onClick={() => navigate(`/product/${product._id}`)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/product/${product._id}`)}
       aria-label={`View ${product.name}`}
     >
-      <div className="relative overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
+      <div className="relative overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5">
         <div className="aspect-square w-full">
           <img
             src={img}
             alt={product.name}
-            className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.01]"
+            className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02]"
             loading="lazy"
             draggable="false"
           />
@@ -231,7 +235,7 @@ function ProductsShowcase({
   const list = useMemo(() => products || [], [products]);
 
   return (
-    <section className="bg-white border-y border-black/5">
+    <section className="bg-[#F8FAFC]">
       <div className={cn(container, "py-14 sm:py-16")}>
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8E1B1B]">
@@ -250,7 +254,7 @@ function ProductsShowcase({
 
         {!loading && !error && (
           <>
-            <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {list.map((p) => {
                 const qty = cartItemsByProductId?.get(String(p._id)) || 0;
                 return (
