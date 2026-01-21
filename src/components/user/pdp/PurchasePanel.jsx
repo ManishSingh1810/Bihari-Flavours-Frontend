@@ -5,6 +5,7 @@ import Button from "../../ui/Button.jsx";
 import Badge from "../../ui/Badge.jsx";
 import QtyStepper from "../product/QtyStepper.jsx";
 import { Link } from "react-router-dom";
+import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -34,8 +35,7 @@ export default function PurchasePanel({
   onBuyNow,
 }) {
   const tagline = useMemo(() => getTagline(product?.desc), [product]);
-  const rating = 4.8; // placeholder
-  const ratingCount = 128; // placeholder
+  const { avg, count } = useReviewSummary(product?._id);
 
   const stockTone = isOutOfStock ? "danger" : "brand";
   const stockText = isOutOfStock ? "Out of stock" : "In stock";
@@ -55,9 +55,16 @@ export default function PurchasePanel({
       {/* rating summary */}
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
         <div className="inline-flex items-center gap-2 rounded-full bg-[#F8FAFC] px-3 py-1.5 ring-1 ring-black/5">
-          <span className="font-semibold text-[#0F172A]">{rating.toFixed(1)}</span>
-          <span className="text-[#8E1B1B]">★★★★★</span>
-          <span className="text-[#64748B]">({ratingCount})</span>
+          <span className="font-semibold text-[#0F172A] tabular-nums">
+            {count ? avg.toFixed(1) : "—"}
+          </span>
+          <span className="text-[#8E1B1B]">
+            {"★".repeat(Math.round(avg || 0))}
+            <span className="text-[#CBD5E1]">
+              {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
+            </span>
+          </span>
+          <span className="text-[#64748B] tabular-nums">({count || 0})</span>
         </div>
         {netQuantity ? (
           <span className="rounded-full bg-[#F8FAFC] px-3 py-1.5 text-xs font-semibold text-[#334155] ring-1 ring-black/5">
