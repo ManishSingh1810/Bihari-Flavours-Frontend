@@ -91,8 +91,8 @@ export default function HeroSwiper() {
       try {
         const res = await api.get("/homepage", {
           // cache-bust so updated images show immediately after admin save
+          // (avoid custom headers to prevent CORS preflight failures)
           params: { t: Date.now() },
-          headers: { "Cache-Control": "no-cache" },
           skipErrorToast: true,
         });
         const heroSlides =

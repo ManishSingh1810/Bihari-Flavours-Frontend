@@ -77,7 +77,7 @@ export default function HomepageManager() {
       try {
         const res = await api.get("/homepage", {
           params: { t: Date.now() },
-          headers: { "Cache-Control": "no-cache" },
+          // avoid custom headers to prevent CORS preflight failures
           skipErrorToast: true,
         });
         const heroSlides = res?.data?.homepage?.heroSlides || res?.data?.heroSlides;
@@ -127,7 +127,7 @@ export default function HomepageManager() {
       try {
         const refreshed = await api.get("/homepage", {
           params: { t: Date.now() },
-          headers: { "Cache-Control": "no-cache" },
+          // avoid custom headers to prevent CORS preflight failures
           skipErrorToast: true,
         });
         const heroSlides =
