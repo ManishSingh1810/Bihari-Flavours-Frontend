@@ -5,50 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import { ArrowRight } from "lucide-react";
-
-/* ---------------- Add To Cart Button ---------------- */
-const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
-  <button
-    type="button"
-    onClick={() => !outOfStock && onAdd(productId)}
-    disabled={disabled || outOfStock}
-    className={`rounded-lg border px-3 py-2 text-[11px] sm:px-4 sm:py-2 sm:text-sm font-semibold transition whitespace-nowrap
-      ${
-        outOfStock
-          ? "cursor-not-allowed border-black/10 bg-white/60 text-gray-400"
-          : "border-[#8E1B1B] bg-white text-[#8E1B1B] hover:bg-[#8E1B1B] hover:text-white"
-      }`}
-  >
-    {outOfStock ? "Out of Stock" : disabled ? "Adding…" : "Add to cart"}
-  </button>
-);
-
-const QtyControls = ({ qty, onMinus, onPlus, disabled, outOfStock }) => (
-  <div
-    className={`inline-flex items-center overflow-hidden rounded-lg border text-sm font-semibold
-      ${outOfStock ? "border-black/10 bg-white/60 text-gray-400" : "border-[rgba(142,27,27,0.35)] bg-white text-[#1F1B16]"}`}
-  >
-    <button
-      type="button"
-      onClick={onMinus}
-      disabled={disabled || outOfStock}
-      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
-      aria-label="Decrease quantity"
-    >
-      -
-    </button>
-    <span className="min-w-[32px] text-center font-bold tabular-nums">{qty}</span>
-    <button
-      type="button"
-      onClick={onPlus}
-      disabled={disabled || outOfStock}
-      className="px-3 py-2 hover:bg-[#F8FAFC] disabled:opacity-50"
-      aria-label="Increase quantity"
-    >
-      +
-    </button>
-  </div>
-);
+import ProductCard from "./product/ProductCard.jsx";
 
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
@@ -209,84 +166,25 @@ export default function ProductsPage() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10">
 
         {/* Grid */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {filtered.map((product) => {
-            const img =
-              product?.photos?.[0] ||
-              product?.photo ||
-              "https://placehold.co/900x900/EEE/AAA?text=No+Image";
-
             const out = product?.quantity === "outofstock";
             const qty = cartItemsByProductId?.get(String(product._id)) || 0;
 
             return (
-              <article
+              <div
                 key={product._id}
                 onClick={() => navigate(`/product/${product._id}`)}
-                className="group cursor-pointer rounded-3xl bg-white p-3 sm:p-4
-                           ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]
-                           transition hover:shadow-md hover:ring-black/10"
               >
-                {/* Image */}
-                <div className="relative w-full overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5">
-                  <div className="aspect-square w-full">
-                    <img
-                      src={img}
-                      alt={product.name}
-                      className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03]"
-                      loading="lazy"
-                      draggable="false"
-                    />
-                  </div>
-
-                  {/* Stock badge */}
-                  <span
-                    className={`absolute left-2 top-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold ring-1 ring-black/10
-                      ${
-                        out ? "text-gray-500" : "text-[#8E1B1B]"
-                      }`}
-                  >
-                    {out ? "Out of stock" : "In stock"}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3 className="mt-3 line-clamp-1 text-sm font-semibold text-[#1F1B16] sm:text-base">
-                  {product.name}
-                </h3>
-
-                {/* Description */}
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#6F675E] sm:text-sm">
-                  {product.desc}
-                </p>
-
-                {/* Price + CTA */}
-                <div className="mt-4 flex items-center justify-between gap-2">
-                  <span className="text-[13px] sm:text-lg font-semibold tabular-nums text-[#8E1B1B]">
-                    Rs. {product.price}
-                  </span>
-
-                  {/* Prevent card click when pressing button */}
-                  <div onClick={(e) => e.stopPropagation()}>
-                    {qty > 0 ? (
-                      <QtyControls
-                        qty={qty}
-                        outOfStock={out}
-                        disabled={updating === product._id}
-                        onMinus={() => handleMinus(product._id, qty)}
-                        onPlus={() => handleAddToCart(product._id)}
-                      />
-                    ) : (
-                      <AddToCartButton
-                        productId={product._id}
-                        onAdd={handleAddToCart}
-                        disabled={updating === product._id}
-                        outOfStock={out}
-                      />
-                    )}
-                  </div>
-                </div>
-              </article>
+                <ProductCard
+                  product={product}
+                  qty={qty}
+                  disabled={updating === product._id}
+                  onAdd={() => handleAddToCart(product._id)}
+                  onMinus={(productId, currentQty) => handleMinus(productId, currentQty)}
+                  showQuickAdd={!out}
+                />
+              </div>
             );
           })}
         </div>

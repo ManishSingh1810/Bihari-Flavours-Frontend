@@ -6,8 +6,6 @@ import {
   Sparkles,
   Gift,
   Star,
-  Plus,
-  Minus,
   ChevronDown,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,6 +15,7 @@ import hero1 from "../../assets/hero.jpg";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import HeroSwiper from "./home/HeroSwiper";
+import ProductCard from "./product/ProductCard.jsx";
 
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
@@ -125,103 +124,7 @@ function CategoryCards() {
   );
 }
 
-function QtyPill({ qty, onMinus, onPlus, disabled }) {
-  return (
-    <div className="inline-flex items-center overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm">
-      <button
-        type="button"
-        onClick={onMinus}
-        disabled={disabled}
-        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
-        aria-label="Decrease quantity"
-      >
-        <Minus className="h-4 w-4" />
-      </button>
-      <span className="min-w-[38px] sm:min-w-[40px] text-center text-sm font-bold tabular-nums text-[#0F172A]">
-        {qty}
-      </span>
-      <button
-        type="button"
-        onClick={onPlus}
-        disabled={disabled}
-        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
-        aria-label="Increase quantity"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
-    </div>
-  );
-}
 
-function ProductTile({ product, qty, updating, onAdd, onMinus }) {
-  const navigate = useNavigate();
-  const img =
-    product?.photos?.[0] ||
-    product?.photo ||
-    "https://placehold.co/900x900/EEE/AAA?text=No+Image";
-
-  return (
-    <article
-      className={cn(
-        "group rounded-3xl bg-white p-3 sm:p-4",
-        "ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]",
-        "transition hover:shadow-md hover:ring-black/10"
-      )}
-      onClick={() => navigate(`/product/${product._id}`)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && navigate(`/product/${product._id}`)}
-      aria-label={`View ${product.name}`}
-    >
-      <div className="relative overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5">
-        <div className="aspect-square w-full">
-          <img
-            src={img}
-            alt={product.name}
-            className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02]"
-            loading="lazy"
-            draggable="false"
-          />
-        </div>
-      </div>
-
-      <div className="mt-3 sm:mt-4">
-        <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
-          {product.name}
-        </p>
-        <p className="mt-1 text-[11px] sm:text-xs text-[#64748B] line-clamp-2 leading-relaxed">
-          {product.desc}
-        </p>
-
-        <div className="mt-3 sm:mt-4 flex items-center justify-between gap-2">
-          <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#8E1B1B]">
-            Rs. {product.price}
-          </p>
-
-          <div onClick={(e) => e.stopPropagation()}>
-            {qty > 0 ? (
-              <QtyPill
-                qty={qty}
-                disabled={updating === product._id}
-                onMinus={onMinus}
-                onPlus={onAdd}
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={onAdd}
-                disabled={updating === product._id}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#8E1B1B] px-3 py-2 text-[11px] sm:text-xs font-semibold text-white hover:bg-[#741616] disabled:opacity-50 whitespace-nowrap"
-              >
-                Add to cart <Plus className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
 
 function ProductsShowcase({
   products,
@@ -258,13 +161,13 @@ function ProductsShowcase({
               {list.map((p) => {
                 const qty = cartItemsByProductId?.get(String(p._id)) || 0;
                 return (
-                  <ProductTile
+                  <ProductCard
                     key={p._id}
                     product={p}
                     qty={qty}
-                    updating={updating}
+                    disabled={updating === p._id}
                     onAdd={() => onAdd(p._id)}
-                    onMinus={() => onMinus(p._id, qty)}
+                    onMinus={(productId, currentQty) => onMinus(productId, currentQty)}
                   />
                 );
               })}
