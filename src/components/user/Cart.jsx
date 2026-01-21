@@ -9,6 +9,8 @@ import {
   X,
   Loader,
 } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import Checkout from './checkout';
 import { useUser } from "../../Context/userContext";
 
@@ -72,7 +74,8 @@ const Cart = () => {
   const [updating, setUpdating] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
-  const { cart, refreshCart, setCartQuantity, clearCart: clearCartGlobal } = useUser();
+  const navigate = useNavigate();
+  const { user, cart, refreshCart, setCartQuantity, clearCart: clearCartGlobal } = useUser();
 
   useEffect(() => {
     let mounted = true;
@@ -226,7 +229,15 @@ const Cart = () => {
               ))}
 
               <button
-                onClick={() => setShowCheckout(true)}
+                onClick={() => {
+                  // Only require login at checkout (not while adding to cart)
+                  if (!user) {
+                    toast.error("Please login to continue to checkout.");
+                    navigate("/login?redirect=/cart");
+                    return;
+                  }
+                  setShowCheckout(true);
+                }}
                 className="mt-6 w-full rounded-md
                            border border-[#8E1B1B]
                            px-6 py-3 text-sm font-medium

@@ -3,9 +3,39 @@ import api from "../api/axios";
 
 const UserContext = createContext();
 
+const GUEST_CART_KEY = "guestCart:v1";
+
 function computeCartItemCount(cart) {
   const items = cart?.cartItems || [];
   return items.reduce((sum, it) => sum + (Number(it?.quantity) || 0), 0);
+}
+
+function computeCartTotal(cart) {
+  const items = cart?.cartItems || [];
+  return items.reduce((sum, it) => sum + (Number(it?.price) || 0) * (Number(it?.quantity) || 0), 0);
+}
+
+function readGuestCart() {
+  try {
+    const raw = localStorage.getItem(GUEST_CART_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || !Array.isArray(parsed.cartItems)) return { cartItems: [], totalAmount: 0 };
+    const next = {
+      cartItems: parsed.cartItems.filter(Boolean),
+      totalAmount: typeof parsed.totalAmount === "number" ? parsed.totalAmount : computeCartTotal(parsed),
+    };
+    return next;
+  } catch {
+    return { cartItems: [], totalAmount: 0 };
+  }
+}
+
+function writeGuestCart(cart) {
+  try {
+    localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+  } catch {
+    // ignore
+  }
 }
 
 export const UserProvider = ({ children }) => {
@@ -49,10 +79,16 @@ export const UserProvider = ({ children }) => {
     setCartItemCount(nextCount);
   }, []);
 
+  const applyGuestCart = useCallback((guestCart) => {
+    const nextCart = guestCart || { cartItems: [], totalAmount: 0 };
+    setCart(nextCart);
+    setCartItemCount(computeCartItemCount(nextCart));
+  }, []);
+
   const refreshCart = useCallback(async () => {
     if (!user) {
-      setCart(null);
-      setCartItemCount(0);
+      // Guest cart (stored locally)
+      applyGuestCart(readGuestCart());
       return;
     }
     try {
@@ -61,27 +97,101 @@ export const UserProvider = ({ children }) => {
     } catch {
       // ignore; global axios interceptor will toast errors as needed
     }
-  }, [applyCartResponse, user]);
+  }, [applyCartResponse, applyGuestCart, user]);
 
   const addToCart = useCallback(
     async (productId) => {
+      if (!user) {
+        // Guest cart: fetch product info publicly, then store locally
+        const guest = readGuestCart();
+        const idx = guest.cartItems.findIndex((it) => String(it.productId) === String(productId));
+
+        let product = null;
+        try {
+          const pRes = await api.get(`/products/${productId}`, { skipErrorToast: true });
+          if (pRes?.data?.success) product = pRes.data.product;
+        } catch {
+          // ignore; we can still increment qty with minimal data
+        }
+
+        const base = {
+          productId: String(productId),
+          name: product?.name || guest.cartItems[idx]?.name || "Product",
+          photo: product?.photos?.[0] || product?.photo || guest.cartItems[idx]?.photo || "",
+          price: Number(product?.price || guest.cartItems[idx]?.price || 0),
+        };
+
+        if (idx >= 0) {
+          guest.cartItems[idx] = {
+            ...guest.cartItems[idx],
+            ...base,
+            quantity: (Number(guest.cartItems[idx]?.quantity) || 0) + 1,
+          };
+        } else {
+          guest.cartItems.push({ ...base, quantity: 1 });
+        }
+
+        guest.totalAmount = computeCartTotal(guest);
+        writeGuestCart(guest);
+        applyGuestCart(guest);
+        return { success: true, cart: guest, cartItemCount: computeCartItemCount(guest), isGuest: true };
+      }
+
       const res = await api.post("/cart", { productId });
       if (res.data?.success) applyCartResponse(res.data);
       return res.data;
     },
-    [applyCartResponse]
+    [applyCartResponse, applyGuestCart, user]
   );
 
   const setCartQuantity = useCallback(
     async (productId, quantity) => {
+      if (!user) {
+        const guest = readGuestCart();
+        const idx = guest.cartItems.findIndex((it) => String(it.productId) === String(productId));
+        const q = Math.max(0, Number(quantity) || 0);
+
+        if (idx >= 0) {
+          if (q === 0) guest.cartItems.splice(idx, 1);
+          else guest.cartItems[idx] = { ...guest.cartItems[idx], quantity: q };
+        } else if (q > 0) {
+          // if user sets qty without existing item, try to fetch minimal info
+          let product = null;
+          try {
+            const pRes = await api.get(`/products/${productId}`, { skipErrorToast: true });
+            if (pRes?.data?.success) product = pRes.data.product;
+          } catch {
+            // ignore
+          }
+          guest.cartItems.push({
+            productId: String(productId),
+            name: product?.name || "Product",
+            photo: product?.photos?.[0] || product?.photo || "",
+            price: Number(product?.price || 0),
+            quantity: q,
+          });
+        }
+
+        guest.totalAmount = computeCartTotal(guest);
+        writeGuestCart(guest);
+        applyGuestCart(guest);
+        return { success: true, cart: guest, cartItemCount: computeCartItemCount(guest), isGuest: true };
+      }
+
       const res = await api.put("/cart", { productId, quantity });
       if (res.data?.success) applyCartResponse(res.data);
       return res.data;
     },
-    [applyCartResponse]
+    [applyCartResponse, applyGuestCart, user]
   );
 
   const clearCart = useCallback(async () => {
+    if (!user) {
+      const empty = { cartItems: [], totalAmount: 0 };
+      writeGuestCart(empty);
+      applyGuestCart(empty);
+      return { success: true, cart: empty, cartItemCount: 0, isGuest: true };
+    }
     const res = await api.delete("/cart");
     if (res?.data?.success) {
       applyCartResponse(res.data);
@@ -122,6 +232,26 @@ export const UserProvider = ({ children }) => {
     console.log("User logged in:", userObj);
   };
 
+  const syncGuestCartToBackend = useCallback(async () => {
+    if (!user) return;
+    const guest = readGuestCart();
+    if (!guest?.cartItems?.length) return;
+
+    try {
+      for (const it of guest.cartItems) {
+        const pid = it?.productId;
+        const q = Number(it?.quantity) || 0;
+        if (!pid || q <= 0) continue;
+        // eslint-disable-next-line no-await-in-loop
+        await api.put("/cart", { productId: pid, quantity: q }, { skipErrorToast: true });
+      }
+      writeGuestCart({ cartItems: [], totalAmount: 0 });
+      await refreshCart();
+    } catch {
+      // if sync fails, keep guest cart to retry later
+    }
+  }, [refreshCart, user]);
+
   // =====================
   // Logout
   // =====================
@@ -161,6 +291,12 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     refreshCart();
   }, [refreshCart]);
+
+  // When user logs in, merge guest cart into backend cart
+  useEffect(() => {
+    if (!user) return;
+    syncGuestCartToBackend();
+  }, [syncGuestCartToBackend, user]);
 
   const cartItemsByProductId = useMemo(() => {
     const map = new Map();
