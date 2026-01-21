@@ -232,8 +232,10 @@ const Cart = () => {
                 onClick={() => {
                   // Only require login at checkout (not while adding to cart)
                   if (!user) {
-                    toast.error("Please login to continue to checkout.");
-                    navigate("/login?redirect=/cart");
+                    // Keep this very short so it doesn't feel "stuck" across route change
+                    toast.dismiss();
+                    toast.error("Please login to continue to checkout.", { duration: 1200 });
+                    setTimeout(() => navigate("/login?redirect=/cart"), 150);
                     return;
                   }
                   setShowCheckout(true);
