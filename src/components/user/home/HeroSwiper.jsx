@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation, A11y } from "swiper/modules";
 import "swiper/css";
@@ -33,31 +33,56 @@ export default function HeroSwiper() {
     []
   );
 
-  const [slides, setSlides] = useState(() => {
-    // Avoid "flash of different image" on reload:
-    // Use last known homepage hero image URLs from localStorage immediately.
-    try {
-      const raw = localStorage.getItem("homepageHeroSlides:v1");
-      const cached = raw ? JSON.parse(raw) : null;
-      if (!Array.isArray(cached) || cached.length === 0) return defaultSlides;
+  const [slides, setSlides] = useState(null); // null until we decide what to render
+  const [visible, setVisible] = useState(false); // fade-in once first image is loaded
+  const inflight = useRef(0);
 
-      return defaultSlides.map((s, i) => {
-        const c = cached[i] || {};
-        const url = c.imageUrl || c.image || c.url;
-        return { ...s, image: url || s.image };
-      });
-    } catch {
-      return defaultSlides;
-    }
-  });
+  const normalize = (arr) => {
+    if (!Array.isArray(arr)) return null;
+    return defaultSlides.map((s, i) => {
+      const fromApi = arr[i] || {};
+      const imageUrl = fromApi.imageUrl || fromApi.image || fromApi.url;
+      return { ...s, image: imageUrl || s.image };
+    });
+  };
+
+  const preloadFirst = async (nextSlides) => {
+    const first = nextSlides?.[0]?.image;
+    if (!first) return;
+    await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = first;
+    });
+  };
 
   // Load hero images/titles from backend (admin uploads) with fallback to local assets.
   useEffect(() => {
     (async () => {
+      // Step 1: try cached immediately (but still preload before showing)
+      let cachedNormalized = null;
+      try {
+        const raw = localStorage.getItem("homepageHeroSlides:v1");
+        const cached = raw ? JSON.parse(raw) : null;
+        cachedNormalized = normalize(cached);
+      } catch {
+        cachedNormalized = null;
+      }
+
+      // If we have cached, render it (after preload) to avoid blank screen.
+      if (cachedNormalized) {
+        const token = ++inflight.current;
+        setVisible(false);
+        await preloadFirst(cachedNormalized);
+        if (token !== inflight.current) return;
+        setSlides(cachedNormalized);
+        setVisible(true);
+      }
+
+      // Step 2: fetch latest from backend; swap only after first new image is loaded (no flash)
       try {
         const res = await api.get("/homepage", {
-          // cache-bust so updated images show immediately after admin save
-          // (avoid custom headers to prevent CORS preflight failures)
           params: { t: Date.now() },
           skipErrorToast: true,
         });
@@ -67,9 +92,20 @@ export default function HeroSwiper() {
           res?.data?.homepage ||
           null;
 
-        if (!Array.isArray(heroSlides) || heroSlides.length === 0) return;
+        if (!Array.isArray(heroSlides) || heroSlides.length === 0) {
+          if (!cachedNormalized) {
+            // no backend + no cache → fallback to bundled images
+            const token = ++inflight.current;
+            setVisible(false);
+            await preloadFirst(defaultSlides);
+            if (token !== inflight.current) return;
+            setSlides(defaultSlides);
+            setVisible(true);
+          }
+          return;
+        }
 
-        // Cache for next reload to avoid flicker
+        // Cache for next reload
         try {
           localStorage.setItem(
             "homepageHeroSlides:v1",
@@ -79,20 +115,31 @@ export default function HeroSwiper() {
           // ignore
         }
 
-        setSlides((prev) =>
-          prev.map((s, i) => {
-            const fromApi = heroSlides[i] || {};
-            const imageUrl = fromApi.imageUrl || fromApi.image || fromApi.url;
-            return {
-              ...s,
-              image: imageUrl || s.image,
-            };
-          })
-        );
+        const latest = normalize(heroSlides);
+        if (!latest) return;
+
+        const currentUrls = (slides || cachedNormalized || []).map((s) => s.image).join("|");
+        const nextUrls = latest.map((s) => s.image).join("|");
+        if (currentUrls === nextUrls && slides) return;
+
+        const token = ++inflight.current;
+        setVisible(false);
+        await preloadFirst(latest);
+        if (token !== inflight.current) return;
+        setSlides(latest);
+        setVisible(true);
       } catch {
-        // ignore; fallback to bundled images
+        if (!cachedNormalized) {
+          const token = ++inflight.current;
+          setVisible(false);
+          await preloadFirst(defaultSlides);
+          if (token !== inflight.current) return;
+          setSlides(defaultSlides);
+          setVisible(true);
+        }
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultSlides]);
 
   return (
@@ -103,40 +150,52 @@ export default function HeroSwiper() {
     >
       {/* Fixed heights to minimize CLS */}
       <div className="relative h-[240px] sm:h-[360px] lg:h-[460px]">
-        <Swiper
-          modules={[Autoplay, Pagination, Navigation, A11y]}
-          slidesPerView={1}
-          // Avoid "flash" on load caused by loop cloning + initial translate snap.
-          // Rewind keeps UX (auto/manual) without loop DOM duplication.
-          loop={false}
-          rewind
-          speed={650}
-          initialSlide={0}
-          pagination={{ clickable: true }}
-          navigation
-          autoplay={{
-            delay: 4000,
-            disableOnInteraction: false,
-            pauseOnMouseEnter: true,
-          }}
-          a11y={{ enabled: true }}
-          className="h-full hero-swiper"
-        >
-          {slides.map((s, idx) => (
-            <SwiperSlide key={s.id}>
-              <div className="relative h-full">
-                <img
-                  src={s.image}
-                  alt="Bihari Flavours"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  draggable="false"
-                  loading={idx === 0 ? "eager" : "lazy"}
-                  fetchpriority={idx === 0 ? "high" : "auto"}
-                />
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        {slides ? (
+          <div
+            className={cn(
+              "h-full transition-opacity duration-300",
+              visible ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Swiper
+              key={slides.map((s) => s.image).join("|")}
+              modules={[Autoplay, Pagination, Navigation, A11y]}
+              slidesPerView={1}
+              // Avoid "flash" on load caused by loop cloning + initial translate snap.
+              // Rewind keeps UX (auto/manual) without loop DOM duplication.
+              loop={false}
+              rewind
+              speed={650}
+              initialSlide={0}
+              pagination={{ clickable: true }}
+              navigation
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              a11y={{ enabled: true }}
+              className="h-full hero-swiper"
+            >
+              {slides.map((s, idx) => (
+                <SwiperSlide key={s.id}>
+                  <div className="relative h-full">
+                    <img
+                      src={s.image}
+                      alt="Bihari Flavours"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      draggable="false"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      fetchpriority={idx === 0 ? "high" : "auto"}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        ) : (
+          <div className="h-full w-full bg-[#F8FAFC]" />
+        )}
       </div>
     </section>
   );
