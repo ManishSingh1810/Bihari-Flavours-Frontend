@@ -162,7 +162,7 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
 
   return (
     <article
-      className="group rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition hover:shadow-md"
       onClick={() => navigate(`/product/${product._id}`)}
       role="button"
       tabIndex={0}
@@ -171,16 +171,28 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
     >
       <div className="relative overflow-hidden rounded-2xl border border-black/5 bg-[#F8FAFC]">
         <div className="aspect-square w-full">
-          <img src={img} alt={product.name} className="h-full w-full object-contain p-4" />
+          <img
+            src={img}
+            alt={product.name}
+            className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.01]"
+            loading="lazy"
+            draggable="false"
+          />
         </div>
       </div>
 
       <div className="mt-4">
-        <p className="text-sm font-semibold text-[#0F172A] line-clamp-1">{product.name}</p>
-        <p className="mt-1 text-xs text-[#64748B] line-clamp-2">{product.desc}</p>
+        <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
+          {product.name}
+        </p>
+        <p className="mt-1 text-xs text-[#64748B] line-clamp-2 leading-relaxed">
+          {product.desc}
+        </p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="text-base font-semibold text-[#8E1B1B]">₹{product.price}</p>
+          <p className="text-sm sm:text-base font-semibold text-[#8E1B1B]">
+            ₹{product.price}
+          </p>
 
           <div onClick={(e) => e.stopPropagation()}>
             {qty > 0 ? (
@@ -221,12 +233,16 @@ function ProductsShowcase({
   return (
     <section className="bg-white border-y border-black/5">
       <div className={cn(container, "py-14 sm:py-16")}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading
-            eyebrow="Shop"
-            title="All products"
-            subtitle="Explore our premium snacks & staples."
-          />
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8E1B1B]">
+            Shop
+          </p>
+          <h2 className="mt-2 text-2xl sm:text-3xl text-[#0F172A]">
+            All products
+          </h2>
+          <p className="mt-2 text-sm text-[#64748B]">
+            Explore our premium snacks & staples.
+          </p>
         </div>
 
         {loading && <p className="text-sm text-[#64748B]">Loading…</p>}
@@ -234,7 +250,7 @@ function ProductsShowcase({
 
         {!loading && !error && (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {list.map((p) => {
                 const qty = cartItemsByProductId?.get(String(p._id)) || 0;
                 return (

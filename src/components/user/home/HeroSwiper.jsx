@@ -149,7 +149,7 @@ export default function HeroSwiper() {
       aria-label="Homepage hero"
     >
       {/* Fixed heights to minimize CLS */}
-      <div className="relative h-[240px] sm:h-[360px] lg:h-[460px]">
+      <div className="relative h-[220px] sm:h-[320px] lg:h-[380px] xl:h-[420px]">
         {slides ? (
           <div
             className={cn(
