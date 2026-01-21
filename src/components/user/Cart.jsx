@@ -10,7 +10,6 @@ import {
   Loader,
 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import Checkout from './checkout';
 import { useUser } from "../../Context/userContext";
 
@@ -232,10 +231,7 @@ const Cart = () => {
                 onClick={() => {
                   // Only require login at checkout (not while adding to cart)
                   if (!user) {
-                    // Keep this very short so it doesn't feel "stuck" across route change
-                    toast.dismiss();
-                    toast.error("Please login to continue to checkout.", { duration: 1200 });
-                    setTimeout(() => navigate("/login?redirect=/cart"), 150);
+                    navigate("/login?redirect=/cart");
                     return;
                   }
                   setShowCheckout(true);
