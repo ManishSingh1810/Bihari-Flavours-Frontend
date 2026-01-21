@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ChevronLeft, ChevronRight, Search, Maximize2, X } from "lucide-react";
 import Card from "../../ui/Card.jsx";
 import Button from "../../ui/Button.jsx";
 
@@ -15,6 +16,7 @@ export default function ImageGallery({
   aspect = "square", // "square" | "fourFive"
 }) {
   const touchStartX = useRef(null);
+  const [open, setOpen] = useState(false);
 
   const safeImages = useMemo(() => {
     if (Array.isArray(images) && images.length) return images;
@@ -40,13 +42,27 @@ export default function ImageGallery({
   // Keyboard support
   useEffect(() => {
     const onKey = (e) => {
+      if (open && e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
       if (e.key === "ArrowLeft") prev();
       if (e.key === "ArrowRight") next();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [count]);
+  }, [count, open]);
+
+  // Lock scroll when fullscreen is open
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
 
   const aspectClass = aspect === "fourFive" ? "aspect-[4/5]" : "aspect-square";
 
@@ -59,6 +75,11 @@ export default function ImageGallery({
         )}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        role="button"
+        tabIndex={0}
+        aria-label="Open image fullscreen"
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
       >
         <div className={cn("w-full", aspectClass)}>
           <img
@@ -79,6 +100,20 @@ export default function ImageGallery({
           <Search className="h-4 w-4 text-[#8E1B1B]" />
           Hover to zoom
         </div>
+
+        {/* Fullscreen affordance */}
+        <button
+          type="button"
+          className="absolute right-3 top-3 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-2 text-xs font-semibold text-[#0F172A] ring-1 ring-black/10 hover:bg-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(true);
+          }}
+          aria-label="Open fullscreen"
+        >
+          <Maximize2 className="h-4 w-4 text-[#8E1B1B]" />
+          <span className="hidden sm:inline">Fullscreen</span>
+        </button>
 
         {count > 1 ? (
           <>
@@ -134,6 +169,94 @@ export default function ImageGallery({
           ))}
         </div>
       ) : null}
+
+      {open
+        ? createPortal(
+            <div className="fixed inset-0 z-[99999]">
+              <div
+                className="absolute inset-0 bg-black/70"
+                onClick={() => setOpen(false)}
+                aria-hidden="true"
+              />
+
+              <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Product image fullscreen"
+                  className="relative w-full max-w-6xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className="absolute -top-12 right-0 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/20"
+                    onClick={() => setOpen(false)}
+                    aria-label="Close fullscreen"
+                  >
+                    <X className="h-5 w-5" /> Close
+                  </button>
+
+                  <div className="relative overflow-hidden rounded-2xl bg-black">
+                    <div
+                      className="h-[72vh] w-full bg-black"
+                      onTouchStart={onTouchStart}
+                      onTouchEnd={onTouchEnd}
+                    >
+                      <img
+                        src={safeImages[active]}
+                        alt={`${productName} image ${active + 1}`}
+                        className="h-full w-full object-contain"
+                        draggable="false"
+                      />
+                    </div>
+
+                    {count > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 p-2 text-white ring-1 ring-white/20 hover:bg-white/20"
+                          onClick={prev}
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </button>
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 p-2 text-white ring-1 ring-white/20 hover:bg-white/20"
+                          onClick={next}
+                          aria-label="Next image"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+
+                  {count > 1 ? (
+                    <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+                      {safeImages.map((img, idx) => (
+                        <button
+                          key={`fs-${img}-${idx}`}
+                          type="button"
+                          onClick={() => setActive(idx)}
+                          className={cn(
+                            "shrink-0 overflow-hidden rounded-xl bg-white/10 ring-1",
+                            idx === active ? "ring-white/60" : "ring-white/15 hover:ring-white/30"
+                          )}
+                          style={{ width: 76, height: 76 }}
+                          aria-label={`Select image ${idx + 1}`}
+                        >
+                          <img src={img} alt="" className="h-full w-full object-cover" draggable="false" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </Card>
   );
 }
