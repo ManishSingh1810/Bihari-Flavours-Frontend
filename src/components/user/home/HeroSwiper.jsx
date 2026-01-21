@@ -179,12 +179,12 @@ export default function HeroSwiper() {
             >
               {slides.map((s, idx) => (
                 <SwiperSlide key={s.id}>
-                  <div className="relative h-full bg-white">
-                    {/* Image (no crop, no zoom). Empty space (if any) uses clean background (no blur). */}
+                  <div className="relative h-full bg-[#F8FAFC]">
+                    {/* Full-bleed hero image (reference style) */}
                     <img
                       src={s.image}
                       alt="Bihari Flavours"
-                      className="absolute inset-0 h-full w-full object-contain"
+                      className="absolute inset-0 h-full w-full object-cover"
                       draggable="false"
                       loading={idx === 0 ? "eager" : "lazy"}
                       fetchpriority={idx === 0 ? "high" : "auto"}
