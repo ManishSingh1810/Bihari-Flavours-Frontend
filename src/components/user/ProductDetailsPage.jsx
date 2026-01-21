@@ -10,11 +10,12 @@ import {
   Share2,
   ShieldCheck,
   Truck,
-  Package,
   Star,
 } from "lucide-react";
 import QtyStepper from "./product/QtyStepper.jsx";
 import ProductCard from "./product/ProductCard.jsx";
+import Button from "../ui/Button.jsx";
+import Card from "../ui/Card.jsx";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -200,19 +201,14 @@ export default function ProductDetailsPage() {
             ← Back
           </button>
 
-          <button
-            onClick={shareOnWhatsApp}
-            className="inline-flex items-center gap-2 rounded-md border border-[rgba(142,27,27,0.35)]
-                       bg-white px-3 py-2 text-sm text-[#8E1B1B]
-                       hover:bg-[#8E1B1B] hover:text-white"
-          >
+          <Button variant="secondary" onClick={shareOnWhatsApp}>
             <Share2 size={16} /> Share
-          </button>
+          </Button>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* GALLERY */}
-          <div className="rounded-3xl bg-white p-4 ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+          <Card className="p-4" hover={false}>
             <div
               className="relative overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5"
               onTouchStart={onTouchStart}
@@ -285,10 +281,10 @@ export default function ProductDetailsPage() {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
 
           {/* DETAILS */}
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+          <Card className="p-6" hover={false}>
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 {/* Title */}
@@ -354,14 +350,13 @@ export default function ProductDetailsPage() {
                   onPlus={handleAddToCart}
                 />
               ) : (
-              <button
-                onClick={handleAddToCart}
+                <Button
+                  onClick={handleAddToCart}
                   disabled={updating || isOutOfStock}
-                className="w-full sm:w-auto rounded-xl bg-[#8E1B1B] px-6 py-3 text-sm font-semibold text-white
-                           hover:bg-[#741616] disabled:opacity-50"
-              >
-                  {isOutOfStock ? "Out of Stock" : updating ? "Adding…" : "Add to Cart"}
-              </button>
+                  className="w-full sm:w-auto px-6 py-3"
+                >
+                  {isOutOfStock ? "Out of Stock" : updating ? "Adding…" : "Add to cart"}
+                </Button>
               )}
             </div>
 
@@ -400,7 +395,7 @@ export default function ProductDetailsPage() {
 
               <ReviewBox productId={product._id} />
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Frequently bought together */}

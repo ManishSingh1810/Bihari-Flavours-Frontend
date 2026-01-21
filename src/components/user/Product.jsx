@@ -6,6 +6,7 @@ import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import { ArrowRight } from "lucide-react";
 import ProductCard from "./product/ProductCard.jsx";
+import Input from "../ui/Input.jsx";
 
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
@@ -151,12 +152,10 @@ export default function ProductsPage() {
 
             {/* Search */}
             <div className="mt-6">
-              <input
+              <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products…"
-                className="w-full rounded-2xl border border-black/10 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A]
-                           outline-none transition focus:border-[#8E1B1B] focus:ring-4 focus:ring-[rgba(142,27,27,0.12)]"
               />
             </div>
           </div>

@@ -4,6 +4,25 @@
     sans-serif;
   --font-heading: "Merriweather", ui-serif, Georgia, Cambria, "Times New Roman",
     Times, serif;
+
+  /* ---------------- Design System Tokens ---------------- */
+  --ds-bg: #f8fafc;
+  --ds-surface: #ffffff;
+  --ds-text: #0f172a;
+  --ds-muted: #64748b;
+  --ds-border: rgba(15, 23, 42, 0.08);
+  --ds-border-strong: rgba(15, 23, 42, 0.12);
+  --ds-brand: #8e1b1b;
+  --ds-brand-hover: #741616;
+  --ds-ring: rgba(142, 27, 27, 0.18);
+
+  --ds-radius-sm: 10px;
+  --ds-radius-md: 14px;
+  --ds-radius-lg: 18px;
+  --ds-radius-xl: 24px;
+
+  --ds-shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.04);
+  --ds-shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 /* Base */
 html,
@@ -11,8 +30,8 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--ds-bg);
+  color: var(--ds-text);
 }
 h1,
 h2,
@@ -23,6 +42,80 @@ h6 {
     font-family: var(--font-heading);
     font-weight: 600;
     letter-spacing: -0.01em;
+}
+
+/* ---------------- Design System (Utilities) ---------------- */
+@layer components {
+  /* Typography */
+  .ds-eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--ds-brand)];
+  }
+  .ds-title {
+    @apply text-2xl sm:text-3xl text-[color:var(--ds-text)];
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  .ds-body {
+    @apply text-sm text-[color:var(--ds-muted)];
+  }
+
+  /* Layout */
+  .ds-container {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  /* Surfaces */
+  .ds-card {
+    background: var(--ds-surface);
+    border-radius: var(--ds-radius-xl);
+    box-shadow: var(--ds-shadow-sm);
+    @apply ring-1 ring-black/5;
+  }
+  .ds-card-hover {
+    @apply transition hover:shadow-md hover:ring-black/10;
+  }
+
+  /* Badges */
+  .ds-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 shadow-sm;
+  }
+  .ds-badge-brand {
+    @apply bg-white text-[color:var(--ds-brand)];
+    box-shadow: var(--ds-shadow-sm);
+    border-color: rgba(142, 27, 27, 0.25);
+  }
+  .ds-badge-muted {
+    @apply bg-white text-slate-700;
+  }
+  .ds-badge-danger {
+    @apply bg-white text-slate-500;
+  }
+
+  /* Inputs */
+  .ds-input {
+    @apply w-full rounded-2xl border border-black/10 bg-[color:var(--ds-bg)] px-4 py-3 text-sm text-[color:var(--ds-text)]
+      outline-none transition focus:border-[color:var(--ds-brand)] focus:ring-4 focus:ring-[color:var(--ds-ring)];
+  }
+
+  /* Buttons */
+  .ds-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+      focus:outline-none focus:ring-4 focus:ring-[color:var(--ds-ring)] disabled:opacity-50;
+  }
+  .ds-btn-primary {
+    @apply text-white;
+    background: var(--ds-brand);
+  }
+  .ds-btn-primary:hover {
+    background: var(--ds-brand-hover);
+  }
+  .ds-btn-secondary {
+    @apply bg-white text-[color:var(--ds-text)] ring-1 ring-black/10 hover:bg-[color:var(--ds-bg)];
+  }
+  .ds-btn-ghost {
+    @apply bg-white/70 text-[color:var(--ds-text)] ring-1 ring-black/10 hover:bg-white;
+  }
 }
 
 /* Swiper (Hero) styling */
