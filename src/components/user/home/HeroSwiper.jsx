@@ -33,7 +33,23 @@ export default function HeroSwiper() {
     []
   );
 
-  const [slides, setSlides] = useState(defaultSlides);
+  const [slides, setSlides] = useState(() => {
+    // Avoid "flash of different image" on reload:
+    // Use last known homepage hero image URLs from localStorage immediately.
+    try {
+      const raw = localStorage.getItem("homepageHeroSlides:v1");
+      const cached = raw ? JSON.parse(raw) : null;
+      if (!Array.isArray(cached) || cached.length === 0) return defaultSlides;
+
+      return defaultSlides.map((s, i) => {
+        const c = cached[i] || {};
+        const url = c.imageUrl || c.image || c.url;
+        return { ...s, image: url || s.image };
+      });
+    } catch {
+      return defaultSlides;
+    }
+  });
 
   // Load hero images/titles from backend (admin uploads) with fallback to local assets.
   useEffect(() => {
@@ -52,6 +68,16 @@ export default function HeroSwiper() {
           null;
 
         if (!Array.isArray(heroSlides) || heroSlides.length === 0) return;
+
+        // Cache for next reload to avoid flicker
+        try {
+          localStorage.setItem(
+            "homepageHeroSlides:v1",
+            JSON.stringify(heroSlides.slice(0, 3))
+          );
+        } catch {
+          // ignore
+        }
 
         setSlides((prev) =>
           prev.map((s, i) => {
