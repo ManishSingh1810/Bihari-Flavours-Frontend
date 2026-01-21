@@ -187,8 +187,8 @@ toast.error(msg);
           duration: 3500,
         });
 
-        setTimeout(() => {
-          setShowCheckout(false);
+  setTimeout(() => {
+    setShowCheckout(false);
           navigate("/order");
         }, 800);
 },
@@ -238,8 +238,8 @@ toast.error(msg);
           duration: 3500,
         });
 
-        setTimeout(() => {
-          setShowCheckout(false);
+  setTimeout(() => {
+    setShowCheckout(false);
           navigate("/order");
         }, 800);
       } else {
@@ -351,7 +351,7 @@ setLoading(false);
                   checked={paymentMethod === "COD"}
                   onChange={() => setPaymentMethod("COD")}
                 />
-                Cash on Delivery (+₹{COD_CHARGE})
+                Cash on Delivery (+Rs. {COD_CHARGE})
               </label>
 
               <label className="flex justify-between p-3 bg-white rounded cursor-pointer">
@@ -392,29 +392,29 @@ setLoading(false);
             )}
 
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
+              <div className="flex justify-between tabular-nums">
                 <span>Subtotal</span>
-                <span>₹{cart.totalAmount}</span>
+                <span>Rs. {cart.totalAmount}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between tabular-nums">
                 <span>COD Fee</span>
-                <span>₹{shippingCharge}</span>
+                <span>Rs. {shippingCharge}</span>
               </div>
               {couponApplied && (
-                <div className="flex justify-between text-green-700">
+                <div className="flex justify-between text-green-700 tabular-nums">
                   <span>Discount</span>
-                  <span>-₹{discountAmount}</span>
+                  <span>-Rs. {discountAmount}</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-lg">
+              <div className="flex justify-between font-bold text-lg tabular-nums">
                 <span>Total</span>
-                <span>₹{finalTotal}</span>
+                <span>Rs. {finalTotal}</span>
               </div>
             </div>
 
             {paymentMethod === "COD" && (
               <div className="flex gap-2 text-xs text-blue-700 mt-3">
-                <Info size={14} /> Pay online to save ₹{COD_CHARGE}
+                <Info size={14} /> Pay online to save Rs. {COD_CHARGE}
               </div>
             )}
 

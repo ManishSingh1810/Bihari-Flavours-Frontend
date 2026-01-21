@@ -132,19 +132,19 @@ function QtyPill({ qty, onMinus, onPlus, disabled }) {
         type="button"
         onClick={onMinus}
         disabled={disabled}
-        className="inline-flex h-10 w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
+        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
         aria-label="Decrease quantity"
       >
         <Minus className="h-4 w-4" />
       </button>
-      <span className="min-w-[40px] text-center text-sm font-semibold text-[#0F172A]">
+      <span className="min-w-[38px] sm:min-w-[40px] text-center text-sm font-bold tabular-nums text-[#0F172A]">
         {qty}
       </span>
       <button
         type="button"
         onClick={onPlus}
         disabled={disabled}
-        className="inline-flex h-10 w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
+        className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center hover:bg-[#F8FAFC] disabled:opacity-50"
         aria-label="Increase quantity"
       >
         <Plus className="h-4 w-4" />
@@ -162,7 +162,7 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
 
   return (
     <article
-      className="group rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition hover:shadow-md"
+      className="group rounded-3xl border border-black/5 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md"
       onClick={() => navigate(`/product/${product._id}`)}
       role="button"
       tabIndex={0}
@@ -181,17 +181,17 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-3 sm:mt-4">
         <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
           {product.name}
         </p>
-        <p className="mt-1 text-xs text-[#64748B] line-clamp-2 leading-relaxed">
+        <p className="mt-1 text-[11px] sm:text-xs text-[#64748B] line-clamp-2 leading-relaxed">
           {product.desc}
         </p>
 
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="text-sm sm:text-base font-semibold text-[#8E1B1B]">
-            ₹{product.price}
+        <div className="mt-3 sm:mt-4 flex items-center justify-between gap-2">
+          <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#8E1B1B]">
+            Rs. {product.price}
           </p>
 
           <div onClick={(e) => e.stopPropagation()}>
@@ -207,9 +207,9 @@ function ProductTile({ product, qty, updating, onAdd, onMinus }) {
                 type="button"
                 onClick={onAdd}
                 disabled={updating === product._id}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#8E1B1B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#741616] disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#8E1B1B] px-3 py-2 text-[11px] sm:text-xs font-semibold text-white hover:bg-[#741616] disabled:opacity-50 whitespace-nowrap"
               >
-                Add <Plus className="h-4 w-4" />
+                Add to cart <Plus className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -250,7 +250,7 @@ function ProductsShowcase({
 
         {!loading && !error && (
           <>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
               {list.map((p) => {
                 const qty = cartItemsByProductId?.get(String(p._id)) || 0;
                 return (

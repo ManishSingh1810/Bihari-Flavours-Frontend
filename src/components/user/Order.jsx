@@ -118,14 +118,16 @@ const OrderDetailsModal = ({ order, onClose }) => {
                     <p className="font-medium text-[#1F1B16]">{item.name}</p>
                     <p className="text-xs text-[#6F675E]">Qty: {item.quantity}</p>
                   </div>
-                  <span className="font-semibold text-[#1F1B16]">₹{item.price * item.quantity}</span>
+                  <span className="font-semibold text-[#1F1B16] tabular-nums">
+                    Rs. {item.price * item.quantity}
+                  </span>
                 </div>
               ))}
 
               <div className="mt-3 flex justify-between border-t border-gray-200 pt-3 font-bold text-base">
                 <span>Total Paid</span>
-                <span className="text-[#8E1B1B]">
-                  ₹{order.totalAmount?.toFixed(2)}
+                <span className="text-[#8E1B1B] tabular-nums">
+                  Rs. {order.totalAmount?.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -173,8 +175,8 @@ const OrderItem = ({ order, onSelect }) => {
 
         <div className="text-right">
           <p className="text-[10px] uppercase tracking-widest text-[#6F675E]">Amount</p>
-          <p className="text-lg font-bold text-[#8E1B1B]">
-            ₹{order.totalAmount?.toFixed(2)}
+          <p className="text-lg font-bold text-[#8E1B1B] tabular-nums">
+            Rs. {order.totalAmount?.toFixed(2)}
           </p>
         </div>
       </div>

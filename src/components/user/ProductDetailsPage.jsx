@@ -311,8 +311,8 @@ export default function ProductDetailsPage() {
                 </h1>
 
                 {/* Price (moved up, directly under title) */}
-                <p className="mt-2 text-3xl font-semibold text-[#8E1B1B]">
-                  ₹{product.price}
+                <p className="mt-2 text-3xl font-semibold tabular-nums text-[#8E1B1B]">
+                  Rs. {product.price}
                 </p>
 
                 {/* Description (moved after price) */}
@@ -343,14 +343,14 @@ export default function ProductDetailsPage() {
                   onPlus={handleAddToCart}
                 />
               ) : (
-                <button
-                  onClick={handleAddToCart}
+              <button
+                onClick={handleAddToCart}
                   disabled={updating || isOutOfStock}
-                  className="w-full sm:w-auto rounded-md border border-[#8E1B1B] px-6 py-2 text-sm text-[#8E1B1B]
-                             hover:bg-[#8E1B1B] hover:text-white disabled:opacity-50"
-                >
+                className="w-full sm:w-auto rounded-md border border-[#8E1B1B] px-6 py-2 text-sm text-[#8E1B1B]
+                           hover:bg-[#8E1B1B] hover:text-white disabled:opacity-50"
+              >
                   {isOutOfStock ? "Out of Stock" : updating ? "Adding…" : "Add to Cart"}
-                </button>
+              </button>
               )}
             </div>
 
@@ -424,8 +424,8 @@ export default function ProductDetailsPage() {
                       <p className="font-semibold text-[#1F1B16] line-clamp-1">
                         {p.name}
                       </p>
-                      <p className="text-sm text-[#8E1B1B] font-semibold">
-                        ₹{p.price}
+                      <p className="text-sm text-[#8E1B1B] font-semibold tabular-nums">
+                        Rs. {p.price}
                       </p>
                     </div>
                     <span
@@ -450,7 +450,7 @@ export default function ProductDetailsPage() {
         <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
           <div>
             <p className="text-xs text-[#6F675E]">Total</p>
-            <p className="text-lg font-semibold text-[#8E1B1B]">₹{product.price}</p>
+            <p className="text-lg font-semibold tabular-nums text-[#8E1B1B]">Rs. {product.price}</p>
           </div>
 
           {qty > 0 ? (
@@ -464,13 +464,13 @@ export default function ProductDetailsPage() {
               />
             </div>
           ) : (
-            <button
-              onClick={handleAddToCart}
+          <button
+            onClick={handleAddToCart}
               disabled={updating || isOutOfStock}
-              className="flex-1 rounded-lg bg-[#8E1B1B] py-3 text-sm font-semibold text-white disabled:opacity-50"
-            >
+            className="flex-1 rounded-lg bg-[#8E1B1B] py-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
               {isOutOfStock ? "Out of Stock" : updating ? "Adding…" : "Add to Cart"}
-            </button>
+          </button>
           )}
         </div>
       </div>

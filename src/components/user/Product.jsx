@@ -12,14 +12,14 @@ const AddToCartButton = ({ productId, onAdd, disabled, outOfStock }) => (
     type="button"
     onClick={() => !outOfStock && onAdd(productId)}
     disabled={disabled || outOfStock}
-    className={`rounded-lg border px-4 py-2 text-sm font-semibold transition
+    className={`rounded-lg border px-3 py-2 text-[11px] sm:px-4 sm:py-2 sm:text-sm font-semibold transition whitespace-nowrap
       ${
         outOfStock
           ? "cursor-not-allowed border-black/10 bg-white/60 text-gray-400"
           : "border-[#8E1B1B] bg-white text-[#8E1B1B] hover:bg-[#8E1B1B] hover:text-white"
       }`}
   >
-    {outOfStock ? "Out of Stock" : disabled ? "Adding…" : "Add to Cart"}
+    {outOfStock ? "Out of Stock" : disabled ? "Adding…" : "Add to cart"}
   </button>
 );
 
@@ -37,7 +37,7 @@ const QtyControls = ({ qty, onMinus, onPlus, disabled, outOfStock }) => (
     >
       -
     </button>
-    <span className="min-w-[32px] text-center">{qty}</span>
+    <span className="min-w-[32px] text-center font-bold tabular-nums">{qty}</span>
     <button
       type="button"
       onClick={onPlus}
@@ -209,7 +209,7 @@ export default function ProductsPage() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10">
 
         {/* Grid */}
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {filtered.map((product) => {
             const img =
               product?.photos?.[0] ||
@@ -225,7 +225,7 @@ export default function ProductsPage() {
                 onClick={() => navigate(`/product/${product._id}`)}
                 className="group cursor-pointer rounded-2xl border border-[rgba(142,27,27,0.18)]
                            bg-white p-3 shadow-sm transition-all
-                           hover:-translate-y-0.5 hover:shadow-md sm:p-4"
+                           hover:shadow-md sm:p-4"
               >
                 {/* Image */}
                 <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-white">
@@ -264,8 +264,8 @@ export default function ProductsPage() {
 
                 {/* Price + CTA */}
                 <div className="mt-4 flex items-center justify-between gap-2">
-                  <span className="text-base font-semibold text-[#8E1B1B] sm:text-lg">
-                    ₹{product.price}
+                  <span className="text-[13px] sm:text-lg font-semibold tabular-nums text-[#8E1B1B]">
+                    Rs. {product.price}
                   </span>
 
                   {/* Prevent card click when pressing button */}

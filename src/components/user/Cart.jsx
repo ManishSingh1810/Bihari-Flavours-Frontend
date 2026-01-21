@@ -191,8 +191,8 @@ const Cart = () => {
                     <p className="font-medium text-[#1F1B16]">
                       {item.name}
                     </p>
-                    <p className="text-sm text-[#6F675E]">
-                      ₹{item.price}
+                    <p className="text-sm text-[#6F675E] tabular-nums">
+                      Rs. {item.price}
                     </p>
                   </div>
 
