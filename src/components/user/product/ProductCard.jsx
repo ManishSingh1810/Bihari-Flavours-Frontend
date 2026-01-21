@@ -140,18 +140,20 @@ export default function ProductCard({
             <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
               {product?.name}
             </p>
-            <div className="mt-1 flex items-center gap-2 text-[11px] text-[#64748B]">
-              <span className="font-semibold text-[#0F172A] tabular-nums">
-                {count ? avg.toFixed(1) : "—"}
-              </span>
-              <span className="text-[#8E1B1B]">
-                {"★".repeat(Math.round(avg || 0))}
-                <span className="text-[#CBD5E1]">
-                  {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
+            {count > 0 ? (
+              <div className="mt-1 flex items-center gap-2 text-[11px] text-[#64748B]">
+                <span className="font-semibold text-[#0F172A] tabular-nums">
+                  {avg.toFixed(1)}
                 </span>
-              </span>
-              <span className="tabular-nums">({count || 0})</span>
-            </div>
+                <span className="text-[#8E1B1B]">
+                  {"★".repeat(Math.round(avg || 0))}
+                  <span className="text-[#CBD5E1]">
+                    {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
+                  </span>
+                </span>
+                <span className="tabular-nums">({count})</span>
+              </div>
+            ) : null}
             <p className="mt-1 text-[11px] sm:text-xs text-[#64748B] line-clamp-2 leading-relaxed">
               {product?.desc}
             </p>

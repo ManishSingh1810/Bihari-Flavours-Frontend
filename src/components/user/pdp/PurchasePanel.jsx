@@ -54,18 +54,20 @@ export default function PurchasePanel({
 
       {/* rating summary */}
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-        <div className="inline-flex items-center gap-2 rounded-full bg-[#F8FAFC] px-3 py-1.5 ring-1 ring-black/5">
-          <span className="font-semibold text-[#0F172A] tabular-nums">
-            {count ? avg.toFixed(1) : "—"}
-          </span>
-          <span className="text-[#8E1B1B]">
-            {"★".repeat(Math.round(avg || 0))}
-            <span className="text-[#CBD5E1]">
-              {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
+        {count > 0 ? (
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#F8FAFC] px-3 py-1.5 ring-1 ring-black/5">
+            <span className="font-semibold text-[#0F172A] tabular-nums">
+              {avg.toFixed(1)}
             </span>
-          </span>
-          <span className="text-[#64748B] tabular-nums">({count || 0})</span>
-        </div>
+            <span className="text-[#8E1B1B]">
+              {"★".repeat(Math.round(avg || 0))}
+              <span className="text-[#CBD5E1]">
+                {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
+              </span>
+            </span>
+            <span className="text-[#64748B] tabular-nums">({count})</span>
+          </div>
+        ) : null}
         {netQuantity ? (
           <span className="rounded-full bg-[#F8FAFC] px-3 py-1.5 text-xs font-semibold text-[#334155] ring-1 ring-black/5">
             {netQuantity}
