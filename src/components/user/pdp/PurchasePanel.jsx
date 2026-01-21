@@ -4,6 +4,7 @@ import Card from "../../ui/Card.jsx";
 import Button from "../../ui/Button.jsx";
 import Badge from "../../ui/Badge.jsx";
 import QtyStepper from "../product/QtyStepper.jsx";
+import { Link } from "react-router-dom";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -120,6 +121,18 @@ export default function PurchasePanel({
           <TrustPill icon={<Truck className="h-4 w-4" />} text="Fast dispatch" />
           <TrustPill icon={<MessageCircle className="h-4 w-4" />} text="WhatsApp support" />
         </div>
+
+        <p className="text-xs text-[#64748B] leading-relaxed">
+          Shipping calculated at checkout. See our{" "}
+          <Link to="/shipping" className="font-semibold text-[#8E1B1B] hover:underline">
+            Shipping
+          </Link>{" "}
+          &{" "}
+          <Link to="/returns" className="font-semibold text-[#8E1B1B] hover:underline">
+            Returns
+          </Link>{" "}
+          policy.
+        </p>
       </div>
     </Card>
   );

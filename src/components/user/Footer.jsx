@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, Heart, Mail, Clock, Phone} from 'lucide-react';
+import { Instagram, Heart, Mail, Clock, Phone, MapPin, ExternalLink } from 'lucide-react';
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -32,7 +32,7 @@ const Footer = () => {
       <div className="mx-auto max-w-7xl px-6 py-16">
 
         {/* Main Content */}
-        <div className="grid gap-12 md:grid-cols-3">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
 
           {/* About Us */}
           <motion.div variants={itemVariants}>
@@ -100,11 +100,18 @@ const Footer = () => {
 
           {/* Support & Contact */}
           <motion.div variants={itemVariants}>
-            <h4 className="mb-5 text-xl font-semibold text-[#8E1B1B]">
-              Customer Support
-            </h4>
+            <h4 className="mb-5 text-xl font-semibold text-[#8E1B1B]">Business details</h4>
 
             <ul className="space-y-4 text-sm text-[#1F1B16]">
+              <li className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 text-[#8E1B1B]" />
+                <span className="text-[#6F675E]">
+                  Address: <span className="text-[#1F1B16]">Coming soon</span>
+                  <span className="block text-xs text-[#6F675E] mt-1">
+                    (For support, contact us on WhatsApp / Email)
+                  </span>
+                </span>
+              </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-[#8E1B1B]" />
                 <a
@@ -136,7 +143,7 @@ const Footer = () => {
             className="flex flex-col md:items-end md:text-right"
           >
             <h4 className="mb-5 text-xl font-semibold text-[#8E1B1B]">
-              Quick Links
+              Policies & links
             </h4>
 
             <ul className="space-y-3">
@@ -145,14 +152,18 @@ const Footer = () => {
                 { label: "Products", href: "/product" },
                 { label: "Orders", href: "/order" },
                 { label: "Cart", href: "/cart" },
+                { label: "Shipping", href: "/shipping" },
+                { label: "Returns", href: "/returns" },
+                { label: "Privacy Policy", href: "/privacy-policy" },
+                { label: "Terms", href: "/terms" },
               ].map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-[#1F1B16] transition hover:text-[#8E1B1B]"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -169,22 +180,21 @@ const Footer = () => {
             </p>
 
             <div className="flex items-center justify-center gap-6 text-sm text-[#6F675E] sm:justify-end">
-              <Link
-                 to="/privacy-policy"
-                 className="hover:text-[#8E1B1B] transition"
-                 >
-                Privacy Policy
-               </Link>
-
-               <span className="opacity-40">•</span>
-
-                <Link
-                 to="/terms"
-                  className="hover:text-[#8E1B1B] transition"
-                   >
-                 Terms
-                  </Link>
-
+              <Link to="/shipping" className="hover:text-[#8E1B1B] transition">
+                Shipping
+              </Link>
+              <span className="opacity-40">•</span>
+              <Link to="/returns" className="hover:text-[#8E1B1B] transition">
+                Returns
+              </Link>
+              <span className="opacity-40">•</span>
+              <Link to="/privacy-policy" className="hover:text-[#8E1B1B] transition">
+                Privacy
+              </Link>
+              <span className="opacity-40">•</span>
+              <Link to="/terms" className="hover:text-[#8E1B1B] transition">
+                Terms
+              </Link>
             </div>
           </div>
         </div>

@@ -20,6 +20,8 @@ import ProductDetailsPage from "./components/user/ProductDetailsPage";
 // ✅ New pages
 import PrivacyPolicy from "./components/user/PrivacyPolicy";
 import Terms from "./components/user/Terms";
+import ShippingPolicy from "./components/user/ShippingPolicy";
+import ReturnsPolicy from "./components/user/ReturnsPolicy";
 
 // Admin Pages
 import AdminDashboard from "./components/admin/Dashboard";
@@ -63,6 +65,8 @@ const App = () => {
         {/* ✅ Legal pages */}
         <Route path="privacy-policy" element={<PrivacyPolicy />} />
         <Route path="terms" element={<Terms />} />
+        <Route path="shipping" element={<ShippingPolicy />} />
+        <Route path="returns" element={<ReturnsPolicy />} />
       </Route>
 
       {/* Admin Routes */}

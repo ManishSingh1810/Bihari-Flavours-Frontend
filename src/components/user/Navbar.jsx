@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useUser } from "../../Context/userContext";
+import { ShieldCheck, MessageCircle, PackageSearch } from "lucide-react";
 import logo from "../../assets/logo.png";
 import HeaderSearch from "./header/HeaderSearch";
 import HeaderCartButton from "./header/HeaderCartButton";
@@ -146,6 +147,33 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-3">
+          {/* Trust cluster */}
+          <div className="hidden xl:flex items-center gap-3 text-xs text-[#64748B] mr-1">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#F8FAFC] px-3 py-1.5 ring-1 ring-black/5">
+              <ShieldCheck className="h-4 w-4 text-[#8E1B1B]" />
+              <span className="font-semibold text-[#0F172A]">Secure Checkout</span>
+            </span>
+
+            <a
+              href="https://wa.me/9185211754329"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-full bg-[#F8FAFC] px-3 py-1.5 ring-1 ring-black/5 hover:ring-black/10 hover:bg-white"
+            >
+              <MessageCircle className="h-4 w-4 text-[#8E1B1B]" />
+              <span className="font-semibold text-[#0F172A]">WhatsApp</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => navigate(user ? "/order" : "/login")}
+              className="inline-flex items-center gap-1 rounded-full bg-[#F8FAFC] px-3 py-1.5 ring-1 ring-black/5 hover:ring-black/10 hover:bg-white"
+            >
+              <PackageSearch className="h-4 w-4 text-[#8E1B1B]" />
+              <span className="font-semibold text-[#0F172A]">Track order</span>
+            </button>
+          </div>
+
           <HeaderSearch />
 
           {/* ✅ Home button */}
@@ -183,6 +211,16 @@ export default function Header() {
         {/* Mobile Actions (Search + Cart + Menu) */}
         <div className="lg:hidden flex items-center gap-1">
           <HeaderSearch />
+          <a
+            href="https://wa.me/9185211754329"
+            target="_blank"
+            rel="noreferrer"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-lg
+                       border border-transparent hover:border-[rgba(142,27,27,0.25)]"
+            aria-label="WhatsApp support"
+          >
+            <MessageCircle className="h-5 w-5 text-[#8E1B1B]" />
+          </a>
           <HeaderCartButton />
           <button
             className="h-10 w-10 inline-flex items-center justify-center rounded-lg
@@ -232,6 +270,17 @@ export default function Header() {
             >
               <OrdersIcon className="h-4 w-4" /> Orders
             </NavLink>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                navigate(user ? "/order" : "/login");
+              }}
+              className={navLinkClass({ isActive: false })}
+            >
+              <PackageSearch className="h-4 w-4" /> Track order
+            </button>
 
             <NavLink
               to={user ? "/cart" : "/login"}

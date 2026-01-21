@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Truck, ShieldCheck } from "lucide-react";
 import ProductBadge from "./ProductBadge.jsx";
 import QtyStepper from "./QtyStepper.jsx";
 import Button from "../../ui/Button.jsx";
@@ -188,6 +188,17 @@ export default function ProductCard({
           >
             View details
           </Button>
+        </div>
+
+        {/* Trust summary */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#64748B]">
+          <span className="inline-flex items-center gap-1">
+            <Truck className="h-3.5 w-3.5 text-[#8E1B1B]" /> Dispatch 24–48h
+          </span>
+          <span className="opacity-40">•</span>
+          <span className="inline-flex items-center gap-1">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#8E1B1B]" /> Secure payments
+          </span>
         </div>
       </div>
     </Card>
