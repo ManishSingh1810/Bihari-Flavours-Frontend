@@ -4,9 +4,11 @@ import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
-import { ArrowRight } from "lucide-react";
 import ProductCard from "./product/ProductCard.jsx";
-import Input from "../ui/Input.jsx";
+import FilterBar from "./products/FilterBar.jsx";
+import MobileFilterSheet from "./products/MobileFilterSheet.jsx";
+import SkeletonCard from "./products/SkeletonCard.jsx";
+import Button from "../ui/Button.jsx";
 
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
@@ -17,6 +19,14 @@ export default function ProductsPage() {
   // ✅ Search
   const [search, setSearch] = useState("");
   const [searchParams] = useSearchParams();
+
+  // Filters / sort (client-side only)
+  const [category, setCategory] = useState("All");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [sort, setSort] = useState("featured");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const navigate = useNavigate();
   const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
@@ -51,17 +61,72 @@ export default function ProductsPage() {
     setSearch(q);
   }, [searchParams]);
 
-  // ✅ Filtered products (safe + fast)
+  const categories = useMemo(() => {
+    const set = new Set();
+    for (const p of items || []) {
+      const c = p?.category;
+      const label = typeof c === "string" ? c : c?.name;
+      if (label) set.add(String(label));
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [items]);
+
+  // ✅ Filter + sort (client-side only)
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
+    const min = minPrice === "" ? null : Number(minPrice);
+    const max = maxPrice === "" ? null : Number(maxPrice);
 
-    return items.filter((p) => {
-      const name = (p?.name || "").toLowerCase();
-      const desc = (p?.desc || "").toLowerCase();
-      return name.includes(q) || desc.includes(q);
+    let list = (items || []).filter((p) => {
+      // search
+      if (q) {
+        const name = String(p?.name || "").toLowerCase();
+        const desc = String(p?.desc || "").toLowerCase();
+        if (!name.includes(q) && !desc.includes(q)) return false;
+      }
+
+      // category
+      if (category && category !== "All") {
+        const c = p?.category;
+        const label = typeof c === "string" ? c : c?.name;
+        if (String(label || "").toLowerCase() !== String(category).toLowerCase()) return false;
+      }
+
+      // in-stock toggle
+      if (inStockOnly && p?.quantity === "outofstock") return false;
+
+      // price range
+      const price = Number(p?.price);
+      if (Number.isFinite(min) && Number.isFinite(price) && price < min) return false;
+      if (Number.isFinite(max) && Number.isFinite(price) && price > max) return false;
+
+      return true;
     });
-  }, [items, search]);
+
+    // sort
+    if (sort === "newest") {
+      list = [...list].sort((a, b) => {
+        const ta = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tb = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return tb - ta;
+      });
+    } else if (sort === "price_asc") {
+      list = [...list].sort((a, b) => Number(a?.price || 0) - Number(b?.price || 0));
+    } else if (sort === "price_desc") {
+      list = [...list].sort((a, b) => Number(b?.price || 0) - Number(a?.price || 0));
+    }
+
+    return list;
+  }, [items, search, category, minPrice, maxPrice, inStockOnly, sort]);
+
+  const resetFilters = () => {
+    setSearch("");
+    setCategory("All");
+    setMinPrice("");
+    setMaxPrice("");
+    setInStockOnly(false);
+    setSort("featured");
+  };
 
   const handleAddToCart = async (productId) => {
     const product = items.find((p) => p._id === productId);
@@ -106,92 +171,156 @@ export default function ProductsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-        Loading…
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-6">
-        <p className="text-[#8E1B1B]">{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
-      {/* Premium header */}
-      <div className="border-b border-black/5 bg-white pt-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="py-10 sm:py-12">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8E1B1B]">
-                  Shop
-                </p>
-                <h1 className="mt-2 text-3xl sm:text-4xl text-[#0F172A]">
-                  Our Products
-                </h1>
-                <p className="mt-2 text-sm text-[#64748B]">
-                  Thekua • Chana Sattu (Classic + Jaljeera) • Chiwda Mixture • Banana Chips • Nimki • Makhana
-                </p>
-              </div>
+      {/* Page header */}
+      <div className="bg-white border-b border-black/5 pt-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="py-8 sm:py-10">
+            <nav className="text-sm text-[#64748B]" aria-label="Breadcrumb">
+              <ol className="flex items-center gap-2">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="hover:text-[#0F172A] focus:outline-none focus:ring-4 focus:ring-[rgba(142,27,27,0.18)] rounded-md px-1"
+                  >
+                    Home
+                  </button>
+                </li>
+                <li aria-hidden="true">/</li>
+                <li className="text-[#0F172A] font-semibold">Shop</li>
+              </ol>
+            </nav>
 
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-[#F8FAFC]"
-              >
-                Back to Home <ArrowRight className="h-4 w-4" />
-              </button>
+            <div className="mt-3 flex flex-col gap-2">
+              <h1 className="text-3xl sm:text-4xl text-[#0F172A]">Shop</h1>
+              <p className="text-sm text-[#64748B] max-w-2xl">
+                Premium snacks & staples crafted with care — hygienic, fresh, and delivered fast.
+              </p>
             </div>
 
-            {/* Search */}
-            <div className="mt-6">
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search products…"
-              />
-            </div>
+            <div className="mt-6 border-t border-black/5" />
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10">
+      {/* Sticky filter bars */}
+      <div className="hidden md:block sticky top-20 z-30 bg-white border-b border-black/5">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+          <FilterBar
+            mode="desktop"
+            categories={categories}
+            search={search}
+            setSearch={setSearch}
+            category={category}
+            setCategory={setCategory}
+            minPrice={minPrice}
+            setMinPrice={setMinPrice}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
+            inStockOnly={inStockOnly}
+            setInStockOnly={setInStockOnly}
+            sort={sort}
+            setSort={setSort}
+            onReset={resetFilters}
+          />
+        </div>
+      </div>
+      <div className="md:hidden sticky top-20 z-30 bg-white border-b border-black/5">
+        <div className="mx-auto max-w-7xl px-4 py-3">
+          <FilterBar
+            mode="mobileBar"
+            categories={categories}
+            search={search}
+            setSearch={setSearch}
+            category={category}
+            setCategory={setCategory}
+            minPrice={minPrice}
+            setMinPrice={setMinPrice}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
+            inStockOnly={inStockOnly}
+            setInStockOnly={setInStockOnly}
+            sort={sort}
+            setSort={setSort}
+            onOpenMobile={() => setMobileFiltersOpen(true)}
+            onReset={resetFilters}
+          />
+        </div>
+      </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((product) => {
-            const out = product?.quantity === "outofstock";
-            const qty = cartItemsByProductId?.get(String(product._id)) || 0;
+      <MobileFilterSheet
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        categories={categories}
+        search={search}
+        setSearch={setSearch}
+        category={category}
+        setCategory={setCategory}
+        minPrice={minPrice}
+        setMinPrice={setMinPrice}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        inStockOnly={inStockOnly}
+        setInStockOnly={setInStockOnly}
+        sort={sort}
+        setSort={setSort}
+        onReset={resetFilters}
+      />
 
-            return (
-              <div
-                key={product._id}
-                onClick={() => navigate(`/product/${product._id}`)}
-              >
-                <ProductCard
-                  product={product}
-                  qty={qty}
-                  disabled={updating === product._id}
-                  onAdd={() => handleAddToCart(product._id)}
-                  onMinus={(productId, currentQty) => handleMinus(productId, currentQty)}
-                  showQuickAdd={!out}
-                />
-              </div>
-            );
-          })}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        {/* Trust strip */}
+        <div className="mb-6 rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 text-sm text-[#475569]">
+          <span className="font-semibold text-[#0F172A]">Hygienic Packing</span> •{" "}
+          Fast Dispatch • Secure Payments
         </div>
 
-        {/* ✅ Empty state should check filtered */}
-        {filtered.length === 0 && (
-          <div className="mt-14 text-center text-sm text-[#6F675E]">
-            No products found.
+        {/* Error banner */}
+        {error ? (
+          <div className="mb-6 rounded-2xl bg-white ring-1 ring-black/5 p-4">
+            <p className="text-sm text-[#8E1B1B]">{error}</p>
+          </div>
+        ) : null}
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
+            : filtered.map((product) => {
+                const out = product?.quantity === "outofstock";
+                const qty = cartItemsByProductId?.get(String(product._id)) || 0;
+                return (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    qty={qty}
+                    disabled={updating === product._id}
+                    onAdd={() => handleAddToCart(product._id)}
+                    onMinus={(productId, currentQty) => handleMinus(productId, currentQty)}
+                    showQuickAdd={!out}
+                    imageFit="cover"
+                  />
+                );
+              })}
+        </div>
+
+        {/* Empty state */}
+        {!loading && !error && filtered.length === 0 && (
+          <div className="mt-10 rounded-3xl bg-white ring-1 ring-black/5 p-8 text-left">
+            <p className="ds-eyebrow">No results</p>
+            <h2 className="ds-title mt-2">We couldn’t find matching products.</h2>
+            <p className="ds-body mt-2 max-w-xl">
+              Try adjusting filters, widening the price range, or clearing the search term.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button variant="secondary" onClick={resetFilters}>
+                Reset filters
+              </Button>
+              <Button variant="ghost" onClick={() => setMobileFiltersOpen(true)} className="md:hidden">
+                Open filters
+              </Button>
+            </div>
           </div>
         )}
       </div>

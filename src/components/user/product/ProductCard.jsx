@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import ProductBadge from "./ProductBadge.jsx";
 import QtyStepper from "./QtyStepper.jsx";
+import Button from "../../ui/Button.jsx";
+import Card from "../../ui/Card.jsx";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -26,6 +28,21 @@ function isBestseller(product) {
   return false;
 }
 
+function isNew(product) {
+  const v = product?.isNew || product?.new || product?.badge === "new";
+  if (Boolean(v)) return true;
+  const tags = product?.tags;
+  if (Array.isArray(tags) && tags.map(String).some((t) => t.toLowerCase() === "new")) {
+    return true;
+  }
+  const createdAt = product?.createdAt ? new Date(product.createdAt).getTime() : null;
+  if (createdAt && Number.isFinite(createdAt)) {
+    const days = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+    return days <= 21;
+  }
+  return false;
+}
+
 function formatRs(amount) {
   if (amount == null || amount === "") return "";
   return `Rs. ${amount}`;
@@ -39,6 +56,7 @@ export default function ProductCard({
   onMinus,
   showQuickAdd = true,
   className = "",
+  imageFit = "contain", // "cover" | "contain"
 }) {
   const navigate = useNavigate();
   const out = isOutOfStock(product);
@@ -54,11 +72,11 @@ export default function ProductCard({
   const weight = product?.netQuantity || product?.weight || product?.size || "";
 
   return (
-    <article
+    <Card
+      hover
       className={cn(
-        "group relative rounded-3xl bg-white p-3 sm:p-4",
-        "ring-1 ring-black/5 shadow-[0_1px_0_rgba(0,0,0,0.04)]",
-        "transition hover:shadow-md hover:ring-black/10",
+        "group relative p-3 sm:p-4",
+        "sm:hover:-translate-y-0.5 transition-transform",
         className
       )}
       onClick={() => navigate(`/product/${product._id}`)}
@@ -70,6 +88,7 @@ export default function ProductCard({
       {/* Badges */}
       <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
         {isBestseller(product) && !out && <ProductBadge tone="brand">Bestseller</ProductBadge>}
+        {isNew(product) && !out && <ProductBadge tone="muted">New</ProductBadge>}
         {out && <ProductBadge tone="danger">Out of stock</ProductBadge>}
       </div>
 
@@ -101,7 +120,11 @@ export default function ProductCard({
           <img
             src={img}
             alt={product?.name || "Product image"}
-            className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.03]"
+            className={cn(
+              "h-full w-full transition-transform duration-300 group-hover:scale-[1.03]",
+              imageFit === "cover" ? "object-cover" : "object-contain",
+              imageFit === "cover" ? "p-0" : "p-4"
+            )}
             loading="lazy"
             draggable="false"
           />
@@ -131,7 +154,14 @@ export default function ProductCard({
             {formatRs(product?.price)}
           </p>
 
-          <div onClick={(e) => e.stopPropagation()}>
+          <span className="text-[11px] sm:text-xs font-semibold text-[#64748B]">
+            {weight ? "Per pack" : ""}
+          </span>
+        </div>
+
+        {/* CTAs */}
+        <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex-1">
             {qty > 0 ? (
               <QtyStepper
                 qty={qty}
@@ -142,26 +172,25 @@ export default function ProductCard({
                 onPlus={() => onAdd?.(product._id)}
               />
             ) : (
-              <button
-                type="button"
+              <Button
                 onClick={() => onAdd?.(product._id)}
                 disabled={disabled || out}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-xl px-3 py-2",
-                  "text-[11px] sm:text-xs font-semibold whitespace-nowrap",
-                  out
-                    ? "bg-white text-gray-400 ring-1 ring-black/10 cursor-not-allowed"
-                    : "bg-[#8E1B1B] text-white hover:bg-[#741616]",
-                  "disabled:opacity-50"
-                )}
+                className="h-10 w-full text-[12px]"
               >
                 {out ? "Out of stock" : "Add to cart"}
-              </button>
+              </Button>
             )}
           </div>
+          <Button
+            variant="secondary"
+            className="h-10 px-3 text-[12px]"
+            onClick={() => navigate(`/product/${product._id}`)}
+          >
+            View details
+          </Button>
         </div>
       </div>
-    </article>
+    </Card>
   );
 }
 
