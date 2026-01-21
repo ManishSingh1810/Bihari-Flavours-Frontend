@@ -1,10 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  BadgeCheck,
-  Leaf,
   Sparkles,
-  Gift,
   Star,
   ChevronDown,
 } from "lucide-react";
@@ -74,53 +71,6 @@ function SectionHeading({ eyebrow, title, subtitle, align = "left" }) {
         </p>
       )}
     </div>
-  );
-}
-
-function CategoryCards() {
-  const navigate = useNavigate();
-  const categories = [
-    { title: "Thekua", desc: "Festival-style sweet crunch.", icon: <Sparkles className="h-5 w-5" />, q: "thekua" },
-    { title: "Chana Sattu", desc: "Classic + Jaljeera flavour.", icon: <Leaf className="h-5 w-5" />, q: "sattu" },
-    { title: "Mixture & Nimki", desc: "Chiwda + nimki for chai time.", icon: <BadgeCheck className="h-5 w-5" />, q: "chiwda" },
-    { title: "Banana Chips & Makhana", desc: "Premium crunchy snacks.", icon: <Gift className="h-5 w-5" />, q: "makhana" },
-  ];
-
-  return (
-    <section className="bg-[#F8FAFC]">
-      <div className={cn(container, "py-14 sm:py-16")}>
-        <SectionHeading
-          eyebrow="Shop by category"
-          title="Find your next favourite"
-          subtitle="Browse quick categories to explore what you love — from snacks to gift-ready combos."
-          align="center"
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((c) => (
-            <button
-              key={c.title}
-              type="button"
-              onClick={() => navigate(`/product?q=${encodeURIComponent(c.q)}`)}
-              className="group rounded-3xl border border-black/5 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-[#0F172A]">{c.title}</p>
-                  <p className="mt-1 text-sm text-[#64748B]">{c.desc}</p>
-                </div>
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F8FAFC] text-[#8E1B1B] border border-black/5 group-hover:bg-white">
-                  {c.icon}
-                </span>
-              </div>
-              <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-[#8E1B1B]">
-                Explore <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -487,7 +437,6 @@ export default function Dashboard() {
         onAdd={handleAddToCart}
         onMinus={handleMinus}
       />
-      <CategoryCards />
       <CombosSection />
       <BrandStory />
       <ReviewsSection />
