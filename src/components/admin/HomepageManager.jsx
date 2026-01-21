@@ -64,6 +64,7 @@ export default function HomepageManager() {
   const [slide1, setSlide1] = useState(null);
   const [slide2, setSlide2] = useState(null);
   const [slide3, setSlide3] = useState(null);
+  const [storyImage, setStoryImage] = useState(null);
 
   // Optional text controls (future-proof)
   const [title1, setTitle1] = useState("Taste Bihar, delivered fresh.");
@@ -81,6 +82,12 @@ export default function HomepageManager() {
           skipErrorToast: true,
         });
         const heroSlides = res?.data?.homepage?.heroSlides || res?.data?.heroSlides;
+        const storyUrl =
+          res?.data?.homepage?.storyImageUrl ||
+          res?.data?.storyImageUrl ||
+          res?.data?.homepage?.storyImage ||
+          res?.data?.storyImage ||
+          null;
         if (Array.isArray(heroSlides) && heroSlides.length) {
           setSlide1(heroSlides[0]?.imageUrl || null);
           setSlide2(heroSlides[1]?.imageUrl || null);
@@ -89,6 +96,7 @@ export default function HomepageManager() {
           setTitle2(heroSlides[1]?.title || title2);
           setTitle3(heroSlides[2]?.title || title3);
         }
+        if (storyUrl) setStoryImage(storyUrl);
       } catch {
         // endpoint may not exist yet; ignore
       }
@@ -108,6 +116,7 @@ export default function HomepageManager() {
       if (slide1 && typeof slide1 !== "string") fd.append("hero1", slide1);
       if (slide2 && typeof slide2 !== "string") fd.append("hero2", slide2);
       if (slide3 && typeof slide3 !== "string") fd.append("hero3", slide3);
+      if (storyImage && typeof storyImage !== "string") fd.append("storyImage", storyImage);
 
       fd.append(
         "heroSlides",
@@ -132,6 +141,12 @@ export default function HomepageManager() {
         });
         const heroSlides =
           refreshed?.data?.homepage?.heroSlides || refreshed?.data?.heroSlides || null;
+        const storyUrl =
+          refreshed?.data?.homepage?.storyImageUrl ||
+          refreshed?.data?.storyImageUrl ||
+          refreshed?.data?.homepage?.storyImage ||
+          refreshed?.data?.storyImage ||
+          null;
         if (Array.isArray(heroSlides) && heroSlides.length) {
           setSlide1(heroSlides[0]?.imageUrl || null);
           setSlide2(heroSlides[1]?.imageUrl || null);
@@ -140,6 +155,7 @@ export default function HomepageManager() {
           setTitle2(heroSlides[1]?.title || title2);
           setTitle3(heroSlides[2]?.title || title3);
         }
+        if (storyUrl) setStoryImage(storyUrl);
       } catch {
         // ignore; backend may not have GET yet
       }
@@ -227,6 +243,34 @@ export default function HomepageManager() {
           </div>
 
           <div className="rounded-2xl border border-black/10 bg-white p-6">
+            <h2 className="text-lg font-semibold text-[#0F172A]">Our story image</h2>
+            <p className="mt-1 text-sm text-[#64748B]">
+              This image appears in the homepage “Our story” section.
+            </p>
+            <div className="mt-5">
+              <FilePicker label="Story section image" value={storyImage} onChange={setStoryImage} />
+              <p className="mt-3 text-xs text-[#64748B]">
+                Tip: use a clean photo with comfortable margins. Recommended: 1400×1050 or higher.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={save}
+                disabled={loading}
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 rounded-xl bg-[#8E1B1B] px-5 py-3 text-sm font-semibold text-white",
+                  "hover:bg-[#741616] disabled:opacity-50"
+                )}
+              >
+                <Save className="h-4 w-4" />
+                {loading ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-white p-6">
             <h2 className="text-lg font-semibold text-[#0F172A]">Backend required</h2>
             <p className="mt-2 text-sm text-[#64748B] leading-relaxed">
               For this screen to work, backend should provide:
@@ -234,6 +278,8 @@ export default function HomepageManager() {
               - GET <span className="font-mono">/api/homepage</span> (current homepage config)
               <br />
               - POST <span className="font-mono">/api/admin/homepage</span> (multipart upload + save)
+              <br />
+              - Optional: accept <span className="font-mono">storyImage</span> file field and return <span className="font-mono">storyImageUrl</span>
             </p>
           </div>
         </div>

@@ -221,7 +221,7 @@ function CombosSection() {
   );
 }
 
-function BrandStory() {
+function BrandStory({ storyImageUrl }) {
   return (
     <section className="bg-white border-y border-black/5">
       <div className={cn(container, "py-14 sm:py-16")}>
@@ -253,12 +253,22 @@ function BrandStory() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-[#0B1220] shadow-sm">
-            <img src={hero1} alt="" className="h-full w-full object-cover opacity-70" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6">
-              <p className="text-white text-lg">“Flavours aren’t rushed. They are remembered.”</p>
-              <p className="mt-2 text-white/70 text-sm">Inspired by Bihar’s home kitchens</p>
+          <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
+            {/* Fixed aspect so it stays consistent on all screens (no crop / no zoom). */}
+            <div className="relative aspect-[4/3] bg-[#F8FAFC]">
+              <img
+                src={storyImageUrl || hero1}
+                alt="Our story"
+                className="absolute inset-0 h-full w-full object-contain"
+                loading="lazy"
+                draggable="false"
+              />
+            </div>
+            <div className="border-t border-black/5 p-6">
+              <p className="text-[#0F172A] text-base sm:text-lg">
+                “Flavours aren’t rushed. They are remembered.”
+              </p>
+              <p className="mt-2 text-[#64748B] text-sm">Inspired by Bihar’s home kitchens</p>
             </div>
           </div>
         </div>
@@ -460,6 +470,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState("");
+  const [storyImageUrl, setStoryImageUrl] = useState(null);
   const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   useEffect(() => {
@@ -479,6 +490,42 @@ export default function Dashboard() {
       }
     }
     loadProducts();
+  }, []);
+
+  // Load "Our story" image from backend homepage config (admin upload), with fallback to local asset.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const cached = localStorage.getItem("homepageStoryImageUrl:v1");
+        if (cached && mounted) setStoryImageUrl(cached);
+      } catch {
+        // ignore
+      }
+
+      try {
+        const res = await api.get("/homepage", { params: { t: Date.now() }, skipErrorToast: true });
+        const url =
+          res?.data?.homepage?.storyImageUrl ||
+          res?.data?.storyImageUrl ||
+          res?.data?.homepage?.storyImage ||
+          res?.data?.storyImage ||
+          null;
+        if (url && mounted) {
+          setStoryImageUrl(url);
+          try {
+            localStorage.setItem("homepageStoryImageUrl:v1", url);
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // ignore; fallback to local image
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleAddToCart = async (productId) => {
@@ -533,7 +580,7 @@ export default function Dashboard() {
       />
       <CombosSection />
       <ReviewsSection products={items} />
-      <BrandStory />
+      <BrandStory storyImageUrl={storyImageUrl} />
       <FAQAccordion />
 
       {/* Premium CTA strip (footer-like) */}
