@@ -32,7 +32,7 @@ const Footer = () => {
       <div className="mx-auto max-w-7xl px-6 py-16">
 
         {/* Main Content */}
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
 
           {/* About Us */}
           <motion.div variants={itemVariants}>
@@ -109,9 +109,6 @@ const Footer = () => {
                   Address:{" "}
                   <span className="text-[#1F1B16]">
                     Near RK Central School, Yusufpur, Hajipur, Vaishali, Bihar, 844101
-                  </span>
-                  <span className="block text-xs text-[#6F675E] mt-1">
-                    (For support, contact us on WhatsApp / Email)
                   </span>
                 </span>
               </li>
