@@ -106,8 +106,12 @@ export default function HeroSwiper() {
         <Swiper
           modules={[Autoplay, Pagination, Navigation, A11y]}
           slidesPerView={1}
-          loop
+          // Avoid "flash" on load caused by loop cloning + initial translate snap.
+          // Rewind keeps UX (auto/manual) without loop DOM duplication.
+          loop={false}
+          rewind
           speed={650}
+          initialSlide={0}
           pagination={{ clickable: true }}
           navigation
           autoplay={{
