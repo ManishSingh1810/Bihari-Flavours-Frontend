@@ -14,6 +14,10 @@ import { showActionToast } from "../ui/showActionToast.jsx";
 import HeroSwiper from "./home/HeroSwiper";
 import ProductCard from "./product/ProductCard.jsx";
 
+// Cache real reviews on homepage to avoid refetching repeatedly
+const HOME_REVIEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
+let HOME_REVIEWS_CACHE = { ts: 0, cards: [] };
+
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
   localStorage.removeItem("authToken");
@@ -263,12 +267,84 @@ function BrandStory() {
   );
 }
 
-function ReviewsSection() {
-  const reviews = [
-    { name: "Aditi", city: "Bengaluru", text: "Packaging was premium and the taste felt truly homemade. Reordered within a week.", rating: 5 },
-    { name: "Rohit", city: "Delhi", text: "Fast delivery and the flavours are spot on. Great for gifting too.", rating: 5 },
-    { name: "Neha", city: "Mumbai", text: "Loved the consistency and freshness. The combo packs are great value.", rating: 5 },
-  ];
+function ReviewsSection({ products }) {
+  const [cards, setCards] = useState(() => {
+    if (Date.now() - HOME_REVIEWS_CACHE.ts < HOME_REVIEWS_TTL_MS) {
+      return HOME_REVIEWS_CACHE.cards || [];
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
+
+  const candidates = useMemo(() => (products || []).slice(0, 10), [products]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    // If we have fresh cache, use it.
+    if (Date.now() - HOME_REVIEWS_CACHE.ts < HOME_REVIEWS_TTL_MS) {
+      setCards(HOME_REVIEWS_CACHE.cards || []);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    // Fetch real 5-star reviews across a small set of products.
+    (async () => {
+      if (!candidates.length) return;
+      try {
+        setLoading(true);
+        const results = await Promise.allSettled(
+          candidates.map(async (p) => {
+            const res = await api.get(`/products/${p._id}/reviews`, { skipErrorToast: true });
+            const reviews = res?.data?.reviews || [];
+            return { product: p, reviews };
+          })
+        );
+
+        const all = [];
+        for (const r of results) {
+          if (r.status !== "fulfilled") continue;
+          const { product, reviews } = r.value || {};
+          for (const rv of reviews || []) {
+            if (Number(rv?.rating) !== 5) continue;
+            const comment = String(rv?.comment || "").trim();
+            if (comment.length < 12) continue;
+            all.push({
+              id: rv?._id || `${product?._id}-${rv?.createdAt || comment.slice(0, 10)}`,
+              name: rv?.userName || "Customer",
+              text: comment,
+              rating: 5,
+              createdAt: rv?.createdAt || null,
+              productName: product?.name || "",
+            });
+          }
+        }
+
+        all.sort((a, b) => {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          if (tb !== ta) return tb - ta;
+          return (b.text?.length || 0) - (a.text?.length || 0);
+        });
+
+        const top = all.slice(0, 3);
+        HOME_REVIEWS_CACHE = { ts: Date.now(), cards: top };
+        if (mounted) setCards(top);
+      } catch {
+        if (mounted) setCards([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [candidates]);
+
+  // If no real reviews yet, hide this section (no fake testimonials).
+  if (!loading && (!cards || cards.length === 0)) return null;
 
   return (
     <section className="bg-[#F8FAFC]">
@@ -281,22 +357,40 @@ function ReviewsSection() {
         />
 
         <div className="grid gap-4 lg:grid-cols-3">
-          {reviews.map((r) => (
-            <div key={r.name} className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-[#0F172A]">{r.name}</p>
-                  <p className="text-xs text-[#64748B]">{r.city}</p>
+          {(loading ? Array.from({ length: 3 }).map((_, i) => ({ id: `s-${i}`, skeleton: true })) : cards).map((r) =>
+            r.skeleton ? (
+              <div key={r.id} className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm animate-pulse">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-2">
+                    <div className="h-4 w-28 bg-[#E2E8F0] rounded" />
+                    <div className="h-3 w-20 bg-[#E2E8F0] rounded" />
+                  </div>
+                  <div className="h-4 w-20 bg-[#E2E8F0] rounded" />
                 </div>
-                <div className="flex items-center gap-1 text-[#F59E0B]" aria-label={`Rating ${r.rating} out of 5`}>
-                  {Array.from({ length: r.rating }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
+                <div className="mt-4 space-y-2">
+                  <div className="h-3 w-full bg-[#E2E8F0] rounded" />
+                  <div className="h-3 w-5/6 bg-[#E2E8F0] rounded" />
                 </div>
               </div>
-              <p className="mt-4 text-sm text-[#475569] leading-relaxed">{r.text}</p>
-            </div>
-          ))}
+            ) : (
+              <div key={r.id} className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#0F172A]">{r.name}</p>
+                    {r.productName ? (
+                      <p className="text-xs text-[#64748B] line-clamp-1">{r.productName}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1 text-[#F59E0B]" aria-label={`Rating ${r.rating} out of 5`}>
+                    {Array.from({ length: r.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-current" />
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-[#475569] leading-relaxed">{r.text}</p>
+              </div>
+            )
+          )}
         </div>
       </div>
     </section>
@@ -438,8 +532,8 @@ export default function Dashboard() {
         onMinus={handleMinus}
       />
       <CombosSection />
+      <ReviewsSection products={items} />
       <BrandStory />
-      <ReviewsSection />
       <FAQAccordion />
 
       {/* Premium CTA strip (footer-like) */}
