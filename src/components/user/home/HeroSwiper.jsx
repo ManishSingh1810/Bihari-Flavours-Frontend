@@ -131,7 +131,7 @@ export default function HeroSwiper() {
       aria-label="Homepage hero"
     >
       {/* Fixed heights to minimize CLS */}
-      <div className="relative h-[520px] sm:h-[640px] lg:h-[720px]">
+      <div className="relative h-[420px] sm:h-[560px] lg:h-[640px]">
         <Swiper
           modules={[Autoplay, Pagination, A11y]}
           slidesPerView={1}
@@ -161,29 +161,29 @@ export default function HeroSwiper() {
 
                 <div className={cn(container, "relative h-full")}>
                   <div className="flex h-full items-center">
-                    <div className="max-w-2xl pb-10 sm:pb-16">
+                    <div className="max-w-2xl pb-6 sm:pb-10">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
                         {s.eyebrow}
                       </p>
 
-                      <h1 className="mt-3 text-4xl sm:text-5xl lg:text-6xl text-white">
+                      <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl text-white">
                         {s.title}
                       </h1>
 
-                      <p className="mt-4 text-sm sm:text-base text-white/80 leading-relaxed">
+                      <p className="mt-3 text-sm sm:text-base text-white/80 leading-relaxed">
                         {s.subtitle}
                       </p>
 
-                      <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                        <PrimaryButton as={Link} to={s.cta.to}>
+                      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                        <PrimaryButton as={Link} to={s.cta.to} className="py-2.5">
                           {s.cta.label} <ArrowRight className="h-4 w-4" />
                         </PrimaryButton>
-                        <SecondaryButton as={Link} to={s.secondary.to}>
+                        <SecondaryButton as={Link} to={s.secondary.to} className="py-2.5">
                           {s.secondary.label}
                         </SecondaryButton>
                       </div>
 
-                      <div className="mt-10 flex items-center gap-3">
+                      <div className="mt-6 flex items-center gap-3">
                         <div
                           className="flex items-center gap-1 text-[#FDE68A]"
                           aria-label="Rating 5 out of 5"
@@ -207,7 +207,7 @@ export default function HeroSwiper() {
 
       {/* Quick actions (premium chips) */}
       {/* Removed negative margin to prevent overlap/unorganized look */}
-      <div className={cn(container, "pt-6 pb-10 relative")}>
+      <div className={cn(container, "pt-4 pb-8 relative")}>
         <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur sm:grid-cols-3">
           <button
             type="button"
