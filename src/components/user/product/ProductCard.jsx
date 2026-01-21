@@ -29,21 +29,6 @@ function isBestseller(product) {
   return false;
 }
 
-function isNew(product) {
-  const v = product?.isNew || product?.new || product?.badge === "new";
-  if (Boolean(v)) return true;
-  const tags = product?.tags;
-  if (Array.isArray(tags) && tags.map(String).some((t) => t.toLowerCase() === "new")) {
-    return true;
-  }
-  const createdAt = product?.createdAt ? new Date(product.createdAt).getTime() : null;
-  if (createdAt && Number.isFinite(createdAt)) {
-    const days = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
-    return days <= 21;
-  }
-  return false;
-}
-
 function formatRs(amount) {
   if (amount == null || amount === "") return "";
   return `Rs. ${amount}`;
@@ -90,7 +75,6 @@ export default function ProductCard({
       {/* Badges */}
       <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
         {isBestseller(product) && !out && <ProductBadge tone="brand">Bestseller</ProductBadge>}
-        {isNew(product) && !out && <ProductBadge tone="muted">New</ProductBadge>}
         {out && <ProductBadge tone="danger">Out of stock</ProductBadge>}
       </div>
 
