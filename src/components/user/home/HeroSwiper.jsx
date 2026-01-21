@@ -89,7 +89,12 @@ export default function HeroSwiper() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get("/homepage", { skipErrorToast: true });
+        const res = await api.get("/homepage", {
+          // cache-bust so updated images show immediately after admin save
+          params: { t: Date.now() },
+          headers: { "Cache-Control": "no-cache" },
+          skipErrorToast: true,
+        });
         const heroSlides =
           res?.data?.homepage?.heroSlides ||
           res?.data?.heroSlides ||
