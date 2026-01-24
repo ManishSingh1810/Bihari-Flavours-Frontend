@@ -204,8 +204,8 @@ export default function ProductDetailsPage() {
             onAdd={handleAddToCart}
             onMinus={handleMinus}
             onBuyNow={handleBuyNow}
-          />
-        </div>
+                />
+              </div>
 
         {/* Below fold */}
         <InfoPanels
@@ -249,10 +249,10 @@ export default function ProductDetailsPage() {
             />
           ) : (
             <Button
-              onClick={handleAddToCart}
+            onClick={handleAddToCart}
               disabled={updating || isOutOfStock}
               className="h-11 px-5"
-            >
+          >
               {isOutOfStock ? "Out of stock" : "Add to cart"}
             </Button>
           )}

@@ -8,11 +8,77 @@ import {
   AlertCircle,
   Loader2,
   X,
-  Info
+  Info,
+  ShieldCheck,
+  PhoneCall,
+  PackageCheck,
+  Timer
 } from "lucide-react";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { showActionToast } from "../ui/showActionToast.jsx";
+import Card from "../ui/Card.jsx";
+import Button from "../ui/Button.jsx";
+import Input from "../ui/Input.jsx";
+
+function cn(...xs) {
+  return xs.filter(Boolean).join(" ");
+}
+
+function Field({ label, hint, error, children }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-end justify-between gap-3">
+        <label className="text-sm font-semibold text-[#0F172A]">{label}</label>
+        {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
+      </div>
+      {children}
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+
+function TrustChip({ icon, text }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-black/10">
+      <span className="text-[#8E1B1B]">{icon}</span>
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function PaymentOption({ checked, title, subtitle, onChange, badge }) {
+  return (
+    <label
+      className={cn(
+        "flex cursor-pointer items-start justify-between gap-4 rounded-2xl bg-white p-4 ring-1 transition",
+        checked ? "ring-[rgba(142,27,27,0.35)] shadow-[0_10px_30px_rgba(15,23,42,0.08)]" : "ring-black/10 hover:ring-black/20"
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <input
+          type="radio"
+          checked={checked}
+          onChange={onChange}
+          className="mt-1 accent-[#8E1B1B]"
+          aria-label={title}
+        />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-[#0F172A]">{title}</p>
+            {badge ? (
+              <span className="ds-badge ds-badge-muted ring-black/10">{badge}</span>
+            ) : null}
+          </div>
+          {subtitle ? <p className="mt-0.5 text-xs text-slate-600">{subtitle}</p> : null}
+        </div>
+      </div>
+      <div className="shrink-0 text-slate-500">
+        <CreditCard className="h-5 w-5" />
+      </div>
+    </label>
+  );
+}
 
 /* ================= LOGOUT ================= */
 const logoutUser = () => {
@@ -263,174 +329,254 @@ setLoading(false);
       className="fixed inset-0 bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
       style={{ zIndex: 100000 }}
     >
-      <div className="mx-auto mt-10 max-w-4xl rounded-xl bg-white p-6 relative">
-        <button
-          onClick={() => setShowCheckout(false)}
-          className="absolute top-4 right-4"
-        >
-          <X />
-        </button>
-
-        {error && (
-          <div className="mb-4 flex gap-2 text-red-700">
-            <AlertCircle size={16} /> {error}
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid lg:grid-cols-3 gap-6"
-        >
-          {/* LEFT */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 bg-[#F8FAFC] rounded-xl border border-black/10">
-              <h2 className="font-semibold mb-4 flex items-center gap-2">
-                <Truck size={18} /> Shipping Address
+      <div className="mx-auto mt-6 w-full max-w-5xl">
+        <Card className="relative overflow-hidden">
+          <div className="flex items-start justify-between gap-4 border-b border-black/5 bg-white px-5 py-5 sm:px-7">
+            <div className="min-w-0">
+              <p className="ds-eyebrow">Secure checkout</p>
+              <h2 className="mt-1 text-xl font-semibold text-[#0F172A]" style={{ fontFamily: "var(--font-heading)" }}>
+                Complete your order
               </h2>
-
-              <input
-                {...register("name", { required: true })}
-                placeholder="Full Name"
-                className="w-full mb-3 p-2 rounded"
-              />
-
-              <input
-                {...register("phone", {
-                  required: "Phone is required",
-                  pattern: {
-                    value: /^\d{10}$/,
-                    message: "Enter valid 10 digit number"
-                  }
-                })}
-                placeholder="Phone Number"
-                className="w-full mb-1 p-2 rounded"
-              />
-              {errors.phone && (
-                <p className="text-xs text-red-600 mb-2">
-                  {errors.phone.message}
-                </p>
-              )}
-
-              <textarea
-                {...register("address", { required: true })}
-                placeholder="Street Address"
-                className="w-full mb-3 p-2 rounded"
-              />
-
-              <input
-                {...register("pincode", { required: true })}
-                placeholder="Pincode"
-                className="w-full mb-3 p-2 rounded"
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  {...register("city", { required: true })}
-                  placeholder="City"
-                  disabled={pincodeLoading}
-                  className="p-2 rounded"
-                />
-                <input
-                  {...register("state", { required: true })}
-                  placeholder="State"
-                  disabled={pincodeLoading}
-                  className="p-2 rounded"
-                />
-              </div>
-            </div>
-
-            {/* PAYMENT */}
-            <div className="p-6 bg-[#F8FAFC] rounded-xl border border-black/10">
-              <h2 className="font-semibold mb-3 flex items-center gap-2">
-                <CreditCard size={18} /> Payment Method
-              </h2>
-
-              <label className="flex justify-between p-3 bg-white rounded mb-2 cursor-pointer">
-                <input
-                  type="radio"
-                  checked={paymentMethod === "COD"}
-                  onChange={() => setPaymentMethod("COD")}
-                />
-                Cash on Delivery (+Rs. {COD_CHARGE})
-              </label>
-
-              <label className="flex justify-between p-3 bg-white rounded cursor-pointer">
-                <input
-                  type="radio"
-                  checked={paymentMethod === "ONLINE"}
-                  onChange={() => setPaymentMethod("ONLINE")}
-                />
-                Online Payment (No extra charge)
-              </label>
-            </div>
-          </div>
-
-          {/* SUMMARY */}
-          <div className="p-6 bg-[#F8FAFC] rounded-xl border border-black/10 h-fit">
-            <input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              placeholder="COUPON CODE"
-              disabled={couponApplied}
-              className="w-full p-2 rounded mb-2"
-            />
-
-            {!couponApplied ? (
-              <button
-                type="button"
-                onClick={applyCoupon}
-                disabled={couponLoading}
-                className="w-full border py-2 rounded mb-4"
-              >
-                {couponLoading ? "Applying..." : "Apply Coupon"}
-              </button>
-            ) : (
-              <p className="text-green-700 text-sm mb-4">
-                Applied {couponApplied.code} (
-                {couponApplied.discountPercentage}% off)
+              <p className="mt-1 text-sm text-slate-600">
+                Shipping details + payment method. Your information stays private.
               </p>
-            )}
-
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between tabular-nums">
-                <span>Subtotal</span>
-                <span>Rs. {cart.totalAmount}</span>
-              </div>
-              <div className="flex justify-between tabular-nums">
-                <span>COD Fee</span>
-                <span>Rs. {shippingCharge}</span>
-              </div>
-              {couponApplied && (
-                <div className="flex justify-between text-green-700 tabular-nums">
-                  <span>Discount</span>
-                  <span>-Rs. {discountAmount}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-lg tabular-nums">
-                <span>Total</span>
-                <span>Rs. {finalTotal}</span>
-              </div>
             </div>
-
-            {paymentMethod === "COD" && (
-              <div className="flex gap-2 text-xs text-blue-700 mt-3">
-                <Info size={14} /> Pay online to save Rs. {COD_CHARGE}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-4 w-full bg-[#8E1B1B] text-white py-3 rounded"
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-10 w-10 rounded-full p-0"
+              onClick={() => setShowCheckout(false)}
+              aria-label="Close checkout"
             >
-              {loading ? (
-                <Loader2 className="animate-spin mx-auto" />
-              ) : (
-                `Pay ₹${finalTotal}`
-              )}
-            </button>
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-        </form>
+
+          <div className="bg-[color:var(--ds-bg)] px-5 py-4 sm:px-7">
+            <div className="flex flex-wrap gap-2">
+              <TrustChip icon={<ShieldCheck className="h-4 w-4" />} text="Secure payments" />
+              <TrustChip icon={<PackageCheck className="h-4 w-4" />} text="Hygienic packing" />
+              <TrustChip icon={<Timer className="h-4 w-4" />} text="Dispatch 24–48 hrs" />
+              <TrustChip icon={<PhoneCall className="h-4 w-4" />} text="WhatsApp support" />
+            </div>
+          </div>
+
+          <div className="px-5 pb-6 pt-5 sm:px-7">
+            {error ? (
+              <div className="mb-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
+                <AlertCircle className="mt-0.5 h-4 w-4" />
+                <div className="min-w-0">
+                  <p className="font-semibold">Checkout issue</p>
+                  <p className="mt-0.5 text-red-700/90">{error}</p>
+                </div>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-3">
+              {/* LEFT */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="p-5 sm:p-6">
+                  <div className="mb-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Truck className="h-5 w-5 text-[#8E1B1B]" />
+                      <h3 className="text-base font-semibold text-[#0F172A]">Shipping address</h3>
+                    </div>
+                    <p className="text-xs text-slate-500">Fields marked are required</p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Full name">
+                      <Input {...register("name", { required: true })} placeholder="Your full name" autoComplete="name" />
+                    </Field>
+
+                    <Field label="Phone number" error={errors.phone?.message}>
+                      <Input
+                        {...register("phone", {
+                          required: "Phone is required",
+                          pattern: { value: /^\d{10}$/, message: "Enter valid 10 digit number" }
+                        })}
+                        placeholder="10 digit mobile number"
+                        inputMode="numeric"
+                        autoComplete="tel"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-4">
+                    <Field label="Full address">
+                      <textarea
+                        {...register("address", { required: true })}
+                        placeholder="House / Street / Landmark"
+                        className={cn("ds-input min-h-[96px] resize-none")}
+                        autoComplete="street-address"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                    <Field label="Pincode" hint={pincodeLoading ? "Fetching city/state…" : ""}>
+                      <Input
+                        {...register("pincode", { required: true })}
+                        placeholder="6 digit pincode"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
+                      />
+                    </Field>
+
+                    <Field label="City">
+                      <Input {...register("city", { required: true })} placeholder="City" disabled={pincodeLoading} autoComplete="address-level2" />
+                    </Field>
+
+                    <Field label="State">
+                      <Input {...register("state", { required: true })} placeholder="State" disabled={pincodeLoading} autoComplete="address-level1" />
+                    </Field>
+                  </div>
+                </Card>
+
+                {/* PAYMENT */}
+                <Card className="p-5 sm:p-6">
+                  <div className="mb-4 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-[#8E1B1B]" />
+                    <h3 className="text-base font-semibold text-[#0F172A]">Payment method</h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    <PaymentOption
+                      checked={paymentMethod === "ONLINE"}
+                      title="Online payment"
+                      subtitle="UPI / Cards / Netbanking via Razorpay"
+                      badge="Recommended"
+                      onChange={() => setPaymentMethod("ONLINE")}
+                    />
+
+                    <PaymentOption
+                      checked={paymentMethod === "COD"}
+                      title={`Cash on delivery`}
+                      subtitle={`Pay when you receive (+Rs. ${COD_CHARGE} COD fee)`}
+                      onChange={() => setPaymentMethod("COD")}
+                    />
+                  </div>
+
+                  {paymentMethod === "COD" ? (
+                    <div className="mt-4 flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-800 ring-1 ring-blue-100">
+                      <Info className="mt-0.5 h-4 w-4" /> Pay online to save Rs. {COD_CHARGE}.
+                    </div>
+                  ) : (
+                    <div className="mt-4 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800 ring-1 ring-emerald-100">
+                      <ShieldCheck className="mt-0.5 h-4 w-4" /> Secure checkout powered by Razorpay.
+                    </div>
+                  )}
+                </Card>
+              </div>
+
+              {/* SUMMARY */}
+              <div className="lg:sticky lg:top-6 h-fit space-y-4">
+                <Card className="p-5 sm:p-6">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold text-[#0F172A]">Order summary</h3>
+                    <span className="text-xs text-slate-500 tabular-nums">{cart.cartItems.length} items</span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {cart.cartItems.slice(0, 3).map((it) => (
+                      <div key={it.productId} className="flex items-center gap-3">
+                        <img
+                          src={it.photo}
+                          alt={it.name}
+                          className="h-12 w-12 rounded-xl object-cover ring-1 ring-black/10"
+                          loading="lazy"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-[#0F172A]">{it.name}</p>
+                          <p className="text-xs text-slate-600 tabular-nums">
+                            Qty {it.quantity} • Rs. {it.price}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {cart.cartItems.length > 3 ? (
+                      <p className="text-xs text-slate-500">+ {cart.cartItems.length - 3} more items</p>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-5 border-t border-black/5 pt-4">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="Coupon code"
+                        disabled={!!couponApplied}
+                        className="bg-white"
+                      />
+                      {!couponApplied ? (
+                        <Button type="button" variant="secondary" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()}>
+                          {couponLoading ? "Applying…" : "Apply"}
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => {
+                            setCouponApplied(null);
+                            setCouponCode("");
+                            setError("");
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+
+                    {couponApplied ? (
+                      <p className="mt-2 text-xs text-emerald-700">
+                        Applied <span className="font-semibold">{couponApplied.code}</span> ({couponApplied.discountPercentage}% off)
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-5 space-y-2 text-sm">
+                    <div className="flex justify-between text-slate-700 tabular-nums">
+                      <span>Subtotal</span>
+                      <span>Rs. {cart.totalAmount}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-700 tabular-nums">
+                      <span>COD fee</span>
+                      <span>Rs. {shippingCharge}</span>
+                    </div>
+                    {couponApplied ? (
+                      <div className="flex justify-between text-emerald-700 tabular-nums">
+                        <span>Discount</span>
+                        <span>-Rs. {discountAmount}</span>
+                      </div>
+                    ) : null}
+                    <div className="flex justify-between border-t border-black/5 pt-3 text-base font-semibold text-[#0F172A] tabular-nums">
+                      <span>Total</span>
+                      <span>Rs. {finalTotal}</span>
+                    </div>
+                    <p className="text-xs text-slate-500">Shipping calculated at checkout. Dispatch in 24–48 hrs.</p>
+                  </div>
+
+                  <Button type="submit" disabled={loading} className="mt-5 w-full py-3 text-base">
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Processing…
+                      </>
+                    ) : paymentMethod === "COD" ? (
+                      `Place order • Rs. ${finalTotal}`
+                    ) : (
+                      `Pay securely • Rs. ${finalTotal}`
+                    )}
+                  </Button>
+                </Card>
+
+                <p className="px-1 text-xs text-slate-500">
+                  By placing your order, you agree to our policies. For online payments, you’ll be redirected to Razorpay’s secure checkout.
+                </p>
+              </div>
+            </form>
+          </div>
+        </Card>
       </div>
     </div>,
     document.body
