@@ -25,11 +25,14 @@ function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
-function Field({ label, hint, error, children }) {
+function Field({ id, label, hint, error, required = false, children }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-end justify-between gap-3">
-        <label className="text-sm font-semibold text-[#0F172A]">{label}</label>
+        <label htmlFor={id} className="text-sm font-semibold text-[#0F172A]">
+          {label}{" "}
+          {required ? <span className="text-[#8E1B1B]" aria-hidden="true">*</span> : null}
+        </label>
         {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
       </div>
       {children}
@@ -372,25 +375,33 @@ setLoading(false);
               </div>
             ) : null}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-3">
+            <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-3">
               {/* LEFT */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="md:col-span-2 space-y-6">
                 <Card className="p-5 sm:p-6">
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Truck className="h-5 w-5 text-[#8E1B1B]" />
                       <h3 className="text-base font-semibold text-[#0F172A]">Shipping address</h3>
                     </div>
-                    <p className="text-xs text-slate-500">Fields marked are required</p>
+                    <p className="text-xs text-slate-500">
+                      Fields marked <span className="text-[#8E1B1B]">*</span> are required
+                    </p>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Full name">
-                      <Input {...register("name", { required: true })} placeholder="Your full name" autoComplete="name" />
+                    <Field id="checkout-name" label="Full name" required>
+                      <Input
+                        id="checkout-name"
+                        {...register("name", { required: true })}
+                        placeholder="Your full name"
+                        autoComplete="name"
+                      />
                     </Field>
 
-                    <Field label="Phone number" error={errors.phone?.message}>
+                    <Field id="checkout-phone" label="Phone number" required error={errors.phone?.message}>
                       <Input
+                        id="checkout-phone"
                         {...register("phone", {
                           required: "Phone is required",
                           pattern: { value: /^\d{10}$/, message: "Enter valid 10 digit number" }
@@ -403,8 +414,9 @@ setLoading(false);
                   </div>
 
                   <div className="mt-4">
-                    <Field label="Full address">
+                    <Field id="checkout-address" label="Full address" required>
                       <textarea
+                        id="checkout-address"
                         {...register("address", { required: true })}
                         placeholder="House / Street / Landmark"
                         className={cn("ds-input min-h-[96px] resize-none")}
@@ -414,8 +426,14 @@ setLoading(false);
                   </div>
 
                   <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    <Field label="Pincode" hint={pincodeLoading ? "Fetching city/state…" : ""}>
+                    <Field
+                      id="checkout-pincode"
+                      label="Pincode"
+                      required
+                      hint={pincodeLoading ? "Fetching city/state…" : ""}
+                    >
                       <Input
+                        id="checkout-pincode"
                         {...register("pincode", { required: true })}
                         placeholder="6 digit pincode"
                         inputMode="numeric"
@@ -423,12 +441,24 @@ setLoading(false);
                       />
                     </Field>
 
-                    <Field label="City">
-                      <Input {...register("city", { required: true })} placeholder="City" disabled={pincodeLoading} autoComplete="address-level2" />
+                    <Field id="checkout-city" label="City" required>
+                      <Input
+                        id="checkout-city"
+                        {...register("city", { required: true })}
+                        placeholder="City"
+                        disabled={pincodeLoading}
+                        autoComplete="address-level2"
+                      />
                     </Field>
 
-                    <Field label="State">
-                      <Input {...register("state", { required: true })} placeholder="State" disabled={pincodeLoading} autoComplete="address-level1" />
+                    <Field id="checkout-state" label="State" required>
+                      <Input
+                        id="checkout-state"
+                        {...register("state", { required: true })}
+                        placeholder="State"
+                        disabled={pincodeLoading}
+                        autoComplete="address-level1"
+                      />
                     </Field>
                   </div>
                 </Card>
@@ -470,7 +500,7 @@ setLoading(false);
               </div>
 
               {/* SUMMARY */}
-              <div className="lg:sticky lg:top-6 h-fit space-y-4">
+              <div className="md:sticky md:top-6 h-fit space-y-4">
                 <Card className="p-5 sm:p-6">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <h3 className="text-base font-semibold text-[#0F172A]">Order summary</h3>
