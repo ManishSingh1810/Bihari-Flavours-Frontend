@@ -38,7 +38,14 @@ export default function ProductDetailsPage() {
         ]);
 
         if (!pRes.data.success) throw new Error("Failed to load product");
-        setProduct(pRes.data.product);
+        const nextProduct = pRes.data.product;
+        setProduct(nextProduct);
+        // Ensure variant selection is set consistently (avoid conditional hooks later)
+        if (Array.isArray(nextProduct?.variants) && nextProduct.variants.length) {
+          setSelectedVariantLabel(getDefaultVariantLabel(nextProduct));
+        } else {
+          setSelectedVariantLabel("");
+        }
 
         if (listRes.data.success) setAllProducts(listRes.data.products || []);
 
@@ -151,16 +158,6 @@ export default function ProductDetailsPage() {
   const shelfLife = product.shelfLife || "";
   const ingredients = product.ingredients || "";
   const storage = product.storage || "Store in a cool, dry place";
-
-  useEffect(() => {
-    if (!product) return;
-    if (!Array.isArray(product?.variants) || product.variants.length === 0) {
-      setSelectedVariantLabel("");
-      return;
-    }
-    const def = getDefaultVariantLabel(product);
-    setSelectedVariantLabel(def);
-  }, [product]);
 
   const qty = useMemo(() => {
     const vLabel = hasVariants ? (selectedVariantLabel || getDefaultVariantLabel(product)) : "";
