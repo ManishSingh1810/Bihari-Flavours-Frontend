@@ -12,6 +12,7 @@ import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import HeroSwiper from "./home/HeroSwiper";
 import ProductCard from "./product/ProductCard.jsx";
+import { getDefaultVariantLabel } from "../../utils/variants.js";
 
 // Cache real reviews on homepage to avoid refetching repeatedly
 const HOME_REVIEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
