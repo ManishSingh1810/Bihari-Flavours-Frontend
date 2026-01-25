@@ -183,8 +183,18 @@ export default function ImageGallery({
                   </button>
 
                   <div className="relative h-full w-full bg-white">
+                    {/* Fill the screen without cropping the main image:
+                        - Background: same image, cover + soft blur
+                        - Foreground: contain (no zoom/crop) */}
+                    <img
+                      src={safeImages[active]}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-35"
+                      draggable="false"
+                    />
                     <div
-                      className="h-full w-full"
+                      className="relative z-10 h-full w-full"
                       onTouchStart={onTouchStart}
                       onTouchEnd={onTouchEnd}
                     >
