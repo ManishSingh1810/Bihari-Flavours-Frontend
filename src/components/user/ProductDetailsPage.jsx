@@ -159,11 +159,11 @@ export default function ProductDetailsPage() {
   const ingredients = product.ingredients || "";
   const storage = product.storage || "Store in a cool, dry place";
 
-  const qty = useMemo(() => {
+  const qty = (() => {
     const vLabel = hasVariants ? (selectedVariantLabel || getDefaultVariantLabel(product)) : "";
     const key = `${String(product._id)}::${String(vLabel || "")}`;
     return cartItemsByProductId?.get(key) || 0;
-  }, [cartItemsByProductId, hasVariants, product, selectedVariantLabel]);
+  })();
 
   const handleBuyNow = async () => {
     // Keep existing cart API; just navigate faster for conversion.
