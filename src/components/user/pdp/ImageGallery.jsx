@@ -164,33 +164,33 @@ export default function ImageGallery({
                 aria-hidden="true"
               />
 
-              <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div className="absolute inset-0 flex items-center justify-center p-0">
                 <div
                   role="dialog"
                   aria-modal="true"
                   aria-label="Product image fullscreen"
-                  className="relative w-full max-w-6xl"
+                  className="relative h-screen w-screen max-w-none"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
                     type="button"
-                    className="absolute -top-12 right-0 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/20"
+                    className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full bg-black/35 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-black/45"
                     onClick={() => setOpen(false)}
                     aria-label="Close fullscreen"
                   >
                     <X className="h-5 w-5" /> Close
                   </button>
 
-                  <div className="relative overflow-hidden rounded-2xl bg-black">
+                  <div className="relative h-full w-full bg-black">
                     <div
-                      className="h-[72vh] w-full bg-black"
+                      className="h-full w-full"
                       onTouchStart={onTouchStart}
                       onTouchEnd={onTouchEnd}
                     >
                       <img
                         src={safeImages[active]}
                         alt={`${productName} image ${active + 1}`}
-                        className="h-full w-full object-contain"
+                        className="h-full w-full object-cover"
                         draggable="false"
                       />
                     </div>
@@ -199,7 +199,7 @@ export default function ImageGallery({
                       <>
                         <button
                           type="button"
-                          className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 p-2 text-white ring-1 ring-white/20 hover:bg-white/20"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/35 p-2 text-white ring-1 ring-white/20 hover:bg-black/45"
                           onClick={prev}
                           aria-label="Previous image"
                         >
@@ -207,7 +207,7 @@ export default function ImageGallery({
                         </button>
                         <button
                           type="button"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/15 p-2 text-white ring-1 ring-white/20 hover:bg-white/20"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/35 p-2 text-white ring-1 ring-white/20 hover:bg-black/45"
                           onClick={next}
                           aria-label="Next image"
                         >
@@ -218,7 +218,8 @@ export default function ImageGallery({
                   </div>
 
                   {count > 1 ? (
-                    <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+                    <div className="absolute bottom-0 left-0 right-0 z-20 bg-black/35 backdrop-blur px-4 py-3">
+                      <div className="flex gap-3 overflow-x-auto">
                       {safeImages.map((img, idx) => (
                         <button
                           key={`fs-${img}-${idx}`}
@@ -234,6 +235,7 @@ export default function ImageGallery({
                           <img src={img} alt="" className="h-full w-full object-cover" draggable="false" />
                         </button>
                       ))}
+                      </div>
                     </div>
                   ) : null}
                 </div>
