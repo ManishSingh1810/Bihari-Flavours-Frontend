@@ -1,39 +1,54 @@
 import React, { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import Card from "../../ui/Card.jsx";
+import ReviewSection from "./ReviewSection.jsx";
+import Button from "../../ui/Button.jsx";
+import { Link } from "react-router-dom";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
 function buildSections({ product, ingredients, shelfLife, storage }) {
-  const desc = String(product?.desc || "").trim();
+  const about = String(product?.description || product?.desc || "").trim();
+  const ing = String(ingredients || "").trim();
+  const st = String(storage || "").trim();
+  const sl = String(shelfLife || "").trim();
+
   return [
     {
-      id: "description",
-      label: "Description",
-      content: desc || "—",
+      id: "about",
+      label: "About",
+      kind: "text",
+      content: about || "—",
     },
     {
       id: "ingredients",
       label: "Ingredients",
-      content: ingredients ? ingredients : "Ingredients details will be updated soon.",
+      kind: "text",
+      content: ing || "Ingredients details will be updated soon.",
     },
     {
-      id: "shelf",
-      label: "Shelf life & storage",
-      content: `${shelfLife ? `Shelf life: ${shelfLife}. ` : ""}${storage || ""}`.trim() ||
-        "Store in a cool, dry place.",
+      id: "storage",
+      label: "Storage",
+      kind: "text",
+      content: st || "Store in a cool, dry place.",
     },
     {
-      id: "nutrition",
-      label: "Nutrition",
-      content: "Nutrition information will be added soon.",
+      id: "shelfLife",
+      label: "Shelf life",
+      kind: "text",
+      content: sl || "Shelf life details will be updated soon.",
     },
     {
-      id: "shipping",
-      label: "Shipping & returns",
-      content:
-        "Dispatch in 24–48 hrs. Shipping is calculated at checkout. For any support, reach us on WhatsApp.",
+      id: "reviews",
+      label: "Reviews",
+      kind: "reviews",
+    },
+    {
+      id: "shippingReturns",
+      label: "Shipping & Returns",
+      kind: "shippingReturns",
     },
   ];
 }
@@ -44,8 +59,8 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
     [product, ingredients, shelfLife, storage]
   );
 
-  const [tab, setTab] = useState(sections[0]?.id || "description");
-  const [open, setOpen] = useState(() => new Set([sections[0]?.id || "description"]));
+  const [tab, setTab] = useState(sections[0]?.id || "about");
+  const [open, setOpen] = useState(() => new Set([sections[0]?.id || "about"]));
 
   const current = sections.find((s) => s.id === tab) || sections[0];
 
@@ -71,12 +86,20 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
             </button>
           ))}
         </div>
-        <div className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-black/5">
+        <Card className="mt-6 p-6" hover={false}>
           <h2 className="text-lg font-semibold text-[#0F172A]">{current.label}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-[#475569] whitespace-pre-line">
-            {current.content}
-          </p>
-        </div>
+          <div className="mt-4">
+            {current.kind === "reviews" ? (
+              <ReviewSection productId={product?._id} embedded />
+            ) : current.kind === "shippingReturns" ? (
+              <ShippingReturns />
+            ) : (
+              <p className="text-sm leading-relaxed text-[#475569] whitespace-pre-line">
+                {current.content}
+              </p>
+            )}
+          </div>
+        </Card>
       </div>
 
       {/* Mobile accordions */}
@@ -84,7 +107,7 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
         {sections.map((s) => {
           const isOpen = open.has(s.id);
           return (
-            <div key={s.id} className="rounded-3xl bg-white ring-1 ring-black/5">
+            <Card key={s.id} className="overflow-hidden" hover={false}>
               <button
                 type="button"
                 className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left"
@@ -108,12 +131,18 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
               </button>
               {isOpen ? (
                 <div className="px-5 pb-5">
-                  <p className="text-sm leading-relaxed text-[#475569] whitespace-pre-line">
-                    {s.content}
-                  </p>
+                  {s.kind === "reviews" ? (
+                    <ReviewSection productId={product?._id} embedded />
+                  ) : s.kind === "shippingReturns" ? (
+                    <ShippingReturns />
+                  ) : (
+                    <p className="text-sm leading-relaxed text-[#475569] whitespace-pre-line">
+                      {s.content}
+                    </p>
+                  )}
                 </div>
               ) : null}
-            </div>
+            </Card>
           );
         })}
       </div>
@@ -121,3 +150,34 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
   );
 }
 
+function ShippingReturns() {
+  return (
+    <div className="space-y-3 text-sm text-[#475569] leading-relaxed">
+      <div className="rounded-2xl bg-[#F8FAFC] p-4 ring-1 ring-black/5">
+        <p className="font-semibold text-[#0F172A]">Dispatch & delivery</p>
+        <ul className="mt-2 space-y-1">
+          <li>
+            <span className="font-semibold text-[#0F172A]">Dispatch:</span> 24–48 hrs
+          </li>
+          <li>Shipping calculated at checkout.</li>
+        </ul>
+      </div>
+
+      <div className="rounded-2xl bg-[#F8FAFC] p-4 ring-1 ring-black/5">
+        <p className="font-semibold text-[#0F172A]">Returns</p>
+        <p className="mt-2">
+          Please refer to our{" "}
+          <Link to="/returns" className="font-semibold text-[#8E1B1B] hover:underline">
+            Returns Policy
+          </Link>{" "}
+          for eligibility and timelines.
+        </p>
+        <div className="mt-3">
+          <Button as={Link} to="/shipping" variant="secondary" className="h-10">
+            View shipping details
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

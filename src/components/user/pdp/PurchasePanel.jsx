@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { MessageCircle, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
+import { ShieldCheck, Truck, BadgeCheck, CheckCircle2 } from "lucide-react";
 import Card from "../../ui/Card.jsx";
 import Button from "../../ui/Button.jsx";
 import Badge from "../../ui/Badge.jsx";
@@ -30,11 +30,15 @@ export default function PurchasePanel({
   updating,
   isOutOfStock,
   netQuantity,
+  shelfLife,
   onAdd,
   onMinus,
   onBuyNow,
 }) {
-  const tagline = useMemo(() => getTagline(product?.desc), [product]);
+  const tagline = useMemo(
+    () => getTagline(product?.description || product?.desc),
+    [product]
+  );
   const { avg, count } = useReviewSummary(product?._id);
 
   const stockTone = isOutOfStock ? "danger" : "brand";
@@ -68,11 +72,8 @@ export default function PurchasePanel({
             <span className="text-[#64748B] tabular-nums">({count})</span>
           </div>
         ) : null}
-        {netQuantity ? (
-          <span className="rounded-full bg-[#F8FAFC] px-3 py-1.5 text-xs font-semibold text-[#334155] ring-1 ring-black/5">
-            {netQuantity}
-          </span>
-        ) : null}
+        {netQuantity ? <Chip label={`Net Qty: ${netQuantity}`} /> : null}
+        {shelfLife ? <Chip label={`Shelf life: ${shelfLife}`} /> : null}
       </div>
 
       <div className="mt-5 flex items-end justify-between gap-3">
@@ -80,17 +81,6 @@ export default function PurchasePanel({
           {formatRs(product?._price ?? product?.price)}
         </p>
         <p className="text-xs text-[#64748B]">MRP inclusive of taxes</p>
-      </div>
-
-      {/* delivery estimate */}
-      <div className="mt-5 rounded-2xl bg-[#F8FAFC] p-4 ring-1 ring-black/5">
-        <p className="text-sm font-semibold text-[#0F172A]">Delivery & dispatch</p>
-        <div className="mt-2 space-y-1 text-sm text-[#64748B]">
-          <p>
-            <span className="font-semibold text-[#0F172A]">Dispatch:</span> 24–48 hrs
-          </p>
-          <p>Shipping calculated at checkout</p>
-        </div>
       </div>
 
       {/* qty + CTAs */}
@@ -125,10 +115,10 @@ export default function PurchasePanel({
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
-          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} text="Secure payments" />
           <TrustPill icon={<BadgeCheck className="h-4 w-4" />} text="Hygienic packing" />
           <TrustPill icon={<Truck className="h-4 w-4" />} text="Fast dispatch" />
-          <TrustPill icon={<MessageCircle className="h-4 w-4" />} text="WhatsApp support" />
+          <TrustPill icon={<ShieldCheck className="h-4 w-4" />} text="Secure payments" />
+          <TrustPill icon={<CheckCircle2 className="h-4 w-4" />} text="Quality checked" />
         </div>
 
         <p className="text-xs text-[#64748B] leading-relaxed">
@@ -156,3 +146,10 @@ function TrustPill({ icon, text }) {
   );
 }
 
+function Chip({ label }) {
+  return (
+    <span className="rounded-full bg-[#F8FAFC] px-3 py-1.5 text-[11px] font-semibold text-[#334155] ring-1 ring-black/5">
+      {label}
+    </span>
+  );
+}

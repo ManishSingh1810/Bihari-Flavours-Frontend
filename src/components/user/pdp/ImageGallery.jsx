@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import Card from "../../ui/Card.jsx";
 import Button from "../../ui/Button.jsx";
+import ProductImage from "../../ui/ProductImage.jsx";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -64,15 +65,14 @@ export default function ImageGallery({
     };
   }, [open]);
 
-  const aspectClass = aspect === "fourFive" ? "aspect-[4/5]" : "aspect-square";
-
   return (
     <Card className="p-4" hover={false}>
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5",
-          "group"
-        )}
+      <ProductImage
+        src={safeImages[active]}
+        alt={`${productName} image ${active + 1}`}
+        aspect={aspect === "fourFive" ? "fourFive" : "square"}
+        loading="eager"
+        className="group"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         role="button"
@@ -80,18 +80,8 @@ export default function ImageGallery({
         aria-label="Open image fullscreen"
         onClick={() => setOpen(true)}
         onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
+        draggable="false"
       >
-        <div className={cn("w-full", aspectClass)}>
-          <img
-            src={safeImages[active]}
-            alt={`${productName} image ${active + 1}`}
-            className={cn(
-              "h-full w-full object-cover"
-            )}
-            loading="eager"
-            draggable="false"
-          />
-        </div>
 
         {/* Fullscreen affordance */}
         <button
@@ -133,7 +123,7 @@ export default function ImageGallery({
             </Button>
           </>
         ) : null}
-      </div>
+      </ProductImage>
 
       {/* Thumbnails */}
       {count > 1 ? (
@@ -144,17 +134,20 @@ export default function ImageGallery({
               type="button"
               onClick={() => setActive(idx)}
               className={cn(
-                "shrink-0 overflow-hidden rounded-xl bg-white ring-1",
+                "shrink-0 overflow-hidden rounded-xl ring-2",
+                "focus:outline-none focus:ring-4 focus:ring-[rgba(142,27,27,0.18)]",
                 idx === active ? "ring-[rgba(142,27,27,0.45)]" : "ring-black/5 hover:ring-black/10"
               )}
-              style={{ width: 76, height: 76 }}
               aria-label={`Select image ${idx + 1}`}
             >
-              <img
+              <ProductImage
                 src={img}
                 alt=""
-                className="h-full w-full object-cover"
+                aspect="square"
                 loading="lazy"
+                showRing={false}
+                roundedClass="rounded-none"
+                className="w-[76px]"
                 draggable="false"
               />
             </button>

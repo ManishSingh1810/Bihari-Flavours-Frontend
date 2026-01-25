@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../ui/Button.jsx";
 import Card from "../../ui/Card.jsx";
+import ProductImage from "../../ui/ProductImage.jsx";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
 
 function cn(...xs) {
@@ -69,19 +70,14 @@ export default function ProductCard({
       </div>
 
       {/* Image */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5">
-        <div className="aspect-[4/5] w-full">
-          <img
-            src={img}
-            alt={product?.name || "Product image"}
-            className={cn(
-              "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            )}
-            loading="lazy"
-            draggable="false"
-          />
-        </div>
-      </div>
+      <ProductImage
+        src={img}
+        alt={product?.name || "Product image"}
+        aspect="fourFive"
+        loading="lazy"
+        imgClassName="transition-transform duration-300 group-hover:scale-[1.03]"
+        draggable="false"
+      />
 
       {/* Info */}
       <div className="mt-3 sm:mt-4">
