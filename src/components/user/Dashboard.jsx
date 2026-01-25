@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  Sparkles,
   Star,
   ChevronDown,
 } from "lucide-react";
@@ -13,7 +12,6 @@ import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import HeroSwiper from "./home/HeroSwiper";
 import ProductCard from "./product/ProductCard.jsx";
-import { getDefaultVariantLabel } from "../../utils/variants.js";
 
 // Cache real reviews on homepage to avoid refetching repeatedly
 const HOME_REVIEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -139,52 +137,6 @@ function ProductsShowcase({
   );
 }
 
-function CombosSection({ products, updating, onAdd }) {
-  const list = useMemo(() => {
-    const arr = (products || []).filter(
-      (p) => p?.showInCombosSection || String(p?.productType || "") === "combo"
-    );
-    return arr
-      .sort((a, b) => Number(a?.displayOrder ?? 9999) - Number(b?.displayOrder ?? 9999))
-      .slice(0, 8);
-  }, [products]);
-
-  if (!list.length) return null;
-
-  return (
-    <section className="bg-[#F8FAFC]">
-      <div className={cn(container, "py-14 sm:py-16")}>
-        <SectionHeading
-          eyebrow="Combos"
-          title="Combos & Packs"
-          subtitle="Curated packs built from our best sellers — premium value, same trusted taste."
-          align="center"
-        />
-
-        <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-          {list.map((p) => {
-            const vLabel = getDefaultVariantLabel(p);
-            const key = `${String(p._id)}::${String(vLabel || "")}`;
-            return (
-              <ProductCard
-                key={p._id}
-                product={p}
-                disabled={updating === key}
-                onAdd={onAdd}
-              />
-            );
-          })}
-        </div>
-
-        <div className="mt-10 flex justify-center">
-          <SecondaryButton as={Link} to="/combos" className="w-full sm:w-auto">
-            View all combos <ArrowRight className="h-4 w-4" />
-          </SecondaryButton>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function BrandStory({ storyImageUrl }) {
   return (
@@ -557,7 +509,6 @@ export default function Dashboard() {
         onAdd={handleAddToCart}
         onMinus={handleMinus}
       />
-      <CombosSection products={items} updating={updating} onAdd={handleAddToCart} />
       <ReviewsSection products={items} />
       <BrandStory storyImageUrl={storyImageUrl} />
       <FAQAccordion />
