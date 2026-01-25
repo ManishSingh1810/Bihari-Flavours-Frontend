@@ -97,7 +97,7 @@ function StarPicker({ value, onChange, disabled }) {
   );
 }
 
-export default function ReviewSection({ productId }) {
+export default function ReviewSection({ productId, embedded = false }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -163,16 +163,18 @@ export default function ReviewSection({ productId }) {
   };
 
   return (
-    <section className="mt-12">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="ds-eyebrow">Social proof</p>
-          <h2 className="ds-title mt-2">Customer reviews</h2>
-          <p className="ds-body mt-2">Real feedback on taste, freshness, and packaging.</p>
+    <section className={embedded ? "" : "mt-12"}>
+      {!embedded ? (
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="ds-eyebrow">Social proof</p>
+            <h2 className="ds-title mt-2">Customer reviews</h2>
+            <p className="ds-body mt-2">Real feedback on taste, freshness, and packaging.</p>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-5">
+      <div className={cn(embedded ? "mt-4" : "mt-6", "grid gap-6 lg:grid-cols-5")}>
         {/* Review form */}
         <Card className="p-6 lg:col-span-2" hover={false}>
           <p className="text-sm font-semibold text-[#0F172A]">Write a review</p>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, Search, Maximize2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import Card from "../../ui/Card.jsx";
 import Button from "../../ui/Button.jsx";
 
@@ -86,19 +86,11 @@ export default function ImageGallery({
             src={safeImages[active]}
             alt={`${productName} image ${active + 1}`}
             className={cn(
-              "h-full w-full object-cover",
-              "transition-transform duration-300",
-              "lg:group-hover:scale-[1.06]"
+              "h-full w-full object-cover"
             )}
             loading="eager"
             draggable="false"
           />
-        </div>
-
-        {/* Zoom affordance (desktop) */}
-        <div className="hidden lg:flex absolute left-3 top-3 items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-xs font-semibold text-[#0F172A] ring-1 ring-black/10">
-          <Search className="h-4 w-4 text-[#8E1B1B]" />
-          Hover to zoom
         </div>
 
         {/* Fullscreen affordance */}

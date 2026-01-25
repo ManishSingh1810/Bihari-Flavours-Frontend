@@ -1,22 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
-import { Share2 } from "lucide-react";
-import Button from "../ui/Button.jsx";
-import QtyStepper from "./product/QtyStepper.jsx";
 import ImageGallery from "./pdp/ImageGallery.jsx";
 import PurchasePanel from "./pdp/PurchasePanel.jsx";
 import InfoPanels from "./pdp/InfoPanels.jsx";
-import ReviewSection from "./pdp/ReviewSection.jsx";
 import RecommendedProducts from "./pdp/RecommendedProducts.jsx";
-
-function formatRs(amount) {
-  if (amount == null || amount === "") return "";
-  return `Rs. ${amount}`;
-}
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -74,15 +65,6 @@ export default function ProductDetailsPage() {
   }, [product]);
 
   const isOutOfStock = product?.quantity === "outofstock";
-
-  // WhatsApp share
-  const shareOnWhatsApp = () => {
-    if (!product) return;
-    const url = window.location.href;
-    const text = `Check out ${product.name} on Bihari Flavours: ${url}`;
-    const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(wa, "_blank");
-  };
 
   // related products (exclude current)
   const related = useMemo(() => {
@@ -169,7 +151,7 @@ export default function ProductDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-24 pb-24">
+    <div className="min-h-screen bg-[#F8FAFC] pt-24 pb-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <button
@@ -178,10 +160,6 @@ export default function ProductDetailsPage() {
           >
             ← Back
           </button>
-
-          <Button variant="secondary" onClick={shareOnWhatsApp}>
-            <Share2 size={16} /> Share
-          </Button>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
@@ -191,7 +169,7 @@ export default function ProductDetailsPage() {
             active={active}
             setActive={setActive}
             productName={product.name}
-            aspect="square"
+            aspect="fourFive"
           />
 
           {/* Right: purchase panel */}
@@ -201,11 +179,12 @@ export default function ProductDetailsPage() {
             updating={updating}
             isOutOfStock={isOutOfStock}
             netQuantity={netQuantity}
+            shelfLife={shelfLife}
             onAdd={handleAddToCart}
             onMinus={handleMinus}
             onBuyNow={handleBuyNow}
-                />
-              </div>
+          />
+        </div>
 
         {/* Below fold */}
         <InfoPanels
@@ -214,8 +193,6 @@ export default function ProductDetailsPage() {
           shelfLife={shelfLife}
           storage={storage}
         />
-
-        <ReviewSection productId={product._id} />
 
         <RecommendedProducts
           title="You may also like"
@@ -226,37 +203,6 @@ export default function ProductDetailsPage() {
           onMinus={(pid, currentQty) => setCartQuantity(pid, Math.max(0, (Number(currentQty) || 0) - 1))}
           variant="grid"
         />
-      </div>
-
-      {/* Mobile sticky bar (conversion) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-black/5 p-3 lg:hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] text-[#64748B]">Price</p>
-            <p className="text-base font-semibold tabular-nums text-[#8E1B1B] truncate">
-              {formatRs(product.price)}
-            </p>
-          </div>
-
-          {qty > 0 ? (
-            <QtyStepper
-              qty={qty}
-              outOfStock={isOutOfStock}
-              disabled={updating}
-              onMinus={handleMinus}
-              onPlus={handleAddToCart}
-              size="sm"
-            />
-          ) : (
-            <Button
-            onClick={handleAddToCart}
-              disabled={updating || isOutOfStock}
-              className="h-11 px-5"
-          >
-              {isOutOfStock ? "Out of stock" : "Add to cart"}
-            </Button>
-          )}
-        </div>
       </div>
     </div>
   );
