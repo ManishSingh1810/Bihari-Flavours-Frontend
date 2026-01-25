@@ -166,7 +166,7 @@ const EditProductModal = ({
             <input
               {...register("displayOrder")}
               type="number"
-              placeholder="Display Order (e.g. 1)"
+              placeholder="Display Order (optional — leave blank)"
               className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
             />
             <select
@@ -355,12 +355,14 @@ const EditProductModal = ({
             ) : null}
           </div>
 
-          {/* Variants */}
+          {/* Variants (optional) */}
           <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-white p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-[#1F1B16]">Has variants</p>
-                <p className="text-xs text-[#6F675E] mt-0.5">Use sizes like 250g / 500g with separate price and stock.</p>
+                <p className="text-xs text-[#6F675E] mt-0.5">
+                  Enable only if you sell sizes like 250g / 500g. Stock numbers are per-variant.
+                </p>
               </div>
               <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#1F1B16]">
                 <input
@@ -387,7 +389,7 @@ const EditProductModal = ({
                 <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   <div className="col-span-4">Label</div>
                   <div className="col-span-3">Price</div>
-                  <div className="col-span-3">Stock</div>
+                  <div className="col-span-3">Variant stock</div>
                   <div className="col-span-2 text-right">Default</div>
                 </div>
 
@@ -634,7 +636,8 @@ const handleStatusChange = async (id, newStatus) => {
       shelfLife: p?.shelfLife || "",
       ingredients: p?.ingredients || "",
       storage: p?.storage || "",
-      displayOrder: p?.displayOrder ?? 9999,
+      // show blank if not set (9999 is our "push to bottom" default)
+      displayOrder: p?.displayOrder != null && Number(p.displayOrder) !== 9999 ? p.displayOrder : "",
     });
     setEditOpen(true);
   };
@@ -695,7 +698,11 @@ const handleStatusChange = async (id, newStatus) => {
       formData.append("shelfLife", data.shelfLife || "");
       formData.append("ingredients", data.ingredients || "");
       formData.append("storage", data.storage || "");
-      formData.append("displayOrder", String(Number(data.displayOrder ?? 9999)));
+      {
+        const raw = data.displayOrder;
+        const n = raw === "" || raw == null ? NaN : Number(raw);
+        formData.append("displayOrder", String(Number.isFinite(n) ? n : 9999));
+      }
       formData.append("productType", productTypeEdit === "combo" ? "combo" : "single");
       formData.append("showInCombosSection", showInCombosSectionEdit ? "true" : "false");
       formData.append("comboPriceMode", comboPriceModeEdit || "fixed");
@@ -770,7 +777,11 @@ const handleStatusChange = async (id, newStatus) => {
       formData.append("shelfLife", data.shelfLife || "");
       formData.append("ingredients", data.ingredients || "");
       formData.append("storage", data.storage || "");
-      formData.append("displayOrder", String(Number(data.displayOrder ?? 9999)));
+      {
+        const raw = data.displayOrder;
+        const n = raw === "" || raw == null ? NaN : Number(raw);
+        formData.append("displayOrder", String(Number.isFinite(n) ? n : 9999));
+      }
       formData.append("productType", productTypeAdd === "combo" ? "combo" : "single");
       formData.append("showInCombosSection", showInCombosSectionAdd ? "true" : "false");
       formData.append("comboPriceMode", comboPriceModeAdd || "fixed");
@@ -934,7 +945,7 @@ const handleStatusChange = async (id, newStatus) => {
               <input
                 {...register("displayOrder")}
                 type="number"
-                placeholder="Display Order (e.g. 1)"
+                placeholder="Display Order (optional — leave blank)"
                 className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
               />
 
