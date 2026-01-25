@@ -117,8 +117,9 @@ const EditProductModal = ({
   if (!open || !product) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl rounded-xl bg-[#FAF7F2] border border-[rgba(142,27,27,0.25)] shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="min-h-full flex items-start justify-center py-6">
+        <div className="w-full max-w-2xl max-h-[90vh] rounded-xl bg-[#FAF7F2] border border-[rgba(142,27,27,0.25)] shadow-2xl overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(142,27,27,0.15)]">
           <div className="min-w-0">
             <h3 className="text-lg font-bold text-[#1F1B16]">Edit product</h3>
@@ -129,7 +130,7 @@ const EditProductModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 overflow-y-auto">
           <div className="grid gap-4 md:grid-cols-2">
             <input
               {...register("name", { required: true })}
@@ -509,6 +510,7 @@ const EditProductModal = ({
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>,
     document.body
