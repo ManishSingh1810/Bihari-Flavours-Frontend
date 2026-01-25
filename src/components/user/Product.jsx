@@ -284,22 +284,16 @@ export default function ProductsPage() {
         ) : null}
 
         {/* Grid */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             : filtered.map((product) => {
-                const out = product?.quantity === "outofstock";
-                const qty = cartItemsByProductId?.get(String(product._id)) || 0;
                 return (
                   <ProductCard
                     key={product._id}
                     product={product}
-                    qty={qty}
                     disabled={updating === product._id}
                     onAdd={() => handleAddToCart(product._id)}
-                    onMinus={(productId, currentQty) => handleMinus(productId, currentQty)}
-                    showQuickAdd={!out}
-                    imageFit="cover"
                   />
                 );
               })}

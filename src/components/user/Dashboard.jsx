@@ -113,15 +113,12 @@ function ProductsShowcase({
           <>
             <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {list.map((p) => {
-                const qty = cartItemsByProductId?.get(String(p._id)) || 0;
                 return (
                   <ProductCard
                     key={p._id}
                     product={p}
-                    qty={qty}
                     disabled={updating === p._id}
                     onAdd={() => onAdd(p._id)}
-                    onMinus={(productId, currentQty) => onMinus(productId, currentQty)}
                   />
                 );
               })}

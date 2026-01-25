@@ -1,8 +1,5 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Truck, ShieldCheck } from "lucide-react";
-import ProductBadge from "./ProductBadge.jsx";
-import QtyStepper from "./QtyStepper.jsx";
 import Button from "../../ui/Button.jsx";
 import Card from "../../ui/Card.jsx";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
@@ -15,20 +12,6 @@ function isOutOfStock(product) {
   return product?.quantity === "outofstock";
 }
 
-function isBestseller(product) {
-  const v =
-    product?.isBestseller ||
-    product?.bestseller ||
-    product?.bestSeller ||
-    product?.badge === "bestseller";
-  if (Boolean(v)) return true;
-  const tags = product?.tags;
-  if (Array.isArray(tags) && tags.map(String).some((t) => t.toLowerCase() === "bestseller")) {
-    return true;
-  }
-  return false;
-}
-
 function formatRs(amount) {
   if (amount == null || amount === "") return "";
   return `Rs. ${amount}`;
@@ -36,13 +19,9 @@ function formatRs(amount) {
 
 export default function ProductCard({
   product,
-  qty = 0,
   disabled = false,
   onAdd,
-  onMinus,
-  showQuickAdd = true,
   className = "",
-  imageFit = "contain", // "cover" | "contain"
 }) {
   const navigate = useNavigate();
   const out = isOutOfStock(product);
@@ -56,14 +35,17 @@ export default function ProductCard({
     );
   }, [product]);
 
-  const weight = product?.netQuantity || product?.weight || product?.size || "";
+  const netQty = product?.netQuantity || "";
+  const description = product?.description || product?.desc || "";
+  const inStock =
+    typeof product?.inStock === "boolean" ? product.inStock : product?.quantity !== "outofstock";
 
   return (
     <Card
       hover
       className={cn(
         "group relative p-3 sm:p-4",
-        "sm:hover:-translate-y-0.5 transition-transform",
+        "transition-transform sm:hover:-translate-y-0.5",
         className
       )}
       onClick={() => navigate(`/product/${product._id}`)}
@@ -72,44 +54,28 @@ export default function ProductCard({
       onKeyDown={(e) => e.key === "Enter" && navigate(`/product/${product._id}`)}
       aria-label={`View ${product?.name || "product"}`}
     >
-      {/* Badges */}
+      {/* Stock badge */}
       <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
-        {isBestseller(product) && !out && <ProductBadge tone="brand">Bestseller</ProductBadge>}
-        {out && <ProductBadge tone="danger">Out of stock</ProductBadge>}
-      </div>
-
-      {/* Quick add (desktop hover) */}
-      {showQuickAdd && !out && (
-        <div
+        <span
           className={cn(
-            "absolute right-3 top-3 z-10",
-            "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+            "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 shadow-sm",
+            inStock
+              ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+              : "bg-white text-slate-500 ring-black/10"
           )}
-          onClick={(e) => e.stopPropagation()}
         >
-          <button
-            type="button"
-            onClick={() => onAdd?.(product._id)}
-            disabled={disabled}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#8E1B1B]
-                       ring-1 ring-black/10 shadow-sm hover:bg-[#F8FAFC] disabled:opacity-50"
-            aria-label="Quick add to cart"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+          {inStock ? "In stock" : "Out of stock"}
+        </span>
+      </div>
 
       {/* Image */}
       <div className="relative overflow-hidden rounded-2xl bg-[#F8FAFC] ring-1 ring-black/5">
-        <div className="aspect-square w-full">
+        <div className="aspect-[4/5] w-full">
           <img
             src={img}
             alt={product?.name || "Product image"}
             className={cn(
-              "h-full w-full transition-transform duration-300 group-hover:scale-[1.03]",
-              imageFit === "cover" ? "object-cover" : "object-contain",
-              imageFit === "cover" ? "p-0" : "p-4"
+              "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             )}
             loading="lazy"
             draggable="false"
@@ -119,79 +85,51 @@ export default function ProductCard({
 
       {/* Info */}
       <div className="mt-3 sm:mt-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
-              {product?.name}
-            </p>
-            {count > 0 ? (
-              <div className="mt-1 flex items-center gap-2 text-[11px] text-[#64748B]">
-                <span className="font-semibold text-[#0F172A] tabular-nums">
-                  {avg.toFixed(1)}
-                </span>
-                <span className="text-[#8E1B1B]">
-                  {"★".repeat(Math.round(avg || 0))}
-                  <span className="text-[#CBD5E1]">
-                    {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
-                  </span>
-                </span>
-                <span className="tabular-nums">({count})</span>
-              </div>
-            ) : null}
-            <p className="mt-1 text-[11px] sm:text-xs text-[#64748B] line-clamp-2 leading-relaxed">
-              {product?.desc}
-            </p>
-          </div>
-          {weight ? (
-            <span className="shrink-0 rounded-full bg-[#F8FAFC] px-2.5 py-1 text-[10px] font-semibold text-[#334155] ring-1 ring-black/5">
-              {weight}
-            </span>
-          ) : null}
-        </div>
+        <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
+          {product?.name}
+        </p>
 
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#8E1B1B]">
+        {netQty ? (
+          <p className="mt-1 text-[11px] sm:text-xs text-[#64748B]">
+            Net Qty: <span className="font-semibold text-[#334155]">{netQty}</span>
+          </p>
+        ) : null}
+
+        {count > 0 ? (
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-[#64748B]">
+            <span className="font-semibold text-[#0F172A] tabular-nums">{avg.toFixed(1)}</span>
+            <span className="text-[#8E1B1B]" aria-label={`Rating ${avg.toFixed(1)} out of 5`}>
+              {"★".repeat(Math.round(avg || 0))}
+              <span className="text-[#CBD5E1]">
+                {"★".repeat(Math.max(0, 5 - Math.round(avg || 0)))}
+              </span>
+            </span>
+            <span className="tabular-nums">({count})</span>
+          </div>
+        ) : null}
+
+        {description ? (
+          <p className="mt-2 text-[11px] sm:text-xs text-[#64748B] line-clamp-2 leading-relaxed">
+            {description}
+          </p>
+        ) : null}
+
+        {/* Bottom row */}
+        <div
+          className="mt-4 flex items-center justify-between gap-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
             {formatRs(product?.price)}
           </p>
 
-          <span className="text-[11px] sm:text-xs font-semibold text-[#64748B]">
-            {weight ? "Per pack" : ""}
-          </span>
-        </div>
-
-        {/* CTAs */}
-        <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <div className="flex-1">
-            {qty > 0 ? (
-              <QtyStepper
-                qty={qty}
-                size="sm"
-                outOfStock={out}
-                disabled={disabled}
-                onMinus={() => onMinus?.(product._id, qty)}
-                onPlus={() => onAdd?.(product._id)}
-              />
-            ) : (
-              <Button
-                onClick={() => onAdd?.(product._id)}
-                disabled={disabled || out}
-                className="h-10 w-full text-[12px]"
-              >
-                {out ? "Out of stock" : "Add to cart"}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Trust summary */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#64748B]">
-          <span className="inline-flex items-center gap-1">
-            <Truck className="h-3.5 w-3.5 text-[#8E1B1B]" /> Dispatch 24–48h
-          </span>
-          <span className="opacity-40">•</span>
-          <span className="inline-flex items-center gap-1">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#8E1B1B]" /> Secure payments
-          </span>
+          <Button
+            onClick={() => onAdd?.(product._id)}
+            disabled={disabled || !inStock}
+            className="h-10 px-4 text-[12px] sm:text-sm"
+          >
+            Add to cart
+          </Button>
         </div>
       </div>
     </Card>

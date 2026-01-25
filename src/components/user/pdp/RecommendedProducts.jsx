@@ -24,16 +24,12 @@ export default function RecommendedProducts({
       {variant === "scroll" ? (
         <div className="mt-5 flex gap-4 overflow-x-auto pb-2">
           {list.map((p) => {
-            const q = cartItemsByProductId?.get(String(p._id)) || 0;
             return (
               <div key={p._id} className="min-w-[260px]">
                 <ProductCard
                   product={p}
-                  qty={q}
                   disabled={updating}
                   onAdd={() => onAdd(p._id)}
-                  onMinus={(productId, currentQty) => onMinus(productId, currentQty)}
-                  imageFit="cover"
                 />
               </div>
             );
@@ -42,16 +38,12 @@ export default function RecommendedProducts({
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {list.map((p) => {
-            const q = cartItemsByProductId?.get(String(p._id)) || 0;
             return (
               <ProductCard
                 key={p._id}
                 product={p}
-                qty={q}
                 disabled={updating}
                 onAdd={() => onAdd(p._id)}
-                onMinus={(productId, currentQty) => onMinus(productId, currentQty)}
-                imageFit="cover"
               />
             );
           })}
