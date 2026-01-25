@@ -159,7 +159,7 @@ export default function ImageGallery({
         ? createPortal(
             <div className="fixed inset-0 z-[99999]">
               <div
-                className="absolute inset-0 bg-black/70"
+                className="absolute inset-0 bg-white/95 backdrop-blur-sm"
                 onClick={() => setOpen(false)}
                 aria-hidden="true"
               />
@@ -174,14 +174,14 @@ export default function ImageGallery({
                 >
                   <button
                     type="button"
-                    className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full bg-black/35 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-black/45"
+                    className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-white"
                     onClick={() => setOpen(false)}
                     aria-label="Close fullscreen"
                   >
                     <X className="h-5 w-5" /> Close
                   </button>
 
-                  <div className="relative h-full w-full bg-black">
+                  <div className="relative h-full w-full bg-white">
                     <div
                       className="h-full w-full"
                       onTouchStart={onTouchStart}
@@ -190,7 +190,7 @@ export default function ImageGallery({
                       <img
                         src={safeImages[active]}
                         alt={`${productName} image ${active + 1}`}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                         draggable="false"
                       />
                     </div>
@@ -199,7 +199,7 @@ export default function ImageGallery({
                       <>
                         <button
                           type="button"
-                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/35 p-2 text-white ring-1 ring-white/20 hover:bg-black/45"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-900 ring-1 ring-black/10 hover:bg-white"
                           onClick={prev}
                           aria-label="Previous image"
                         >
@@ -207,7 +207,7 @@ export default function ImageGallery({
                         </button>
                         <button
                           type="button"
-                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/35 p-2 text-white ring-1 ring-white/20 hover:bg-black/45"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-900 ring-1 ring-black/10 hover:bg-white"
                           onClick={next}
                           aria-label="Next image"
                         >
@@ -218,7 +218,7 @@ export default function ImageGallery({
                   </div>
 
                   {count > 1 ? (
-                    <div className="absolute bottom-0 left-0 right-0 z-20 bg-black/35 backdrop-blur px-4 py-3">
+                    <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur px-4 py-3 ring-1 ring-black/5">
                       <div className="flex gap-3 overflow-x-auto">
                       {safeImages.map((img, idx) => (
                         <button
@@ -226,8 +226,8 @@ export default function ImageGallery({
                           type="button"
                           onClick={() => setActive(idx)}
                           className={cn(
-                            "shrink-0 overflow-hidden rounded-xl bg-white/10 ring-1",
-                            idx === active ? "ring-white/60" : "ring-white/15 hover:ring-white/30"
+                              "shrink-0 overflow-hidden rounded-xl bg-white ring-1",
+                              idx === active ? "ring-[rgba(142,27,27,0.45)]" : "ring-black/10 hover:ring-black/20"
                           )}
                           style={{ width: 76, height: 76 }}
                           aria-label={`Select image ${idx + 1}`}
