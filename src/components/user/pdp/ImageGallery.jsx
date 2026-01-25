@@ -18,6 +18,7 @@ export default function ImageGallery({
 }) {
   const touchStartX = useRef(null);
   const [open, setOpen] = useState(false);
+  const [fsMode, setFsMode] = useState("fill"); // "fill" | "fit"
 
   const safeImages = useMemo(() => {
     if (Array.isArray(images) && images.length) return images;
@@ -159,7 +160,7 @@ export default function ImageGallery({
         ? createPortal(
             <div className="fixed inset-0 z-[99999]">
               <div
-                className="absolute inset-0 bg-white/95 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                 onClick={() => setOpen(false)}
                 aria-hidden="true"
               />
@@ -172,6 +173,17 @@ export default function ImageGallery({
                   className="relative h-screen w-screen max-w-none"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {/* Mode toggle */}
+                  <button
+                    type="button"
+                    className="fixed left-4 z-[100000] inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-white"
+                    style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+                    onClick={() => setFsMode((m) => (m === "fill" ? "fit" : "fill"))}
+                    aria-label="Toggle image fit mode"
+                  >
+                    {fsMode === "fill" ? "Fit" : "Fill"}
+                  </button>
+
                   <button
                     type="button"
                     className="fixed right-4 z-[100000] inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-white"
@@ -182,17 +194,16 @@ export default function ImageGallery({
                     <X className="h-5 w-5" /> Close
                   </button>
 
-                  <div className="relative h-full w-full bg-white">
-                    {/* Fill the screen without cropping the main image:
-                        - Background: same image, cover + soft blur
-                        - Foreground: contain (no zoom/crop) */}
+                  <div className="relative h-full w-full">
+                    {/* Premium backdrop so there are no ugly borders */}
                     <img
                       src={safeImages[active]}
                       alt=""
                       aria-hidden="true"
-                      className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-35"
+                      className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-55"
                       draggable="false"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/0 to-black/10" aria-hidden="true" />
                     <div
                       className="relative z-10 h-full w-full"
                       onTouchStart={onTouchStart}
@@ -201,7 +212,10 @@ export default function ImageGallery({
                       <img
                         src={safeImages[active]}
                         alt={`${productName} image ${active + 1}`}
-                        className="h-full w-full object-contain"
+                        className={cn(
+                          "h-full w-full",
+                          fsMode === "fill" ? "object-cover" : "object-contain"
+                        )}
                         draggable="false"
                       />
                     </div>
@@ -210,7 +224,7 @@ export default function ImageGallery({
                       <>
                         <button
                           type="button"
-                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-900 ring-1 ring-black/10 hover:bg-white"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/85 p-2 text-slate-900 ring-1 ring-black/10 hover:bg-white"
                           onClick={prev}
                           aria-label="Previous image"
                         >
@@ -218,7 +232,7 @@ export default function ImageGallery({
                         </button>
                         <button
                           type="button"
-                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-900 ring-1 ring-black/10 hover:bg-white"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/85 p-2 text-slate-900 ring-1 ring-black/10 hover:bg-white"
                           onClick={next}
                           aria-label="Next image"
                         >
@@ -229,7 +243,7 @@ export default function ImageGallery({
                   </div>
 
                   {count > 1 ? (
-                    <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/85 backdrop-blur px-4 py-3 ring-1 ring-black/5">
+                    <div className="absolute bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur px-4 py-3 ring-1 ring-black/5">
                       <div className="flex gap-3 overflow-x-auto">
                       {safeImages.map((img, idx) => (
                         <button
