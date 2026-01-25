@@ -3,7 +3,12 @@ import api from "../api/axios";
 
 const UserContext = createContext();
 
-const GUEST_CART_KEY = "guestCart:v1";
+const GUEST_CART_KEY = "guestCart:v2";
+const LEGACY_GUEST_CART_KEY = "guestCart:v1";
+
+function cartKey(productId, variantLabel) {
+  return `${String(productId)}::${String(variantLabel || "")}`;
+}
 
 function computeCartItemCount(cart) {
   const items = cart?.cartItems || [];
@@ -18,13 +23,43 @@ function computeCartTotal(cart) {
 function readGuestCart() {
   try {
     const raw = localStorage.getItem(GUEST_CART_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (!parsed || !Array.isArray(parsed.cartItems)) return { cartItems: [], totalAmount: 0 };
-    const next = {
-      cartItems: parsed.cartItems.filter(Boolean),
-      totalAmount: typeof parsed.totalAmount === "number" ? parsed.totalAmount : computeCartTotal(parsed),
-    };
-    return next;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.cartItems)) {
+        const next = {
+          cartItems: parsed.cartItems.filter(Boolean).map((it) => ({
+            ...it,
+            variantLabel: String(it?.variantLabel || ""),
+          })),
+          totalAmount: typeof parsed.totalAmount === "number" ? parsed.totalAmount : computeCartTotal(parsed),
+        };
+        return next;
+      }
+    }
+
+    // migrate legacy v1 -> v2 (no variants)
+    const legacyRaw = localStorage.getItem(LEGACY_GUEST_CART_KEY);
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw);
+      if (legacy && Array.isArray(legacy.cartItems)) {
+        const migrated = {
+          cartItems: legacy.cartItems.filter(Boolean).map((it) => ({
+            ...it,
+            variantLabel: "",
+          })),
+          totalAmount: typeof legacy.totalAmount === "number" ? legacy.totalAmount : computeCartTotal(legacy),
+        };
+        writeGuestCart(migrated);
+        try {
+          localStorage.removeItem(LEGACY_GUEST_CART_KEY);
+        } catch {
+          // ignore
+        }
+        return migrated;
+      }
+    }
+
+    return { cartItems: [], totalAmount: 0 };
   } catch {
     return { cartItems: [], totalAmount: 0 };
   }
@@ -100,11 +135,14 @@ export const UserProvider = ({ children }) => {
   }, [applyCartResponse, applyGuestCart, user]);
 
   const addToCart = useCallback(
-    async (productId) => {
+    async (productId, variantLabel = "") => {
       if (!user) {
         // Guest cart: fetch product info publicly, then store locally
         const guest = readGuestCart();
-        const idx = guest.cartItems.findIndex((it) => String(it.productId) === String(productId));
+        const vLabel = String(variantLabel || "");
+        const idx = guest.cartItems.findIndex(
+          (it) => String(it.productId) === String(productId) && String(it.variantLabel || "") === vLabel
+        );
 
         let product = null;
         try {
@@ -114,11 +152,28 @@ export const UserProvider = ({ children }) => {
           // ignore; we can still increment qty with minimal data
         }
 
+        // If product has variants and no label provided, choose default
+        let finalLabel = vLabel;
+        if (product?.variants && Array.isArray(product.variants) && product.variants.length) {
+          if (!finalLabel) {
+            const def = product.variants.find((v) => v?.isDefault) || product.variants[0];
+            finalLabel = String(def?.label || "");
+          }
+        }
+
+        // Determine price (variant price if present)
+        let price = Number(product?.price || guest.cartItems[idx]?.price || 0);
+        if (product?.variants && Array.isArray(product.variants) && product.variants.length && finalLabel) {
+          const match = product.variants.find((v) => String(v?.label || "") === String(finalLabel));
+          if (match && match.price != null) price = Number(match.price);
+        }
+
         const base = {
           productId: String(productId),
+          variantLabel: String(finalLabel || ""),
           name: product?.name || guest.cartItems[idx]?.name || "Product",
           photo: product?.photos?.[0] || product?.photo || guest.cartItems[idx]?.photo || "",
-          price: Number(product?.price || guest.cartItems[idx]?.price || 0),
+          price,
         };
 
         if (idx >= 0) {
@@ -137,7 +192,7 @@ export const UserProvider = ({ children }) => {
         return { success: true, cart: guest, cartItemCount: computeCartItemCount(guest), isGuest: true };
       }
 
-      const res = await api.post("/cart", { productId });
+        const res = await api.post("/cart", { productId, variantLabel: String(variantLabel || "") });
       if (res.data?.success) applyCartResponse(res.data);
       return res.data;
     },
@@ -145,10 +200,20 @@ export const UserProvider = ({ children }) => {
   );
 
   const setCartQuantity = useCallback(
-    async (productId, quantity) => {
+    async (productId, variantLabelOrQuantity, maybeQuantity) => {
+      // Backward compatible: setCartQuantity(productId, quantity)
+      // New: setCartQuantity(productId, variantLabel, quantity)
+      const variantLabel =
+        typeof variantLabelOrQuantity === "string" ? variantLabelOrQuantity : "";
+      const quantity =
+        typeof variantLabelOrQuantity === "string" ? maybeQuantity : variantLabelOrQuantity;
+
       if (!user) {
         const guest = readGuestCart();
-        const idx = guest.cartItems.findIndex((it) => String(it.productId) === String(productId));
+        const vLabel = String(variantLabel || "");
+        const idx = guest.cartItems.findIndex(
+          (it) => String(it.productId) === String(productId) && String(it.variantLabel || "") === vLabel
+        );
         const q = Math.max(0, Number(quantity) || 0);
 
         if (idx >= 0) {
@@ -163,11 +228,27 @@ export const UserProvider = ({ children }) => {
           } catch {
             // ignore
           }
+
+          let finalLabel = vLabel;
+          if (product?.variants && Array.isArray(product.variants) && product.variants.length) {
+            if (!finalLabel) {
+              const def = product.variants.find((v) => v?.isDefault) || product.variants[0];
+              finalLabel = String(def?.label || "");
+            }
+          }
+
+          let price = Number(product?.price || 0);
+          if (product?.variants && Array.isArray(product.variants) && product.variants.length && finalLabel) {
+            const match = product.variants.find((v) => String(v?.label || "") === String(finalLabel));
+            if (match && match.price != null) price = Number(match.price);
+          }
+
           guest.cartItems.push({
             productId: String(productId),
+            variantLabel: String(finalLabel || ""),
             name: product?.name || "Product",
             photo: product?.photos?.[0] || product?.photo || "",
-            price: Number(product?.price || 0),
+            price,
             quantity: q,
           });
         }
@@ -178,7 +259,11 @@ export const UserProvider = ({ children }) => {
         return { success: true, cart: guest, cartItemCount: computeCartItemCount(guest), isGuest: true };
       }
 
-      const res = await api.put("/cart", { productId, quantity });
+      const res = await api.put("/cart", {
+        productId,
+        variantLabel: String(variantLabel || ""),
+        quantity,
+      });
       if (res.data?.success) applyCartResponse(res.data);
       return res.data;
     },
@@ -241,9 +326,14 @@ export const UserProvider = ({ children }) => {
       for (const it of guest.cartItems) {
         const pid = it?.productId;
         const q = Number(it?.quantity) || 0;
+        const vLabel = String(it?.variantLabel || "");
         if (!pid || q <= 0) continue;
         // eslint-disable-next-line no-await-in-loop
-        await api.put("/cart", { productId: pid, quantity: q }, { skipErrorToast: true });
+        await api.put(
+          "/cart",
+          { productId: pid, variantLabel: vLabel, quantity: q },
+          { skipErrorToast: true }
+        );
       }
       writeGuestCart({ cartItems: [], totalAmount: 0 });
       await refreshCart();
@@ -301,7 +391,7 @@ export const UserProvider = ({ children }) => {
   const cartItemsByProductId = useMemo(() => {
     const map = new Map();
     for (const it of cart?.cartItems || []) {
-      map.set(String(it.productId), Number(it.quantity) || 0);
+      map.set(cartKey(it.productId, it.variantLabel), Number(it.quantity) || 0);
     }
     return map;
   }, [cart]);

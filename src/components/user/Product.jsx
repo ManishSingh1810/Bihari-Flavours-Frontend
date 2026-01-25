@@ -9,6 +9,7 @@ import FilterBar from "./products/FilterBar.jsx";
 import MobileFilterSheet from "./products/MobileFilterSheet.jsx";
 import SkeletonCard from "./products/SkeletonCard.jsx";
 import Button from "../ui/Button.jsx";
+import { getDefaultVariantLabel, getVariantByLabel } from "../../utils/variants.js";
 
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
@@ -128,17 +129,25 @@ export default function ProductsPage() {
     setSort("featured");
   };
 
-  const handleAddToCart = async (productId) => {
+  const handleAddToCart = async (productId, variantLabel = "") => {
     const product = items.find((p) => p._id === productId);
 
-    if (product?.quantity === "outofstock") {
+    const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0;
+    const vLabel = hasVariants ? String(variantLabel || getDefaultVariantLabel(product) || "") : "";
+    if (hasVariants) {
+      const v = getVariantByLabel(product.variants, vLabel) || product.variants[0];
+      if (Number(v?.stock ?? 0) === 0) {
+        toast.error("This variant is currently out of stock");
+        return;
+      }
+    } else if (product?.quantity === "outofstock") {
       toast.error("This product is currently out of stock");
       return;
     }
 
-    setUpdating(productId);
+    setUpdating(`${String(productId)}::${String(vLabel || "")}`);
     try {
-      const res = await addToCart(productId);
+      const res = await addToCart(productId, vLabel);
       if (!res?.success) throw new Error("Add to cart failed");
       showActionToast({
         title: "Added to cart",
@@ -288,12 +297,14 @@ export default function ProductsPage() {
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             : filtered.map((product) => {
+                const vLabel = getDefaultVariantLabel(product);
+                const key = `${String(product?._id)}::${String(vLabel || "")}`;
                 return (
                   <ProductCard
                     key={product._id}
                     product={product}
-                    disabled={updating === product._id}
-                    onAdd={() => handleAddToCart(product._id)}
+                    disabled={updating === key}
+                    onAdd={handleAddToCart}
                   />
                 );
               })}

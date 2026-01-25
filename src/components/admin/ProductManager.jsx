@@ -9,8 +9,48 @@ import {
   X,
   RefreshCw,
   Pencil,
+  Plus,
 } from "lucide-react";
 import api from "../../api/axios";
+
+function getDefaultVariant(variants) {
+  const list = Array.isArray(variants) ? variants.filter(Boolean) : [];
+  if (!list.length) return null;
+  return list.find((v) => v?.isDefault) || list[0];
+}
+
+function getDefaultVariantPrice(product) {
+  const v = getDefaultVariant(product?.variants);
+  const p = v?.price;
+  return Number.isFinite(Number(p)) ? Number(p) : null;
+}
+
+function normalizeVariants(raw) {
+  const list = (Array.isArray(raw) ? raw : []).map((v) => ({
+    label: String(v?.label || "").trim(),
+    price: Number(v?.price ?? 0),
+    stock: Number(v?.stock ?? 0),
+    isDefault: Boolean(v?.isDefault),
+  }));
+  // ensure exactly one default if possible
+  const firstIdx = list.findIndex((v) => v.isDefault);
+  for (let i = 0; i < list.length; i++) list[i].isDefault = i === (firstIdx >= 0 ? firstIdx : 0);
+  return list;
+}
+
+function validateVariants(list) {
+  if (!Array.isArray(list) || list.length === 0) return "Please add at least one variant.";
+  for (const v of list) {
+    if (!String(v?.label || "").trim()) return "Variant label is required (e.g. 250g).";
+    const price = Number(v?.price);
+    const stock = Number(v?.stock);
+    if (!Number.isFinite(price) || price < 0) return "Variant price must be a number ≥ 0.";
+    if (!Number.isFinite(stock) || stock < 0) return "Variant stock must be a number ≥ 0.";
+  }
+  const defaults = list.filter((v) => v?.isDefault).length;
+  if (defaults !== 1) return "Please select exactly one default variant.";
+  return "";
+}
 
 /* ---------------- Custom Modal (Portal + Z-Index Fixed) ---------------- */
 const CustomModal = ({ isOpen, type, message, action, onClose }) => {
@@ -57,6 +97,10 @@ const EditProductModal = ({
   editPreviews,
   onEditFiles,
   onRemoveEditImage,
+  hasVariants,
+  setHasVariants,
+  variants,
+  setVariants,
 }) => {
   if (!open || !product) return null;
 
@@ -126,6 +170,118 @@ const EditProductModal = ({
                 onChange={(e) => onEditFiles?.(e.target.files)}
               />
             </div>
+          </div>
+
+          {/* Variants */}
+          <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-[#1F1B16]">Has variants</p>
+                <p className="text-xs text-[#6F675E] mt-0.5">Use sizes like 250g / 500g with separate price and stock.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#1F1B16]">
+                <input
+                  type="checkbox"
+                  checked={!!hasVariants}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setHasVariants?.(next);
+                    if (next && (!variants || variants.length === 0)) {
+                      setVariants?.([{ label: "250g", price: 0, stock: 0, isDefault: true }]);
+                    }
+                    if (!next) {
+                      setVariants?.([]);
+                    }
+                  }}
+                  className="accent-[#8E1B1B]"
+                />
+                Enable
+              </label>
+            </div>
+
+            {hasVariants ? (
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <div className="col-span-4">Label</div>
+                  <div className="col-span-3">Price</div>
+                  <div className="col-span-3">Stock</div>
+                  <div className="col-span-2 text-right">Default</div>
+                </div>
+
+                {(variants || []).map((v, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                    <input
+                      value={v.label}
+                      onChange={(e) =>
+                        setVariants?.((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, label: e.target.value } : x))
+                        )
+                      }
+                      placeholder="250g"
+                      className="col-span-4 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                    />
+                    <input
+                      value={v.price}
+                      type="number"
+                      min="0"
+                      onChange={(e) =>
+                        setVariants?.((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, price: e.target.value } : x))
+                        )
+                      }
+                      placeholder="199"
+                      className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                    />
+                    <input
+                      value={v.stock}
+                      type="number"
+                      min="0"
+                      onChange={(e) =>
+                        setVariants?.((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, stock: e.target.value } : x))
+                        )
+                      }
+                      placeholder="20"
+                      className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                    />
+                    <div className="col-span-2 flex items-center justify-end gap-2">
+                      <input
+                        type="radio"
+                        checked={!!v.isDefault}
+                        onChange={() =>
+                          setVariants?.((prev) => prev.map((x, i) => ({ ...x, isDefault: i === idx })))
+                        }
+                        className="accent-[#8E1B1B]"
+                        aria-label="Default variant"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVariants?.((prev) => {
+                            const next = prev.filter((_, i) => i !== idx);
+                            if (next.length && !next.some((x) => x.isDefault)) next[0].isDefault = true;
+                            return next;
+                          })
+                        }
+                        className="text-red-500 hover:text-red-700 text-xs font-bold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVariants?.((prev) => [...(prev || []), { label: "", price: 0, stock: 0, isDefault: false }])
+                  }
+                  className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
+                >
+                  <Plus size={16} /> Add variant
+                </button>
+              </div>
+            ) : null}
           </div>
 
           {editPreviews?.length ? (
@@ -199,6 +355,11 @@ const ProductManager = () => {
   const [editImages, setEditImages] = useState([]);
   const [editPreviews, setEditPreviews] = useState([]);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [hasVariantsEdit, setHasVariantsEdit] = useState(false);
+  const [variantsEdit, setVariantsEdit] = useState([]);
+
+  const [hasVariantsAdd, setHasVariantsAdd] = useState(false);
+  const [variantsAdd, setVariantsAdd] = useState([]);
 
   useEffect(() => {
     fetchProducts();
@@ -247,6 +408,13 @@ const handleStatusChange = async (id, newStatus) => {
     setEditProduct(p);
     setEditImages([]);
     setEditPreviews([]);
+    const hasV = Array.isArray(p?.variants) && p.variants.length > 0;
+    setHasVariantsEdit(hasV);
+    setVariantsEdit(
+      hasV
+        ? normalizeVariants(p.variants)
+        : []
+    );
     resetEdit({
       name: p?.name || "",
       price: p?.price ?? "",
@@ -265,6 +433,8 @@ const handleStatusChange = async (id, newStatus) => {
     setEditProduct(null);
     setEditImages([]);
     setEditPreviews([]);
+    setHasVariantsEdit(false);
+    setVariantsEdit([]);
   };
 
   const handleEditFileChange = (files) => {
@@ -289,7 +459,21 @@ const handleStatusChange = async (id, newStatus) => {
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("desc", data.description);
-      formData.append("price", data.price);
+      // If variants are enabled, set base price to default variant price for backward compatibility
+      if (hasVariantsEdit) {
+        const normalized = normalizeVariants(variantsEdit);
+        const err = validateVariants(normalized);
+        if (err) {
+          openInfoModal(err);
+          return;
+        }
+        const def = getDefaultVariant(normalized);
+        formData.append("price", String(def?.price ?? 0));
+        formData.append("variants", JSON.stringify(normalized));
+      } else {
+        formData.append("price", data.price);
+        formData.append("variants", JSON.stringify([]));
+      }
       formData.append("quantity", data.stockStatus);
       formData.append("netQuantity", data.netQuantity || "");
       formData.append("shelfLife", data.shelfLife || "");
@@ -325,7 +509,20 @@ const handleStatusChange = async (id, newStatus) => {
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("desc", data.description);
-      formData.append("price", data.price);
+      if (hasVariantsAdd) {
+        const normalized = normalizeVariants(variantsAdd);
+        const err = validateVariants(normalized);
+        if (err) {
+          openInfoModal(err);
+          return;
+        }
+        const def = getDefaultVariant(normalized);
+        formData.append("price", String(def?.price ?? 0));
+        formData.append("variants", JSON.stringify(normalized));
+      } else {
+        formData.append("price", data.price);
+        formData.append("variants", JSON.stringify([]));
+      }
       formData.append("quantity", data.stockStatus);
       formData.append("netQuantity", data.netQuantity || "");
       formData.append("shelfLife", data.shelfLife || "");
@@ -341,6 +538,8 @@ const handleStatusChange = async (id, newStatus) => {
         reset();
         setImages([]);
         setPreviews([]);
+        setHasVariantsAdd(false);
+        setVariantsAdd([]);
         fetchProducts();
       }
     } catch (err) {
@@ -409,6 +608,10 @@ const handleStatusChange = async (id, newStatus) => {
         editPreviews={editPreviews}
         onEditFiles={handleEditFileChange}
         onRemoveEditImage={removeEditImage}
+        hasVariants={hasVariantsEdit}
+        setHasVariants={setHasVariantsEdit}
+        variants={variantsEdit}
+        setVariants={setVariantsEdit}
       />
 
       <div className="mx-auto max-w-6xl">
@@ -463,6 +666,114 @@ const handleStatusChange = async (id, newStatus) => {
               </div>
             </div>
 
+            {/* Variants */}
+            <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-white p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-[#1F1B16]">Has variants</p>
+                  <p className="text-xs text-[#6F675E] mt-0.5">Use sizes like 250g / 500g with separate price and stock.</p>
+                </div>
+                <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#1F1B16]">
+                  <input
+                    type="checkbox"
+                    checked={!!hasVariantsAdd}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      setHasVariantsAdd(next);
+                      if (next && (!variantsAdd || variantsAdd.length === 0)) {
+                        setVariantsAdd([{ label: "250g", price: 0, stock: 0, isDefault: true }]);
+                      }
+                      if (!next) setVariantsAdd([]);
+                    }}
+                    className="accent-[#8E1B1B]"
+                  />
+                  Enable
+                </label>
+              </div>
+
+              {hasVariantsAdd ? (
+                <div className="mt-4 space-y-3">
+                  <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="col-span-4">Label</div>
+                    <div className="col-span-3">Price</div>
+                    <div className="col-span-3">Stock</div>
+                    <div className="col-span-2 text-right">Default</div>
+                  </div>
+
+                  {(variantsAdd || []).map((v, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                      <input
+                        value={v.label}
+                        onChange={(e) =>
+                          setVariantsAdd((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, label: e.target.value } : x))
+                          )
+                        }
+                        placeholder="250g"
+                        className="col-span-4 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      />
+                      <input
+                        value={v.price}
+                        type="number"
+                        min="0"
+                        onChange={(e) =>
+                          setVariantsAdd((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, price: e.target.value } : x))
+                          )
+                        }
+                        placeholder="199"
+                        className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      />
+                      <input
+                        value={v.stock}
+                        type="number"
+                        min="0"
+                        onChange={(e) =>
+                          setVariantsAdd((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, stock: e.target.value } : x))
+                          )
+                        }
+                        placeholder="20"
+                        className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      />
+                      <div className="col-span-2 flex items-center justify-end gap-2">
+                        <input
+                          type="radio"
+                          checked={!!v.isDefault}
+                          onChange={() =>
+                            setVariantsAdd((prev) => prev.map((x, i) => ({ ...x, isDefault: i === idx })))
+                          }
+                          className="accent-[#8E1B1B]"
+                          aria-label="Default variant"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVariantsAdd((prev) => {
+                              const next = prev.filter((_, i) => i !== idx);
+                              if (next.length && !next.some((x) => x.isDefault)) next[0].isDefault = true;
+                              return next;
+                            })
+                          }
+                          className="text-red-500 hover:text-red-700 text-xs font-bold"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setVariantsAdd((prev) => [...(prev || []), { label: "", price: 0, stock: 0, isDefault: false }])}
+                    className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
+                  >
+                    <Plus size={16} /> Add variant
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
             {/* Image Previews */}
             <div className="flex gap-3 flex-wrap">
               {previews.map((src, i) => (
@@ -508,7 +819,11 @@ const handleStatusChange = async (id, newStatus) => {
                         <span className="font-semibold text-[#1F1B16]">{p.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-[#6F675E] font-medium">Rs. {p.price}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-[#6F675E] font-medium">
+                      {Array.isArray(p?.variants) && p.variants.length
+                        ? `Rs. ${getDefaultVariantPrice(p) ?? p.price}`
+                        : `Rs. ${p.price}`}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {updatingId === p._id ? (

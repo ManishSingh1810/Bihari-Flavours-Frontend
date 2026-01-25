@@ -13,6 +13,7 @@ import { useUser } from "../../Context/userContext";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import HeroSwiper from "./home/HeroSwiper";
 import ProductCard from "./product/ProductCard.jsx";
+import { getDefaultVariantLabel } from "../../utils/variants.js";
 
 // Cache real reviews on homepage to avoid refetching repeatedly
 const HOME_REVIEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -113,12 +114,14 @@ function ProductsShowcase({
           <>
             <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {list.map((p) => {
+                const vLabel = getDefaultVariantLabel(p);
+                const key = `${String(p?._id)}::${String(vLabel || "")}`;
                 return (
                   <ProductCard
                     key={p._id}
                     product={p}
-                    disabled={updating === p._id}
-                    onAdd={() => onAdd(p._id)}
+                    disabled={updating === key}
+                    onAdd={onAdd}
                   />
                 );
               })}
@@ -538,10 +541,11 @@ export default function Dashboard() {
     };
   }, []);
 
-  const handleAddToCart = async (productId) => {
-    setUpdating(productId);
+  const handleAddToCart = async (productId, variantLabel = "") => {
+    const key = `${String(productId)}::${String(variantLabel || "")}`;
+    setUpdating(key);
     try {
-      const res = await addToCart(productId);
+      const res = await addToCart(productId, variantLabel);
       if (!res?.success) throw new Error("Failed to add to cart");
       showActionToast({
         title: "Added to cart",

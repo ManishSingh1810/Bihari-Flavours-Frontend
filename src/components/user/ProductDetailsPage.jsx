@@ -8,6 +8,7 @@ import ImageGallery from "./pdp/ImageGallery.jsx";
 import PurchasePanel from "./pdp/PurchasePanel.jsx";
 import InfoPanels from "./pdp/InfoPanels.jsx";
 import RecommendedProducts from "./pdp/RecommendedProducts.jsx";
+import { getDefaultVariantLabel, getVariantByLabel } from "../../utils/variants.js";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -20,6 +21,7 @@ export default function ProductDetailsPage() {
   const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   const [active, setActive] = useState(0);
+  const [selectedVariantLabel, setSelectedVariantLabel] = useState("");
 
   const logoutUser = () => {
     localStorage.clear();
@@ -64,7 +66,10 @@ export default function ProductDetailsPage() {
     return arr.length ? arr : ["https://placehold.co/900x900/EEE/AAA?text=No+Image"];
   }, [product]);
 
-  const isOutOfStock = product?.quantity === "outofstock";
+  const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0;
+  const selectedVariant = hasVariants ? getVariantByLabel(product.variants, selectedVariantLabel) : null;
+  const variantOutOfStock = hasVariants ? Number(selectedVariant?.stock ?? 0) === 0 : false;
+  const isOutOfStock = hasVariants ? variantOutOfStock : product?.quantity === "outofstock";
 
   // related products (exclude current)
   const related = useMemo(() => {
@@ -86,7 +91,8 @@ export default function ProductDetailsPage() {
 
     setUpdating(true);
     try {
-      const res = await addToCart(product._id);
+      const vLabel = hasVariants ? (selectedVariantLabel || getDefaultVariantLabel(product)) : "";
+      const res = await addToCart(product._id, vLabel);
       if (!res?.success) throw new Error("Add to cart failed");
       showActionToast({
         title: "Added to cart",
@@ -106,11 +112,13 @@ export default function ProductDetailsPage() {
 
   const handleMinus = async () => {
     if (!product) return;
-    const currentQty = cartItemsByProductId?.get(String(product._id)) || 0;
+    const vLabel = hasVariants ? (selectedVariantLabel || getDefaultVariantLabel(product)) : "";
+    const key = `${String(product._id)}::${String(vLabel || "")}`;
+    const currentQty = cartItemsByProductId?.get(key) || 0;
     const nextQty = Math.max(0, (Number(currentQty) || 0) - 1);
     setUpdating(true);
     try {
-      const res = await setCartQuantity(product._id, nextQty);
+      const res = await setCartQuantity(product._id, vLabel, nextQty);
       if (!res?.success) throw new Error("Failed to update cart");
     } catch (e) {
       const status = e?.response?.status;
@@ -142,7 +150,21 @@ export default function ProductDetailsPage() {
   const ingredients = product.ingredients || "";
   const storage = product.storage || "Store in a cool, dry place";
 
-  const qty = cartItemsByProductId?.get(String(product._id)) || 0;
+  useEffect(() => {
+    if (!product) return;
+    if (!Array.isArray(product?.variants) || product.variants.length === 0) {
+      setSelectedVariantLabel("");
+      return;
+    }
+    const def = getDefaultVariantLabel(product);
+    setSelectedVariantLabel(def);
+  }, [product]);
+
+  const qty = useMemo(() => {
+    const vLabel = hasVariants ? (selectedVariantLabel || getDefaultVariantLabel(product)) : "";
+    const key = `${String(product._id)}::${String(vLabel || "")}`;
+    return cartItemsByProductId?.get(key) || 0;
+  }, [cartItemsByProductId, hasVariants, product, selectedVariantLabel]);
 
   const handleBuyNow = async () => {
     // Keep existing cart API; just navigate faster for conversion.
@@ -180,6 +202,9 @@ export default function ProductDetailsPage() {
             isOutOfStock={isOutOfStock}
             netQuantity={netQuantity}
             shelfLife={shelfLife}
+            variants={product?.variants || []}
+            selectedVariantLabel={selectedVariantLabel}
+            onSelectVariant={setSelectedVariantLabel}
             onAdd={handleAddToCart}
             onMinus={handleMinus}
             onBuyNow={handleBuyNow}
@@ -199,8 +224,10 @@ export default function ProductDetailsPage() {
           products={related}
           cartItemsByProductId={cartItemsByProductId}
           updating={updating}
-          onAdd={(pid) => addToCart(pid)}
-          onMinus={(pid, currentQty) => setCartQuantity(pid, Math.max(0, (Number(currentQty) || 0) - 1))}
+          onAdd={(pid, variantLabel) => addToCart(pid, variantLabel)}
+          onMinus={(pid, variantLabel, currentQty) =>
+            setCartQuantity(pid, variantLabel, Math.max(0, (Number(currentQty) || 0) - 1))
+          }
           variant="grid"
         />
       </div>

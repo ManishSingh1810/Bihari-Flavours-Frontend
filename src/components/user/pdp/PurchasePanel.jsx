@@ -6,6 +6,7 @@ import Badge from "../../ui/Badge.jsx";
 import QtyStepper from "../product/QtyStepper.jsx";
 import { Link } from "react-router-dom";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
+import { getDefaultVariant, getVariantByLabel } from "../../../utils/variants.js";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -31,6 +32,9 @@ export default function PurchasePanel({
   isOutOfStock,
   netQuantity,
   shelfLife,
+  variants = [],
+  selectedVariantLabel = "",
+  onSelectVariant,
   onAdd,
   onMinus,
   onBuyNow,
@@ -43,6 +47,14 @@ export default function PurchasePanel({
 
   const stockTone = isOutOfStock ? "danger" : "brand";
   const stockText = isOutOfStock ? "Out of stock" : "In stock";
+
+  const hasVariants = Array.isArray(variants) && variants.length > 0;
+  const selectedVariant = hasVariants
+    ? getVariantByLabel(variants, selectedVariantLabel) || getDefaultVariant(variants) || variants[0]
+    : null;
+  const displayPrice = hasVariants
+    ? Number(selectedVariant?.price ?? getDefaultVariant(variants)?.price ?? product?._price ?? product?.price ?? 0)
+    : Number(product?._price ?? product?.price ?? 0);
 
   return (
     <Card className="p-6 lg:sticky lg:top-24" hover={false}>
@@ -78,10 +90,45 @@ export default function PurchasePanel({
 
       <div className="mt-5 flex items-end justify-between gap-3">
         <p className="text-3xl font-semibold tabular-nums text-[#8E1B1B]">
-          {formatRs(product?._price ?? product?.price)}
+          {formatRs(displayPrice)}
         </p>
         <p className="text-xs text-[#64748B]">MRP inclusive of taxes</p>
       </div>
+
+      {hasVariants ? (
+        <div className="mt-5">
+          <p className="text-sm font-semibold text-[#0F172A]">Size</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {variants.map((v, idx) => {
+              const label = String(v?.label || "").trim();
+              const active = String(selectedVariant?.label || "") === label || (!selectedVariant && idx === 0);
+              const out = Number(v?.stock ?? 0) === 0;
+              return (
+                <button
+                  key={`${label}-${idx}`}
+                  type="button"
+                  onClick={() => onSelectVariant?.(label)}
+                  className={[
+                    "rounded-full px-3 py-2 text-sm font-semibold ring-1 transition",
+                    "focus:outline-none focus:ring-4 focus:ring-[rgba(142,27,27,0.18)]",
+                    active ? "bg-white ring-[rgba(142,27,27,0.35)] text-[#0F172A]" : "bg-[#F8FAFC] ring-black/10 text-[#475569] hover:bg-white",
+                    out ? "opacity-60" : "",
+                  ].join(" ")}
+                  aria-pressed={active}
+                >
+                  {label || `Variant ${idx + 1}`}
+                </button>
+              );
+            })}
+          </div>
+          {selectedVariantLabel ? (
+            <p className="mt-2 text-xs text-[#64748B]">
+              Selected: <span className="font-semibold text-[#0F172A]">{selectedVariantLabel}</span>
+              {Number(selectedVariant?.stock ?? 0) === 0 ? " (out of stock)" : null}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* qty + CTAs */}
       <div className="mt-6 space-y-3">

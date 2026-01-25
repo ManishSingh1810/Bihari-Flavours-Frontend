@@ -4,6 +4,7 @@ import Button from "../../ui/Button.jsx";
 import Card from "../../ui/Card.jsx";
 import ProductImage from "../../ui/ProductImage.jsx";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
+import { getDefaultVariantLabel, getDisplayPrice } from "../../../utils/variants.js";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -40,6 +41,8 @@ export default function ProductCard({
   const description = product?.description || product?.desc || "";
   const inStock =
     typeof product?.inStock === "boolean" ? product.inStock : product?.quantity !== "outofstock";
+  const variantLabel = getDefaultVariantLabel(product);
+  const displayPrice = getDisplayPrice(product);
 
   return (
     <Card
@@ -116,11 +119,11 @@ export default function ProductCard({
           onClick={(e) => e.stopPropagation()}
         >
           <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
-            {formatRs(product?.price)}
+            {formatRs(displayPrice)}
           </p>
 
           <Button
-            onClick={() => onAdd?.(product._id)}
+            onClick={() => onAdd?.(product._id, variantLabel)}
             disabled={disabled || !inStock}
             className="h-10 px-4 text-[12px] sm:text-sm"
           >

@@ -276,8 +276,15 @@ toast.error(msg);
       setLoading(true);
       setError("");
 
+      // Send minimal line items (backend will calculate price safely)
+      const items = (cart?.cartItems || []).map((it) => ({
+        productId: it.productId,
+        quantity: it.quantity,
+        variantLabel: it.variantLabel || "",
+      }));
+
       const orderPayload = {
-        items: cart.cartItems,
+        items,
         shippingAddress: {
           name: data.name,
           phone: data.phone,
@@ -509,7 +516,7 @@ setLoading(false);
 
                   <div className="space-y-3">
                     {cart.cartItems.slice(0, 3).map((it) => (
-                      <div key={it.productId} className="flex items-center gap-3">
+                      <div key={`${it.productId}::${it.variantLabel || ""}`} className="flex items-center gap-3">
                         <img
                           src={it.photo}
                           alt={it.name}
@@ -519,7 +526,8 @@ setLoading(false);
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-[#0F172A]">{it.name}</p>
                           <p className="text-xs text-slate-600 tabular-nums">
-                            Qty {it.quantity} • Rs. {it.price}
+                            Qty {it.quantity}
+                            {it.variantLabel ? ` • Size ${it.variantLabel}` : ""} • Rs. {it.price}
                           </p>
                         </div>
                       </div>

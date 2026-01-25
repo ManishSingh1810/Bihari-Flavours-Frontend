@@ -29,7 +29,7 @@ export default function RecommendedProducts({
                 <ProductCard
                   product={p}
                   disabled={updating}
-                  onAdd={() => onAdd(p._id)}
+                  onAdd={onAdd}
                 />
               </div>
             );
@@ -43,7 +43,7 @@ export default function RecommendedProducts({
                 key={p._id}
                 product={p}
                 disabled={updating}
-                onAdd={() => onAdd(p._id)}
+                onAdd={onAdd}
               />
             );
           })}

@@ -89,10 +89,10 @@ const Cart = () => {
   }, []);
 
   /* ---------------- Update Quantity ---------------- */
-  const updateCartQuantity = async (productId, quantity) => {
+  const updateCartQuantity = async (productId, variantLabel, quantity) => {
     try {
       setUpdating(true);
-      const res = await setCartQuantity(productId, quantity);
+      const res = await setCartQuantity(productId, String(variantLabel || ""), quantity);
       if (!res?.success) throw new Error("Failed to update cart");
     } catch (err) {
       if ([401, 403].includes(err?.response?.status)) {
@@ -105,8 +105,8 @@ const Cart = () => {
     }
   };
 
-  const removeFromCart = (productId) =>
-    updateCartQuantity(productId, 0);
+  const removeFromCart = (productId, variantLabel) =>
+    updateCartQuantity(productId, variantLabel, 0);
 
   /* ---------------- Clear Cart ---------------- */
   const clearCart = async () => {
@@ -178,7 +178,7 @@ const Cart = () => {
             <>
               {cart.cartItems.map((item) => (
                 <div
-                  key={item.productId}
+                  key={`${item.productId}::${item.variantLabel || ""}`}
                   className="mb-3 flex items-center gap-4
                              rounded-md border border-[rgba(142,27,27,0.25)]
                              bg-[#F8FAFC] p-4"
@@ -193,6 +193,11 @@ const Cart = () => {
                     <p className="font-medium text-[#1F1B16]">
                       {item.name}
                     </p>
+                    {item.variantLabel ? (
+                      <p className="text-xs text-[#6F675E]">
+                        Size: <span className="font-semibold">{item.variantLabel}</span>
+                      </p>
+                    ) : null}
                     <p className="text-sm text-[#6F675E] tabular-nums">
                       Rs. {item.price}
                     </p>
@@ -200,7 +205,7 @@ const Cart = () => {
 
                   <button
                     onClick={() =>
-                      updateCartQuantity(item.productId, item.quantity - 1)
+                      updateCartQuantity(item.productId, item.variantLabel, item.quantity - 1)
                     }
                     disabled={updating}
                   >
@@ -211,7 +216,7 @@ const Cart = () => {
 
                   <button
                     onClick={() =>
-                      updateCartQuantity(item.productId, item.quantity + 1)
+                      updateCartQuantity(item.productId, item.variantLabel, item.quantity + 1)
                     }
                     disabled={updating}
                   >
@@ -219,7 +224,7 @@ const Cart = () => {
                   </button>
 
                   <button
-                    onClick={() => removeFromCart(item.productId)}
+                    onClick={() => removeFromCart(item.productId, item.variantLabel)}
                     disabled={updating}
                   >
                     <Trash2 />
