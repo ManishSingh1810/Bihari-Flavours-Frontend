@@ -104,6 +104,11 @@ export default function ReviewSection({ productId, embedded = false }) {
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [eligibility, setEligibility] = useState({
+    loading: false,
+    checked: false,
+    canReview: false,
+  });
 
   const user = useMemo(() => {
     try {
@@ -130,9 +135,78 @@ export default function ReviewSection({ productId, embedded = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
+  // Only buyers can review (checked via /orders/my-orders)
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      if (!user?.userId && !user?.id) {
+        if (mounted) setEligibility({ loading: false, checked: true, canReview: false });
+        return;
+      }
+      try {
+        if (mounted) setEligibility({ loading: true, checked: false, canReview: false });
+
+        const candidatePaths = [
+          "/orders/my-orders",
+          "/orders/my-orders?includeAll=true",
+          "/orders/my-orders?includeHistory=true",
+          "/orders/my-orders?includeDelivered=true",
+          "/orders/my-orders/history",
+          "/orders/my-history",
+        ];
+
+        let orders = [];
+        for (const path of candidatePaths) {
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            const r = await api.get(path, { skipErrorToast: true });
+            const list = r?.data?.orders;
+            if (r?.data?.success && Array.isArray(list)) {
+              orders = list;
+              break;
+            }
+          } catch {
+            // ignore missing endpoints
+          }
+        }
+
+        const pid = String(productId || "");
+        const has = (orders || []).some((o) => {
+          const status = String(o?.paymentStatus || o?.status || "").toLowerCase();
+          if (status === "failed" || status === "cancelled" || status === "canceled") return false;
+          const items = o?.items || o?.orderItems || o?.cartItems || [];
+          return (items || []).some((it) => {
+            const raw =
+              it?.productId ||
+              it?.product ||
+              it?.product?._id ||
+              it?.product?.id ||
+              it?._id ||
+              "";
+            return String(raw) === pid;
+          });
+        });
+
+        if (mounted) setEligibility({ loading: false, checked: true, canReview: has });
+      } catch {
+        // If we can't verify, disallow (safer)
+        if (mounted) setEligibility({ loading: false, checked: true, canReview: false });
+      }
+    };
+
+    if (productId) check();
+    return () => {
+      mounted = false;
+    };
+  }, [productId, user]);
+
   const submitReview = async () => {
     if (!user) {
       toast.error("Please login to write a review");
+      return;
+    }
+    if (eligibility.checked && !eligibility.canReview) {
+      toast.error("Only customers who purchased this product can write a review.");
       return;
     }
     if (!rating) {
@@ -182,10 +256,28 @@ export default function ReviewSection({ productId, embedded = false }) {
             {reviews.length === 0 ? "Be the first to review this product." : "Help others choose confidently."}
           </p>
 
+          {!user ? (
+            <div className="mt-4 rounded-2xl bg-[#F8FAFC] p-4 ring-1 ring-black/5 text-sm text-[#475569]">
+              Please login to write a review.
+            </div>
+          ) : eligibility.loading ? (
+            <div className="mt-4 rounded-2xl bg-[#F8FAFC] p-4 ring-1 ring-black/5 text-sm text-[#475569]">
+              Checking purchase eligibility…
+            </div>
+          ) : eligibility.checked && !eligibility.canReview ? (
+            <div className="mt-4 rounded-2xl bg-[#F8FAFC] p-4 ring-1 ring-black/5 text-sm text-[#475569]">
+              You can write a review only after purchasing this product from your account.
+            </div>
+          ) : null}
+
           <div className="mt-5">
             <p className="text-xs font-semibold text-[#64748B]">Rating</p>
             <div className="mt-2">
-              <StarPicker value={rating} onChange={setRating} disabled={submitting} />
+              <StarPicker
+                value={rating}
+                onChange={setRating}
+                disabled={submitting || !user || (eligibility.checked && !eligibility.canReview)}
+              />
             </div>
           </div>
 
@@ -201,6 +293,7 @@ export default function ReviewSection({ productId, embedded = false }) {
               onChange={(e) => setComment(e.target.value.slice(0, 500))}
               placeholder="Share what you liked—taste, freshness, packaging, delivery…"
               rows={5}
+              disabled={!user || (eligibility.checked && !eligibility.canReview)}
               className="mt-2 w-full rounded-2xl border border-black/10 bg-[#F8FAFC] p-3 text-sm leading-relaxed
                          outline-none transition focus:border-[#8E1B1B] focus:ring-4 focus:ring-[rgba(142,27,27,0.12)]"
             />
@@ -211,7 +304,13 @@ export default function ReviewSection({ productId, embedded = false }) {
 
           <Button
             onClick={submitReview}
-            disabled={submitting || !rating || !comment.trim()}
+            disabled={
+              submitting ||
+              !user ||
+              (eligibility.checked && !eligibility.canReview) ||
+              !rating ||
+              !comment.trim()
+            }
             className="mt-5 h-12 w-full"
           >
             {submitting ? "Submitting…" : "Submit review"}

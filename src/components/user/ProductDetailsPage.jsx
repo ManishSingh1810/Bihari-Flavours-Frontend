@@ -7,6 +7,7 @@ import { showActionToast } from "../ui/showActionToast.jsx";
 import ImageGallery from "./pdp/ImageGallery.jsx";
 import PurchasePanel from "./pdp/PurchasePanel.jsx";
 import InfoPanels from "./pdp/InfoPanels.jsx";
+import ReviewSection from "./pdp/ReviewSection.jsx";
 import RecommendedProducts from "./pdp/RecommendedProducts.jsx";
 import { getDefaultVariantLabel, getVariantByLabel } from "../../utils/variants.js";
 
@@ -217,6 +218,9 @@ export default function ProductDetailsPage() {
           shelfLife={shelfLife}
           storage={storage}
         />
+
+        {/* Reviews (always visible) */}
+        <ReviewSection productId={product._id} />
 
         <RecommendedProducts
           title="You may also like"

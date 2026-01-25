@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Card from "../../ui/Card.jsx";
-import ReviewSection from "./ReviewSection.jsx";
 import Button from "../../ui/Button.jsx";
 import { Link } from "react-router-dom";
 
@@ -39,11 +38,6 @@ function buildSections({ product, ingredients, shelfLife, storage }) {
       label: "Shelf life",
       kind: "text",
       content: sl || "Shelf life details will be updated soon.",
-    },
-    {
-      id: "reviews",
-      label: "Reviews",
-      kind: "reviews",
     },
     {
       id: "shippingReturns",
@@ -89,9 +83,7 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
         <Card className="mt-6 p-6" hover={false}>
           <h2 className="text-lg font-semibold text-[#0F172A]">{current.label}</h2>
           <div className="mt-4">
-            {current.kind === "reviews" ? (
-              <ReviewSection productId={product?._id} embedded />
-            ) : current.kind === "shippingReturns" ? (
+            {current.kind === "shippingReturns" ? (
               <ShippingReturns />
             ) : (
               <p className="text-sm leading-relaxed text-[#475569] whitespace-pre-line">
@@ -131,9 +123,7 @@ export default function InfoPanels({ product, ingredients, shelfLife, storage })
               </button>
               {isOpen ? (
                 <div className="px-5 pb-5">
-                  {s.kind === "reviews" ? (
-                    <ReviewSection productId={product?._id} embedded />
-                  ) : s.kind === "shippingReturns" ? (
+                  {s.kind === "shippingReturns" ? (
                     <ShippingReturns />
                   ) : (
                     <p className="text-sm leading-relaxed text-[#475569] whitespace-pre-line">
