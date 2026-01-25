@@ -69,7 +69,9 @@ export default function ProductDetailsPage() {
   const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0;
   const selectedVariant = hasVariants ? getVariantByLabel(product.variants, selectedVariantLabel) : null;
   const variantOutOfStock = hasVariants ? Number(selectedVariant?.stock ?? 0) === 0 : false;
-  const isOutOfStock = hasVariants ? variantOutOfStock : product?.quantity === "outofstock";
+  const isOutOfStock = hasVariants
+    ? variantOutOfStock
+    : (typeof product?.inStock === "boolean" ? !product.inStock : product?.quantity === "outofstock");
 
   // related products (exclude current)
   const related = useMemo(() => {

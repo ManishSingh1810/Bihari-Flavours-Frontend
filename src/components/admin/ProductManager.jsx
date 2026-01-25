@@ -101,6 +101,18 @@ const EditProductModal = ({
   setHasVariants,
   variants,
   setVariants,
+  // combos + ordering
+  products,
+  productType,
+  setProductType,
+  comboItems,
+  setComboItems,
+  comboPriceMode,
+  setComboPriceMode,
+  comboDiscount,
+  setComboDiscount,
+  showInCombosSection,
+  setShowInCombosSection,
 }) => {
   if (!open || !product) return null;
 
@@ -150,6 +162,12 @@ const EditProductModal = ({
               placeholder="Storage (e.g. Cool & dry place)"
               className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
             />
+            <input
+              {...register("displayOrder")}
+              type="number"
+              placeholder="Display Order (e.g. 1)"
+              className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+            />
             <select
               {...register("stockStatus", { required: true })}
               className="rounded-md p-3 border border-gray-300"
@@ -170,6 +188,170 @@ const EditProductModal = ({
                 onChange={(e) => onEditFiles?.(e.target.files)}
               />
             </div>
+          </div>
+
+          {/* Product type + combos */}
+          <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-white p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-[#1F1B16]">Product type</p>
+                <p className="text-xs text-[#6F675E] mt-0.5">
+                  Choose Single or Combo/Pack built from existing products.
+                </p>
+              </div>
+              <select
+                value={productType}
+                onChange={(e) => setProductType?.(e.target.value)}
+                className="rounded-md p-2.5 border border-gray-300 bg-white"
+              >
+                <option value="single">Single</option>
+                <option value="combo">Combo / Pack</option>
+              </select>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-[#1F1B16]">Show in homepage Combos section</p>
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#1F1B16]">
+                <input
+                  type="checkbox"
+                  checked={!!showInCombosSection}
+                  onChange={(e) => setShowInCombosSection?.(e.target.checked)}
+                  className="accent-[#8E1B1B]"
+                />
+                Enable
+              </label>
+            </div>
+
+            {productType === "combo" ? (
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Combo price mode</p>
+                    <select
+                      value={comboPriceMode}
+                      onChange={(e) => setComboPriceMode?.(e.target.value)}
+                      className="mt-2 w-full rounded-md p-3 border border-gray-300 bg-white"
+                    >
+                      <option value="fixed">Fixed</option>
+                      <option value="sumMinusDiscount">Sum minus discount</option>
+                    </select>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Combo discount (Rs.)</p>
+                    <input
+                      type="number"
+                      min="0"
+                      value={comboDiscount}
+                      onChange={(e) => setComboDiscount?.(Number(e.target.value || 0))}
+                      className="mt-2 w-full rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold text-[#1F1B16]">Combo items</p>
+                  <p className="text-xs text-[#6F675E] mt-0.5">Add products, optional variant, and quantity.</p>
+
+                  <div className="mt-3 space-y-3">
+                    {(comboItems || []).map((it, idx) => {
+                      const selected = (products || []).find((p) => String(p?._id) === String(it.productId));
+                      const variantOptions = Array.isArray(selected?.variants) ? selected.variants : [];
+                      return (
+                        <div key={idx} className="grid gap-2 md:grid-cols-12 items-center">
+                          <div className="md:col-span-6">
+                            <select
+                              value={it.productId}
+                              onChange={(e) =>
+                                setComboItems?.((prev) =>
+                                  prev.map((x, i) => (i === idx ? { ...x, productId: e.target.value } : x))
+                                )
+                              }
+                              className="w-full rounded-md p-2.5 border border-gray-300 bg-white"
+                            >
+                              <option value="">Select product</option>
+                              {(products || []).map((p) => (
+                                <option key={p._id} value={p._id}>
+                                  {p.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="md:col-span-3">
+                            {variantOptions.length ? (
+                              <select
+                                value={it.variantLabel || ""}
+                                onChange={(e) =>
+                                  setComboItems?.((prev) =>
+                                    prev.map((x, i) => (i === idx ? { ...x, variantLabel: e.target.value } : x))
+                                  )
+                                }
+                                className="w-full rounded-md p-2.5 border border-gray-300 bg-white"
+                              >
+                                <option value="">Default variant</option>
+                                {variantOptions.map((v, j) => (
+                                  <option key={j} value={v.label}>
+                                    {v.label}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                value={it.variantLabel || ""}
+                                onChange={(e) =>
+                                  setComboItems?.((prev) =>
+                                    prev.map((x, i) => (i === idx ? { ...x, variantLabel: e.target.value } : x))
+                                  )
+                                }
+                                placeholder="Variant (optional)"
+                                className="w-full rounded-md p-2.5 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                              />
+                            )}
+                          </div>
+                          <div className="md:col-span-2">
+                            <input
+                              type="number"
+                              min="1"
+                              value={it.quantity}
+                              onChange={(e) =>
+                                setComboItems?.((prev) =>
+                                  prev.map((x, i) =>
+                                    i === idx ? { ...x, quantity: Number(e.target.value || 1) } : x
+                                  )
+                                )
+                              }
+                              className="w-full rounded-md p-2.5 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                              placeholder="Qty"
+                            />
+                          </div>
+                          <div className="md:col-span-1 flex justify-end">
+                            <button
+                              type="button"
+                              className="text-red-500 hover:text-red-700 text-xs font-bold"
+                              onClick={() =>
+                                setComboItems?.((prev) => prev.filter((_, i) => i !== idx))
+                              }
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setComboItems?.((prev) => [...(prev || []), { productId: "", variantLabel: "", quantity: 1 }])
+                      }
+                      className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
+                    >
+                      <Plus size={16} /> Add combo item
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* Variants */}
@@ -361,6 +543,19 @@ const ProductManager = () => {
   const [hasVariantsAdd, setHasVariantsAdd] = useState(false);
   const [variantsAdd, setVariantsAdd] = useState([]);
 
+  // Combos + manual ordering
+  const [productTypeAdd, setProductTypeAdd] = useState("single"); // "single" | "combo"
+  const [comboItemsAdd, setComboItemsAdd] = useState([]); // { productId, variantLabel, quantity }
+  const [comboPriceModeAdd, setComboPriceModeAdd] = useState("fixed"); // "fixed" | "sumMinusDiscount"
+  const [comboDiscountAdd, setComboDiscountAdd] = useState(0);
+  const [showInCombosSectionAdd, setShowInCombosSectionAdd] = useState(false);
+
+  const [productTypeEdit, setProductTypeEdit] = useState("single");
+  const [comboItemsEdit, setComboItemsEdit] = useState([]);
+  const [comboPriceModeEdit, setComboPriceModeEdit] = useState("fixed");
+  const [comboDiscountEdit, setComboDiscountEdit] = useState(0);
+  const [showInCombosSectionEdit, setShowInCombosSectionEdit] = useState(false);
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -415,6 +610,19 @@ const handleStatusChange = async (id, newStatus) => {
         ? normalizeVariants(p.variants)
         : []
     );
+    setProductTypeEdit(p?.productType === "combo" ? "combo" : "single");
+    setComboItemsEdit(
+      Array.isArray(p?.comboItems)
+        ? p.comboItems.map((it) => ({
+            productId: String(it?.product?._id || it?.product || ""),
+            variantLabel: String(it?.variantLabel || ""),
+            quantity: Number(it?.quantity ?? 1) || 1,
+          }))
+        : []
+    );
+    setComboPriceModeEdit(p?.comboPriceMode || "fixed");
+    setComboDiscountEdit(Number(p?.comboDiscount ?? 0) || 0);
+    setShowInCombosSectionEdit(Boolean(p?.showInCombosSection));
     resetEdit({
       name: p?.name || "",
       price: p?.price ?? "",
@@ -424,6 +632,7 @@ const handleStatusChange = async (id, newStatus) => {
       shelfLife: p?.shelfLife || "",
       ingredients: p?.ingredients || "",
       storage: p?.storage || "",
+      displayOrder: p?.displayOrder ?? 9999,
     });
     setEditOpen(true);
   };
@@ -435,6 +644,11 @@ const handleStatusChange = async (id, newStatus) => {
     setEditPreviews([]);
     setHasVariantsEdit(false);
     setVariantsEdit([]);
+    setProductTypeEdit("single");
+    setComboItemsEdit([]);
+    setComboPriceModeEdit("fixed");
+    setComboDiscountEdit(0);
+    setShowInCombosSectionEdit(false);
   };
 
   const handleEditFileChange = (files) => {
@@ -479,6 +693,32 @@ const handleStatusChange = async (id, newStatus) => {
       formData.append("shelfLife", data.shelfLife || "");
       formData.append("ingredients", data.ingredients || "");
       formData.append("storage", data.storage || "");
+      formData.append("displayOrder", String(Number(data.displayOrder ?? 9999)));
+      formData.append("productType", productTypeEdit === "combo" ? "combo" : "single");
+      formData.append("showInCombosSection", showInCombosSectionEdit ? "true" : "false");
+      formData.append("comboPriceMode", comboPriceModeEdit || "fixed");
+      formData.append("comboDiscount", String(Number(comboDiscountEdit || 0)));
+      if (productTypeEdit === "combo") {
+        const normalized = (comboItemsEdit || [])
+          .map((it) => ({
+            product: it.productId,
+            variantLabel: it.variantLabel ? String(it.variantLabel) : undefined,
+            quantity: Number(it.quantity || 1),
+          }))
+          .filter((it) => it.product && it.quantity >= 1);
+
+        if (!normalized.length) {
+          openInfoModal("Combo items are required for combo products.");
+          return;
+        }
+        if (normalized.some((it) => String(it.product) === String(editProduct._id))) {
+          openInfoModal("A combo cannot include itself.");
+          return;
+        }
+        formData.append("comboItems", JSON.stringify(normalized));
+      } else {
+        formData.append("comboItems", JSON.stringify([]));
+      }
       if (Array.isArray(editImages) && editImages.length) {
         editImages.forEach((img) => formData.append("photos", img));
       }
@@ -528,6 +768,28 @@ const handleStatusChange = async (id, newStatus) => {
       formData.append("shelfLife", data.shelfLife || "");
       formData.append("ingredients", data.ingredients || "");
       formData.append("storage", data.storage || "");
+      formData.append("displayOrder", String(Number(data.displayOrder ?? 9999)));
+      formData.append("productType", productTypeAdd === "combo" ? "combo" : "single");
+      formData.append("showInCombosSection", showInCombosSectionAdd ? "true" : "false");
+      formData.append("comboPriceMode", comboPriceModeAdd || "fixed");
+      formData.append("comboDiscount", String(Number(comboDiscountAdd || 0)));
+      if (productTypeAdd === "combo") {
+        const normalized = (comboItemsAdd || [])
+          .map((it) => ({
+            product: it.productId,
+            variantLabel: it.variantLabel ? String(it.variantLabel) : undefined,
+            quantity: Number(it.quantity || 1),
+          }))
+          .filter((it) => it.product && it.quantity >= 1);
+
+        if (!normalized.length) {
+          openInfoModal("Combo items are required for combo products.");
+          return;
+        }
+        formData.append("comboItems", JSON.stringify(normalized));
+      } else {
+        formData.append("comboItems", JSON.stringify([]));
+      }
 
       images.forEach((img) => formData.append("photos", img));
     
@@ -540,6 +802,11 @@ const handleStatusChange = async (id, newStatus) => {
         setPreviews([]);
         setHasVariantsAdd(false);
         setVariantsAdd([]);
+        setProductTypeAdd("single");
+        setComboItemsAdd([]);
+        setComboPriceModeAdd("fixed");
+        setComboDiscountAdd(0);
+        setShowInCombosSectionAdd(false);
         fetchProducts();
       }
     } catch (err) {
@@ -612,6 +879,17 @@ const handleStatusChange = async (id, newStatus) => {
         setHasVariants={setHasVariantsEdit}
         variants={variantsEdit}
         setVariants={setVariantsEdit}
+        products={products}
+        productType={productTypeEdit}
+        setProductType={setProductTypeEdit}
+        comboItems={comboItemsEdit}
+        setComboItems={setComboItemsEdit}
+        comboPriceMode={comboPriceModeEdit}
+        setComboPriceMode={setComboPriceModeEdit}
+        comboDiscount={comboDiscountEdit}
+        setComboDiscount={setComboDiscountEdit}
+        showInCombosSection={showInCombosSectionEdit}
+        setShowInCombosSection={setShowInCombosSectionEdit}
       />
 
       <div className="mx-auto max-w-6xl">
@@ -651,6 +929,13 @@ const handleStatusChange = async (id, newStatus) => {
   className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
 />
 
+              <input
+                {...register("displayOrder")}
+                type="number"
+                placeholder="Display Order (e.g. 1)"
+                className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+              />
+
               <input {...register("name", { required: true })} placeholder="Product name" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
               <input {...register("price", { required: true })} type="number" placeholder="Price (Rs.)" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
               <select {...register("stockStatus", { required: true })} className="rounded-md p-3 border border-gray-300">
@@ -664,6 +949,168 @@ const handleStatusChange = async (id, newStatus) => {
                 </div>
                 <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileChange(e.target.files)} />
               </div>
+            </div>
+
+            {/* Product type + combos */}
+            <div className="rounded-xl border border-[rgba(142,27,27,0.15)] bg-white p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#1F1B16]">Product type</p>
+                  <p className="text-xs text-[#6F675E] mt-0.5">
+                    Choose Single or Combo/Pack built from existing products.
+                  </p>
+                </div>
+                <select
+                  value={productTypeAdd}
+                  onChange={(e) => setProductTypeAdd(e.target.value)}
+                  className="rounded-md p-2.5 border border-gray-300 bg-white"
+                >
+                  <option value="single">Single</option>
+                  <option value="combo">Combo / Pack</option>
+                </select>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-[#1F1B16]">Show in homepage Combos section</p>
+                <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#1F1B16]">
+                  <input
+                    type="checkbox"
+                    checked={!!showInCombosSectionAdd}
+                    onChange={(e) => setShowInCombosSectionAdd(e.target.checked)}
+                    className="accent-[#8E1B1B]"
+                  />
+                  Enable
+                </label>
+              </div>
+
+              {productTypeAdd === "combo" ? (
+                <div className="mt-4 space-y-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Combo price mode</p>
+                      <select
+                        value={comboPriceModeAdd}
+                        onChange={(e) => setComboPriceModeAdd(e.target.value)}
+                        className="mt-2 w-full rounded-md p-3 border border-gray-300 bg-white"
+                      >
+                        <option value="fixed">Fixed</option>
+                        <option value="sumMinusDiscount">Sum minus discount</option>
+                      </select>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Combo discount (Rs.)</p>
+                      <input
+                        type="number"
+                        min="0"
+                        value={comboDiscountAdd}
+                        onChange={(e) => setComboDiscountAdd(Number(e.target.value || 0))}
+                        className="mt-2 w-full rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-bold text-[#1F1B16]">Combo items</p>
+                    <p className="text-xs text-[#6F675E] mt-0.5">Add products, optional variant, and quantity.</p>
+
+                    <div className="mt-3 space-y-3">
+                      {(comboItemsAdd || []).map((it, idx) => {
+                        const selected = (products || []).find((p) => String(p?._id) === String(it.productId));
+                        const variantOptions = Array.isArray(selected?.variants) ? selected.variants : [];
+                        return (
+                          <div key={idx} className="grid gap-2 md:grid-cols-12 items-center">
+                            <div className="md:col-span-6">
+                              <select
+                                value={it.productId}
+                                onChange={(e) =>
+                                  setComboItemsAdd((prev) =>
+                                    prev.map((x, i) => (i === idx ? { ...x, productId: e.target.value } : x))
+                                  )
+                                }
+                                className="w-full rounded-md p-2.5 border border-gray-300 bg-white"
+                              >
+                                <option value="">Select product</option>
+                                {(products || []).map((p) => (
+                                  <option key={p._id} value={p._id}>
+                                    {p.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="md:col-span-3">
+                              {variantOptions.length ? (
+                                <select
+                                  value={it.variantLabel || ""}
+                                  onChange={(e) =>
+                                    setComboItemsAdd((prev) =>
+                                      prev.map((x, i) => (i === idx ? { ...x, variantLabel: e.target.value } : x))
+                                    )
+                                  }
+                                  className="w-full rounded-md p-2.5 border border-gray-300 bg-white"
+                                >
+                                  <option value="">Default variant</option>
+                                  {variantOptions.map((v, j) => (
+                                    <option key={j} value={v.label}>
+                                      {v.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  value={it.variantLabel || ""}
+                                  onChange={(e) =>
+                                    setComboItemsAdd((prev) =>
+                                      prev.map((x, i) => (i === idx ? { ...x, variantLabel: e.target.value } : x))
+                                    )
+                                  }
+                                  placeholder="Variant (optional)"
+                                  className="w-full rounded-md p-2.5 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                                />
+                              )}
+                            </div>
+                            <div className="md:col-span-2">
+                              <input
+                                type="number"
+                                min="1"
+                                value={it.quantity}
+                                onChange={(e) =>
+                                  setComboItemsAdd((prev) =>
+                                    prev.map((x, i) =>
+                                      i === idx ? { ...x, quantity: Number(e.target.value || 1) } : x
+                                    )
+                                  )
+                                }
+                                className="w-full rounded-md p-2.5 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                                placeholder="Qty"
+                              />
+                            </div>
+                            <div className="md:col-span-1 flex justify-end">
+                              <button
+                                type="button"
+                                className="text-red-500 hover:text-red-700 text-xs font-bold"
+                                onClick={() => setComboItemsAdd((prev) => prev.filter((_, i) => i !== idx))}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setComboItemsAdd((prev) => [...(prev || []), { productId: "", variantLabel: "", quantity: 1 }])
+                        }
+                        className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
+                      >
+                        <Plus size={16} /> Add combo item
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             {/* Variants */}

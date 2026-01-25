@@ -12,6 +12,14 @@ export function getVariantByLabel(variants, label) {
 }
 
 export function getDisplayPrice(product) {
+  // Prefer backend-computed combo price when available
+  if (product?.computedComboPrice != null && product?.computedComboPrice !== "") {
+    return Number(product.computedComboPrice ?? 0);
+  }
+  if (String(product?.productType || "").toLowerCase() === "combo") {
+    // fallback: combo may still have a base price field
+    return Number(product?.price ?? 0);
+  }
   const variants = product?.variants;
   if (Array.isArray(variants) && variants.length) {
     const def = getDefaultVariant(variants);

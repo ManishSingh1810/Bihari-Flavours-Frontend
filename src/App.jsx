@@ -16,6 +16,7 @@ import Product from "./components/user/Product";
 import Cart from "./components/user/Cart";
 import Order from "./components/user/Order";
 import ProductDetailsPage from "./components/user/ProductDetailsPage";
+import CombosPage from "./components/user/Combos.jsx";
 
 // ✅ New pages
 import PrivacyPolicy from "./components/user/PrivacyPolicy";
@@ -30,6 +31,7 @@ import History from "./components/admin/History";
 import ProductManager from "./components/admin/ProductManager";
 import CouponManager from "./components/admin/CouponManager";
 import HomepageManager from "./components/admin/HomepageManager";
+import ReorderProducts from "./components/admin/ReorderProducts.jsx";
 
 const App = () => {
   const { user } = useUser();
@@ -56,6 +58,7 @@ const App = () => {
       <Route path="/" element={<UserLayout />}>
         <Route index element={<UserDashboard />} />
         <Route path="product" element={<Product />} />
+        <Route path="combos" element={<CombosPage />} />
         <Route path="cart" element={<Cart />} />
         <Route path="order" element={<Order />} />
         <Route path="product/:id" element={<ProductDetailsPage />} />
@@ -76,6 +79,7 @@ const App = () => {
           <Route path="order" element={<AdminOrder />} />
           <Route path="history" element={<History />} />
           <Route path="products" element={<ProductManager />} />
+          <Route path="reorder-products" element={<ReorderProducts />} />
           <Route path="coupons" element={<CouponManager />} />
           <Route path="homepage" element={<HomepageManager />} />
         </Route>

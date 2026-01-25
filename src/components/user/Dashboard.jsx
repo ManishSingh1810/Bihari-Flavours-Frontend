@@ -139,82 +139,47 @@ function ProductsShowcase({
   );
 }
 
-function CombosSection() {
-  const navigate = useNavigate();
-  const combos = [
-    {
-      title: "Starter Combo",
-      desc: "A balanced mix for first-time buyers.",
-      points: ["Best for gifting", "Great value", "Customer favourites"],
-      tag: "Popular",
-      q: "combo starter",
-    },
-    {
-      title: "Snack Lover Pack",
-      desc: "Crunchy assortment for daily cravings.",
-      points: ["Perfect with chai", "Family-size", "Fresh batch"],
-      tag: "New",
-      q: "combo snack",
-    },
-    {
-      title: "Protein Pantry",
-      desc: "Staples focused on energy & nutrition.",
-      points: ["Sattu-first", "Traditional prep", "High satiety"],
-      tag: "Value",
-      q: "sattu combo",
-    },
-  ];
+function CombosSection({ products, updating, onAdd }) {
+  const list = useMemo(() => {
+    const arr = (products || []).filter(
+      (p) => p?.showInCombosSection || String(p?.productType || "") === "combo"
+    );
+    return arr
+      .sort((a, b) => Number(a?.displayOrder ?? 9999) - Number(b?.displayOrder ?? 9999))
+      .slice(0, 8);
+  }, [products]);
+
+  if (!list.length) return null;
 
   return (
     <section className="bg-[#F8FAFC]">
       <div className={cn(container, "py-14 sm:py-16")}>
         <SectionHeading
           eyebrow="Combos"
-          title="Curated packs, premium value"
-          subtitle="Try combo packs built for taste, gifting, and everyday pantry essentials."
+          title="Combos & Packs"
+          subtitle="Curated packs built from our best sellers — premium value, same trusted taste."
           align="center"
         />
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          {combos.map((c) => (
-            <div
-              key={c.title}
-              className="relative overflow-hidden rounded-3xl border border-black/5 bg-white p-6 shadow-sm"
-            >
-              <div className="absolute right-4 top-4 rounded-full bg-[#F8FAFC] px-3 py-1 text-[11px] font-semibold text-[#8E1B1B] border border-black/5">
-                {c.tag}
-              </div>
+        <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+          {list.map((p) => {
+            const vLabel = getDefaultVariantLabel(p);
+            const key = `${String(p._id)}::${String(vLabel || "")}`;
+            return (
+              <ProductCard
+                key={p._id}
+                product={p}
+                disabled={updating === key}
+                onAdd={onAdd}
+              />
+            );
+          })}
+        </div>
 
-              <p className="text-lg font-semibold text-[#0F172A]">{c.title}</p>
-              <p className="mt-2 text-sm text-[#64748B]">{c.desc}</p>
-
-              <ul className="mt-5 space-y-2 text-sm text-[#334155]">
-                {c.points.map((p) => (
-                  <li key={p} className="flex items-center gap-2">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#F8FAFC] border border-black/5 text-[#8E1B1B]">
-                      <Sparkles className="h-3.5 w-3.5" />
-                    </span>
-                    {p}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 flex items-center justify-between gap-3">
-                <SecondaryButton
-                  type="button"
-                  onClick={() => navigate(`/product?q=${encodeURIComponent(c.q)}`)}
-                >
-                  Explore
-                </SecondaryButton>
-                <PrimaryButton
-                  type="button"
-                  onClick={() => navigate(`/product?q=${encodeURIComponent(c.q)}`)}
-                >
-                  Shop combo <ArrowRight className="h-4 w-4" />
-                </PrimaryButton>
-              </div>
-            </div>
-          ))}
+        <div className="mt-10 flex justify-center">
+          <SecondaryButton as={Link} to="/combos" className="w-full sm:w-auto">
+            View all combos <ArrowRight className="h-4 w-4" />
+          </SecondaryButton>
         </div>
       </div>
     </section>
@@ -592,7 +557,7 @@ export default function Dashboard() {
         onAdd={handleAddToCart}
         onMinus={handleMinus}
       />
-      <CombosSection />
+      <CombosSection products={items} updating={updating} onAdd={handleAddToCart} />
       <ReviewsSection products={items} />
       <BrandStory storyImageUrl={storyImageUrl} />
       <FAQAccordion />

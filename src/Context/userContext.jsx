@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useMemo, useState, useContext, useEffect } from "react";
 import api from "../api/axios";
+import { getDisplayPrice, getDefaultVariantLabel } from "../utils/variants.js";
 
 const UserContext = createContext();
 
@@ -161,9 +162,10 @@ export const UserProvider = ({ children }) => {
           }
         }
 
-        // Determine price (variant price if present)
-        let price = Number(product?.price || guest.cartItems[idx]?.price || 0);
-        if (product?.variants && Array.isArray(product.variants) && product.variants.length && finalLabel) {
+        // Determine price: combo computed price > variants > base price
+        let price = Number(getDisplayPrice(product) || guest.cartItems[idx]?.price || 0);
+        if (product?.variants && Array.isArray(product.variants) && product.variants.length) {
+          if (!finalLabel) finalLabel = getDefaultVariantLabel(product);
           const match = product.variants.find((v) => String(v?.label || "") === String(finalLabel));
           if (match && match.price != null) price = Number(match.price);
         }

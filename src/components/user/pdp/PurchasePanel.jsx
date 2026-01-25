@@ -6,7 +6,7 @@ import Badge from "../../ui/Badge.jsx";
 import QtyStepper from "../product/QtyStepper.jsx";
 import { Link } from "react-router-dom";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
-import { getDefaultVariant, getVariantByLabel } from "../../../utils/variants.js";
+import { getDefaultVariant, getVariantByLabel, getDisplayPrice } from "../../../utils/variants.js";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -54,7 +54,7 @@ export default function PurchasePanel({
     : null;
   const displayPrice = hasVariants
     ? Number(selectedVariant?.price ?? getDefaultVariant(variants)?.price ?? product?._price ?? product?.price ?? 0)
-    : Number(product?._price ?? product?.price ?? 0);
+    : Number(getDisplayPrice(product) ?? product?._price ?? product?.price ?? 0);
 
   return (
     <Card className="p-6 lg:sticky lg:top-24" hover={false}>

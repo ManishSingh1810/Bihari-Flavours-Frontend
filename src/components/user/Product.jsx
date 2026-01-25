@@ -26,7 +26,7 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [sort, setSort] = useState("featured");
+  const [sort, setSort] = useState("displayOrder");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const navigate = useNavigate();
@@ -105,7 +105,9 @@ export default function ProductsPage() {
     });
 
     // sort
-    if (sort === "newest") {
+    if (sort === "displayOrder" || sort === "featured") {
+      list = [...list].sort((a, b) => Number(a?.displayOrder ?? 9999) - Number(b?.displayOrder ?? 9999));
+    } else if (sort === "newest") {
       list = [...list].sort((a, b) => {
         const ta = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
         const tb = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
