@@ -174,7 +174,8 @@ export default function ImageGallery({
                 >
                   <button
                     type="button"
-                    className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-white"
+                    className="fixed right-4 z-[100000] inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-white"
+                    style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
                     onClick={() => setOpen(false)}
                     aria-label="Close fullscreen"
                   >
