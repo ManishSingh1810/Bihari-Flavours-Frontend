@@ -408,7 +408,15 @@ export default function Dashboard() {
     async function loadProducts() {
       try {
         setLoading(true);
-        const res = await api.get("/products");
+        // retry once if backend is waking up / slow network
+        let res;
+        try {
+          res = await api.get("/products");
+        } catch (e) {
+          // one retry after short delay
+          await new Promise((r) => setTimeout(r, 900));
+          res = await api.get("/products");
+        }
         if (!res.data.success) throw new Error("Failed to fetch products");
         setItems(res.data.products || []);
         setError("");
