@@ -353,24 +353,39 @@ export const UserProvider = ({ children }) => {
   const syncGuestCartToBackend = useCallback(async () => {
     if (!user) return;
     const guest = readGuestCart();
-    if (!guest?.cartItems?.length) return;
+    if (!guest?.cartItems?.length) {
+      console.log("No guest cart items to sync");
+      return;
+    }
 
+    console.log("Syncing guest cart to backend:", guest.cartItems.length, "items");
+    
     try {
       for (const it of guest.cartItems) {
         const pid = it?.productId;
         const q = Number(it?.quantity) || 0;
         const vLabel = String(it?.variantLabel || "");
         if (!pid || q <= 0) continue;
+        
+        console.log("Syncing item:", { productId: pid, quantity: q, variantLabel: vLabel });
+        
         // eslint-disable-next-line no-await-in-loop
-        await api.put(
+        const res = await api.post(
           "/cart",
           { productId: pid, variantLabel: vLabel, quantity: q },
           { skipErrorToast: true }
         );
+        
+        console.log("Sync response:", res?.data);
       }
+      
+      console.log("Guest cart synced successfully, clearing localStorage");
       writeGuestCart({ cartItems: [], totalAmount: 0 });
+      
+      console.log("Refreshing cart from backend");
       await refreshCart();
-    } catch {
+    } catch (err) {
+      console.error("Failed to sync guest cart:", err?.response?.data || err.message);
       // if sync fails, keep guest cart to retry later
     }
   }, [refreshCart, user]);
