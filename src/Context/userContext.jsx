@@ -97,11 +97,11 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  const applyCartResponse = useCallback((data) => {
+  const applyCartResponse = useCallback(async (data) => {
     // Backend is expected to return:
     // - cartItemCount
     // - cart.cartItems
-    const nextCart = data?.cart ?? null;
+    let nextCart = data?.cart ?? null;
     const nextCount =
       typeof data?.cartItemCount === "number"
         ? data.cartItemCount
@@ -110,6 +110,37 @@ export const UserProvider = ({ children }) => {
           : nextCart
             ? computeCartItemCount(nextCart)
             : 0;
+
+    // ⚠️ Workaround: Backend might not return product images (photo field)
+    // If any cart items are missing images, fetch them from the products API
+    if (nextCart?.cartItems?.length) {
+      const itemsWithoutImages = nextCart.cartItems.filter(item => !item.photo && !item.image);
+      
+      if (itemsWithoutImages.length > 0) {
+        const enrichedItems = await Promise.all(
+          nextCart.cartItems.map(async (item) => {
+            if (item.photo || item.image) return item; // Already has image
+            
+            try {
+              const res = await api.get(`/products/${item.productId}`, { skipErrorToast: true });
+              if (res?.data?.success) {
+                const product = res.data.product;
+                return {
+                  ...item,
+                  photo: product?.photos?.[0] || product?.photo || "",
+                  name: item.name || product?.name || "Product",
+                };
+              }
+            } catch {
+              // If fetch fails, return item as-is
+            }
+            return item;
+          })
+        );
+        
+        nextCart = { ...nextCart, cartItems: enrichedItems };
+      }
+    }
 
     if (nextCart) setCart(nextCart);
     setCartItemCount(nextCount);
@@ -129,7 +160,7 @@ export const UserProvider = ({ children }) => {
     }
     try {
       const res = await api.get("/cart");
-      if (res.data?.success) applyCartResponse(res.data);
+      if (res.data?.success) await applyCartResponse(res.data);
     } catch {
       // ignore; global axios interceptor will toast errors as needed
     }
@@ -195,7 +226,7 @@ export const UserProvider = ({ children }) => {
       }
 
         const res = await api.post("/cart", { productId, variantLabel: String(variantLabel || "") });
-      if (res.data?.success) applyCartResponse(res.data);
+      if (res.data?.success) await applyCartResponse(res.data);
       return res.data;
     },
     [applyCartResponse, applyGuestCart, user]
@@ -266,7 +297,7 @@ export const UserProvider = ({ children }) => {
         variantLabel: String(variantLabel || ""),
         quantity,
       });
-      if (res.data?.success) applyCartResponse(res.data);
+      if (res.data?.success) await applyCartResponse(res.data);
       return res.data;
     },
     [applyCartResponse, applyGuestCart, user]
@@ -281,7 +312,7 @@ export const UserProvider = ({ children }) => {
     }
     const res = await api.delete("/cart");
     if (res?.data?.success) {
-      applyCartResponse(res.data);
+      await applyCartResponse(res.data);
       return res.data;
     }
     // fallback if backend returns no body
