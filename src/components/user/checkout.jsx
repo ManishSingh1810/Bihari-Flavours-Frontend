@@ -355,9 +355,9 @@ setLoading(false);
               type="button"
               variant="ghost"
               className="h-10 w-10 rounded-full p-0"
-              onClick={() => setShowCheckout(false)}
+          onClick={() => setShowCheckout(false)}
               aria-label="Close checkout"
-            >
+        >
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -383,7 +383,7 @@ setLoading(false);
             ) : null}
 
             <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-3">
-              {/* LEFT */}
+          {/* LEFT */}
               <div className="md:col-span-2 space-y-6">
                 <Card className="p-5 sm:p-6">
                   <div className="mb-5 flex items-center justify-between gap-3">
@@ -400,31 +400,31 @@ setLoading(false);
                     <Field id="checkout-name" label="Full name" required>
                       <Input
                         id="checkout-name"
-                        {...register("name", { required: true })}
+                {...register("name", { required: true })}
                         placeholder="Your full name"
                         autoComplete="name"
-                      />
+              />
                     </Field>
 
                     <Field id="checkout-phone" label="Phone number" required error={errors.phone?.message}>
                       <Input
                         id="checkout-phone"
-                        {...register("phone", {
-                          required: "Phone is required",
+                {...register("phone", {
+                  required: "Phone is required",
                           pattern: { value: /^\d{10}$/, message: "Enter valid 10 digit number" }
-                        })}
+                })}
                         placeholder="10 digit mobile number"
                         inputMode="numeric"
                         autoComplete="tel"
-                      />
+              />
                     </Field>
                   </div>
 
                   <div className="mt-4">
                     <Field id="checkout-address" label="Full address" required>
-                      <textarea
+              <textarea
                         id="checkout-address"
-                        {...register("address", { required: true })}
+                {...register("address", { required: true })}
                         placeholder="House / Street / Landmark"
                         className={cn("ds-input min-h-[96px] resize-none")}
                         autoComplete="street-address"
@@ -441,33 +441,33 @@ setLoading(false);
                     >
                       <Input
                         id="checkout-pincode"
-                        {...register("pincode", { required: true })}
+                {...register("pincode", { required: true })}
                         placeholder="6 digit pincode"
                         inputMode="numeric"
                         autoComplete="postal-code"
-                      />
+              />
                     </Field>
 
                     <Field id="checkout-city" label="City" required>
                       <Input
                         id="checkout-city"
-                        {...register("city", { required: true })}
-                        placeholder="City"
-                        disabled={pincodeLoading}
+                  {...register("city", { required: true })}
+                  placeholder="City"
+                  disabled={pincodeLoading}
                         autoComplete="address-level2"
-                      />
+                />
                     </Field>
 
                     <Field id="checkout-state" label="State" required>
                       <Input
                         id="checkout-state"
-                        {...register("state", { required: true })}
-                        placeholder="State"
-                        disabled={pincodeLoading}
+                  {...register("state", { required: true })}
+                  placeholder="State"
+                  disabled={pincodeLoading}
                         autoComplete="address-level1"
-                      />
+                />
                     </Field>
-                  </div>
+              </div>
                 </Card>
 
                 {/* PAYMENT */}
@@ -475,7 +475,7 @@ setLoading(false);
                   <div className="mb-4 flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-[#8E1B1B]" />
                     <h3 className="text-base font-semibold text-[#0F172A]">Payment method</h3>
-                  </div>
+            </div>
 
                   <div className="space-y-3">
                     <PaymentOption
@@ -487,11 +487,11 @@ setLoading(false);
                     />
 
                     <PaymentOption
-                      checked={paymentMethod === "COD"}
+                  checked={paymentMethod === "COD"}
                       title={`Cash on delivery`}
                       subtitle={`Pay when you receive (+Rs. ${COD_CHARGE} COD fee)`}
-                      onChange={() => setPaymentMethod("COD")}
-                    />
+                  onChange={() => setPaymentMethod("COD")}
+                />
                   </div>
 
                   {paymentMethod === "COD" ? (
@@ -501,12 +501,12 @@ setLoading(false);
                   ) : (
                     <div className="mt-4 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800 ring-1 ring-emerald-100">
                       <ShieldCheck className="mt-0.5 h-4 w-4" /> Secure checkout powered by Razorpay.
-                    </div>
+            </div>
                   )}
                 </Card>
-              </div>
+          </div>
 
-              {/* SUMMARY */}
+          {/* SUMMARY */}
               <div className="md:sticky md:top-6 h-fit space-y-4">
                 <Card className="p-5 sm:p-6">
                   <div className="mb-4 flex items-center justify-between gap-3">
@@ -540,19 +540,19 @@ setLoading(false);
                   <div className="mt-5 border-t border-black/5 pt-4">
                     <div className="flex items-center gap-2">
                       <Input
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
                         placeholder="Coupon code"
                         disabled={!!couponApplied}
                         className="bg-white"
-                      />
-                      {!couponApplied ? (
+            />
+            {!couponApplied ? (
                         <Button type="button" variant="secondary" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()}>
                           {couponLoading ? "Applying…" : "Apply"}
                         </Button>
                       ) : (
                         <Button
-                          type="button"
+                type="button"
                           variant="secondary"
                           onClick={() => {
                             setCouponApplied(null);
@@ -568,31 +568,31 @@ setLoading(false);
                     {couponApplied ? (
                       <p className="mt-2 text-xs text-emerald-700">
                         Applied <span className="font-semibold">{couponApplied.code}</span> ({couponApplied.discountPercentage}% off)
-                      </p>
+              </p>
                     ) : null}
                   </div>
 
                   <div className="mt-5 space-y-2 text-sm">
                     <div className="flex justify-between text-slate-700 tabular-nums">
-                      <span>Subtotal</span>
+                <span>Subtotal</span>
                       <span>Rs. {cart.totalAmount}</span>
-                    </div>
+              </div>
                     <div className="flex justify-between text-slate-700 tabular-nums">
                       <span>COD fee</span>
                       <span>Rs. {shippingCharge}</span>
-                    </div>
+              </div>
                     {couponApplied ? (
                       <div className="flex justify-between text-emerald-700 tabular-nums">
-                        <span>Discount</span>
+                  <span>Discount</span>
                         <span>-Rs. {discountAmount}</span>
-                      </div>
+                </div>
                     ) : null}
                     <div className="flex justify-between border-t border-black/5 pt-3 text-base font-semibold text-[#0F172A] tabular-nums">
-                      <span>Total</span>
+                <span>Total</span>
                       <span>Rs. {finalTotal}</span>
-                    </div>
+              </div>
                     <p className="text-xs text-slate-500">Shipping calculated at checkout. Dispatch in 24–48 hrs.</p>
-                  </div>
+            </div>
 
                   <Button type="submit" disabled={loading} className="mt-5 w-full py-3 text-base">
                     {loading ? (

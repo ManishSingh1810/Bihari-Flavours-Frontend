@@ -12,7 +12,7 @@ import {
 
 const AdminDashboard = () => {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] px-6 py-16">
+    <div className="min-h-screen bg-[#F8FAFC] px-6 py-16">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-12 text-center text-3xl font-semibold text-[#1F1B16]">
           Admin Dashboard
@@ -23,10 +23,10 @@ const AdminDashboard = () => {
           {/* Product Management */}
           <Link
             to="/admin/products"
-            className="group rounded-lg border
-                       border-[rgba(142,27,27,0.25)]
-                       bg-[#F3EFE8] p-6 transition
-                       hover:bg-[#FAF7F2]"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-md border
@@ -54,10 +54,10 @@ const AdminDashboard = () => {
           {/* Coupon Management */}
           <Link
             to="/admin/coupons"
-            className="group rounded-lg border
-                       border-[rgba(142,27,27,0.25)]
-                       bg-[#F3EFE8] p-6 transition
-                       hover:bg-[#FAF7F2]"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-md border
@@ -85,10 +85,10 @@ const AdminDashboard = () => {
           {/* Pending Orders */}
           <Link
             to="/admin/order"
-            className="group rounded-lg border
-                       border-[rgba(142,27,27,0.25)]
-                       bg-[#F3EFE8] p-6 transition
-                       hover:bg-[#FAF7F2]"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-md border
@@ -116,10 +116,10 @@ const AdminDashboard = () => {
           {/* Order History */}
           <Link
             to="/admin/history"
-            className="group rounded-lg border
-                       border-[rgba(142,27,27,0.25)]
-                       bg-[#F3EFE8] p-6 transition
-                       hover:bg-[#FAF7F2]"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-md border
@@ -147,10 +147,10 @@ const AdminDashboard = () => {
           {/* Homepage Images */}
           <Link
             to="/admin/homepage"
-            className="group rounded-lg border
-                       border-[rgba(142,27,27,0.25)]
-                       bg-[#F3EFE8] p-6 transition
-                       hover:bg-[#FAF7F2]"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-md border
@@ -178,10 +178,10 @@ const AdminDashboard = () => {
           {/* Reorder Products */}
           <Link
             to="/admin/reorder-products"
-            className="group rounded-lg border
-                       border-[rgba(142,27,27,0.25)]
-                       bg-[#F3EFE8] p-6 transition
-                       hover:bg-[#FAF7F2]"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-md border

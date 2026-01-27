@@ -5,15 +5,15 @@ const AdminFooter = () => {
   return (
     <footer
       className="mt-auto
-                 bg-[#FAF7F2]
+                 bg-white
                  border-t border-[rgba(142,27,27,0.25)]"
     >
-      <div className="mx-auto max-w-7xl px-6 py-6">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="flex flex-col items-center gap-3 text-center">
 
           {/* Quote */}
           <p className="text-sm italic text-[#6F675E]">
-            “ज्ञान भूमि, कर्म भूमि — यही है बिहार”
+            "ज्ञान भूमि, कर्म भूमि — यही है बिहार"
           </p>
           <p className="text-xs text-[#6F675E]/80">
             (Land of knowledge, land of action — this is Bihar.)
