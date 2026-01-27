@@ -234,7 +234,7 @@ export default function Header() {
             </NavLink>
 
             <NavLink
-              to={user ? "/cart" : "/login"}
+              to="/cart"
               className={navLinkClass}
               onClick={() => setMenuOpen(false)}
             >

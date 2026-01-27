@@ -22,11 +22,12 @@ const CartIcon = (p) => (
 
 export default function HeaderCartButton({ className = "", onClick }) {
   const navigate = useNavigate();
-  const { isLoggedIn, cartItemCount } = useUser();
+  const { cartItemCount } = useUser();
 
   const goToCart = () => {
     if (onClick) onClick();
-    navigate(isLoggedIn ? "/cart" : "/login");
+    // Always allow viewing cart (guests can add items; login required only at checkout)
+    navigate("/cart");
   };
 
   return (
