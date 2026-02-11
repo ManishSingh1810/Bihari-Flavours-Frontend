@@ -18,36 +18,6 @@ import { getDefaultVariantLabel } from "../../utils/variants.js";
 const HOME_REVIEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
 let HOME_REVIEWS_CACHE = { ts: 0, cards: [] };
 
-// Cache products to prevent loading issues on slow networks
-const PRODUCTS_CACHE_KEY = "productsCache:v1";
-const PRODUCTS_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-function readProductsCache() {
-  try {
-    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed?.ts && Date.now() - parsed.ts < PRODUCTS_TTL_MS) {
-        return parsed.products || [];
-      }
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function writeProductsCache(products) {
-  try {
-    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify({
-      ts: Date.now(),
-      products: products || []
-    }));
-  } catch {
-    // ignore - localStorage might be full
-  }
-}
-
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
   localStorage.removeItem("authToken");
@@ -118,7 +88,6 @@ function ProductsShowcase({
   updating,
   onAdd,
   onMinus,
-  onRetry,
 }) {
   const list = useMemo(() => products || [], [products]);
 
@@ -137,36 +106,8 @@ function ProductsShowcase({
           </p>
         </div>
 
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm animate-pulse">
-                <div className="aspect-square w-full bg-[#E2E8F0] rounded-xl mb-3" />
-                <div className="h-4 bg-[#E2E8F0] rounded w-3/4 mb-2" />
-                <div className="h-3 bg-[#E2E8F0] rounded w-1/2 mb-3" />
-                <div className="h-10 bg-[#E2E8F0] rounded w-full" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Error state with retry */}
-        {error && (
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-50 mb-3">
-              <svg className="w-6 h-6 text-[#8E1B1B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <p className="text-sm text-[#8E1B1B] mb-4">{error}</p>
-            {onRetry && (
-              <SecondaryButton onClick={onRetry}>
-                Try again
-              </SecondaryButton>
-            )}
-          </div>
-        )}
+        {loading && <p className="text-sm text-[#64748B]">Loading…</p>}
+        {error && <p className="text-sm text-[#8E1B1B]">{error}</p>}
 
         {!loading && !error && (
           <>
@@ -464,101 +405,30 @@ export default function Dashboard() {
   const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   useEffect(() => {
-    let mounted = true;
-    let timeoutId = null;
-
-    async function loadProducts(retryCount = 0) {
-      if (!mounted) return;
-      
+    async function loadProducts() {
       try {
         setLoading(true);
-        setError("");
-
-        // Try to load from cache first for instant display
-        const cachedProducts = readProductsCache();
-        if (cachedProducts && cachedProducts.length > 0) {
-          setItems(cachedProducts);
-          setLoading(false);
-          // Continue loading in background to update cache
+        // retry once if backend is waking up / slow network
+        let res;
+        try {
+          res = await api.get("/products");
+        } catch (e) {
+          // one retry after short delay
+          await new Promise((r) => setTimeout(r, 900));
+          res = await api.get("/products");
         }
-
-        // Set a maximum loading time (10 seconds) to prevent infinite loading
-        const maxLoadingTime = 10000;
-        const loadingTimeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error("Loading took too long. Please check your connection and try again."));
-          }, maxLoadingTime);
-        });
-
-        // Race between API call and timeout
-        const apiCallPromise = (async () => {
-          try {
-            // Shorter timeout for mobile - 8 seconds per attempt
-            const res = await api.get("/products", { timeout: 8000 });
-            return res;
-          } catch (e) {
-            // Retry logic: max 2 retries with exponential backoff
-            if (retryCount < 2 && e.code === "ECONNABORTED") {
-              const delay = Math.min(1000 * Math.pow(2, retryCount), 3000); // 1s, 2s, 3s max
-              await new Promise((r) => setTimeout(r, delay));
-              if (!mounted) return null;
-              return await api.get("/products", { timeout: 8000 });
-            }
-            throw e;
-          }
-        })();
-
-        const res = await Promise.race([apiCallPromise, loadingTimeoutPromise]);
-        
-        if (timeoutId) clearTimeout(timeoutId);
-        
-        if (!mounted) return;
-        
-        if (!res?.data?.success) throw new Error("Failed to fetch products");
-        const freshProducts = res.data.products || [];
-        setItems(freshProducts);
-        writeProductsCache(freshProducts); // Cache for next visit
+        if (!res.data.success) throw new Error("Failed to fetch products");
+        setItems(res.data.products || []);
         setError("");
       } catch (err) {
-        if (timeoutId) clearTimeout(timeoutId);
-        
-        if (!mounted) return;
-        
         const status = err?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        
-        // If we have cached data, don't show error - just use cached data
-        const cachedProducts = readProductsCache();
-        if (cachedProducts && cachedProducts.length > 0) {
-          setItems(cachedProducts);
-          setError("");
-          return;
-        }
-        
-        // Better error messages for mobile users
-        let errorMessage = "Unable to load products";
-        if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
-          errorMessage = "Connection is slow. Please check your internet and try again.";
-        } else if (err.message?.includes("Network Error") || err.message?.includes("ERR_NETWORK")) {
-          errorMessage = "No internet connection. Please check your network.";
-        } else if (err.message?.includes("Loading took too long")) {
-          errorMessage = err.message;
-        } else if (err?.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        }
-        
-        setError(errorMessage);
+        setError(err?.response?.data?.message || err.message);
       } finally {
-        if (mounted) setLoading(false);
+        setLoading(false);
       }
     }
-
     loadProducts();
-
-    return () => {
-      mounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
   }, []);
 
   // Load "Our story" image from backend homepage config (admin upload), with fallback to local asset.
@@ -634,10 +504,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
   return (
     <main className="bg-[#F8FAFC]">
       <HeroSwiper />
@@ -651,7 +517,6 @@ export default function Dashboard() {
         updating={updating}
         onAdd={handleAddToCart}
         onMinus={handleMinus}
-        onRetry={handleRetry}
       />
       <ReviewsSection products={items} />
       <BrandStory storyImageUrl={storyImageUrl} />
