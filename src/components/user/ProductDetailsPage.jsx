@@ -30,15 +30,22 @@ export default function ProductDetailsPage() {
   };
 
   useEffect(() => {
+    let mounted = true;
+    
     const load = async () => {
+      if (!mounted) return;
+      
       try {
         setLoading(true);
+        
         const [pRes, listRes] = await Promise.all([
           api.get(`/products/${id}`),
           api.get(`/products`),
         ]);
 
-        if (!pRes.data.success) throw new Error("Failed to load product");
+        if (!mounted) return;
+
+        if (!pRes?.data?.success) throw new Error("Failed to load product");
         const nextProduct = pRes.data.product;
         setProduct(nextProduct);
         // Ensure variant selection is set consistently (avoid conditional hooks later)
@@ -48,19 +55,30 @@ export default function ProductDetailsPage() {
           setSelectedVariantLabel("");
         }
 
-        if (listRes.data.success) setAllProducts(listRes.data.products || []);
+        if (listRes?.data?.success) setAllProducts(listRes.data.products || []);
 
         setActive(0);
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       } catch (e) {
+        if (!mounted) return;
+        
         const status = e?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        toast.error(e?.response?.data?.message || "Failed to load product");
+        
+        const message = e?.response?.data?.message || e?.message || "Failed to load product";
+        toast.error(message);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
+    
     load();
+    
+    return () => {
+      mounted = false;
+    };
   }, [id]);
 
   const images = useMemo(() => {

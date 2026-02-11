@@ -38,28 +38,50 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
+    let mounted = true;
+    
     async function loadProducts() {
+      if (!mounted) return;
+      
       try {
         setLoading(true);
+        setError("");
+        
         let res;
         try {
           res = await api.get("/products");
         } catch (e) {
+          if (!mounted) return;
           await new Promise((r) => setTimeout(r, 900));
+          if (!mounted) return;
           res = await api.get("/products");
         }
-        if (!res.data.success) throw new Error("Failed to fetch products");
+        
+        if (!mounted) return;
+        
+        if (!res?.data?.success) throw new Error("Failed to fetch products");
         setItems(res.data.products || []);
         setError("");
       } catch (e) {
+        if (!mounted) return;
+        
         const status = e?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        setError(e?.response?.data?.message || e?.message || "Failed to load products");
+        
+        const message = e?.response?.data?.message || e?.message || "Failed to load products";
+        setError(message);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     }
+    
     loadProducts();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Sync search from query param (?q=)

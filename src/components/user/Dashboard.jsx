@@ -106,8 +106,29 @@ function ProductsShowcase({
           </p>
         </div>
 
-        {loading && <p className="text-sm text-[#64748B]">Loading…</p>}
-        {error && <p className="text-sm text-[#8E1B1B]">{error}</p>}
+        {loading && (
+          <div className="mt-8 text-center">
+            <div className="inline-flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-[#8E1B1B]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="text-sm text-[#64748B]">Loading products…</span>
+            </div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="mt-8 text-center">
+            <p className="text-sm text-[#8E1B1B] mb-3">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-[#1F1B16] shadow-sm hover:bg-[#F8FAFC]"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         {!loading && !error && (
           <>
@@ -405,30 +426,52 @@ export default function Dashboard() {
   const { cartItemsByProductId, addToCart, setCartQuantity } = useUser();
 
   useEffect(() => {
+    let mounted = true;
+    
     async function loadProducts() {
+      if (!mounted) return;
+      
       try {
         setLoading(true);
+        setError("");
+        
         // retry once if backend is waking up / slow network
         let res;
         try {
           res = await api.get("/products");
         } catch (e) {
+          if (!mounted) return;
           // one retry after short delay
           await new Promise((r) => setTimeout(r, 900));
+          if (!mounted) return;
           res = await api.get("/products");
         }
-        if (!res.data.success) throw new Error("Failed to fetch products");
+        
+        if (!mounted) return;
+        
+        if (!res?.data?.success) throw new Error("Failed to fetch products");
         setItems(res.data.products || []);
         setError("");
       } catch (err) {
+        if (!mounted) return;
+        
         const status = err?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        setError(err?.response?.data?.message || err.message);
+        
+        const message = err?.response?.data?.message || err?.message || "Failed to load products";
+        setError(message);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     }
+    
     loadProducts();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Load "Our story" image from backend homepage config (admin upload), with fallback to local asset.
