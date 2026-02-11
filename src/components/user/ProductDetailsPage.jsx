@@ -30,13 +30,34 @@ export default function ProductDetailsPage() {
   };
 
   useEffect(() => {
+    let mounted = true;
+    let timeoutId = null;
+
     const load = async () => {
+      if (!mounted) return;
+      
       try {
         setLoading(true);
-        const [pRes, listRes] = await Promise.all([
-          api.get(`/products/${id}`),
-          api.get(`/products`),
+
+        // Set a maximum loading time (10 seconds) to prevent infinite loading
+        const maxLoadingTime = 10000;
+        const loadingTimeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error("Loading took too long. Please check your connection and try again."));
+          }, maxLoadingTime);
+        });
+
+        // Race between API calls and timeout
+        const apiCallPromise = Promise.all([
+          api.get(`/products/${id}`, { timeout: 8000 }),
+          api.get(`/products`, { timeout: 8000 }),
         ]);
+
+        const [pRes, listRes] = await Promise.race([apiCallPromise, loadingTimeoutPromise]);
+
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        if (!mounted) return;
 
         if (!pRes.data.success) throw new Error("Failed to load product");
         const nextProduct = pRes.data.product;
@@ -53,14 +74,37 @@ export default function ProductDetailsPage() {
         setActive(0);
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       } catch (e) {
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        if (!mounted) return;
+        
         const status = e?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        toast.error(e?.response?.data?.message || "Failed to load product");
+        
+        // Better error messages for mobile users
+        let errorMessage = "Failed to load product";
+        if (e.code === "ECONNABORTED" || e.message?.includes("timeout")) {
+          errorMessage = "Connection is slow. Please check your internet and try again.";
+        } else if (e.message?.includes("Network Error") || e.message?.includes("ERR_NETWORK")) {
+          errorMessage = "No internet connection. Please check your network.";
+        } else if (e.message?.includes("Loading took too long")) {
+          errorMessage = e.message;
+        } else if (e?.response?.data?.message) {
+          errorMessage = e.response.data.message;
+        }
+        
+        toast.error(errorMessage);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
+    
     load();
+
+    return () => {
+      mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [id]);
 
   const images = useMemo(() => {

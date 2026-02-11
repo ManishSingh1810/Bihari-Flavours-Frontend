@@ -7,8 +7,8 @@ const BACKEND_BASE =
 const api = axios.create({
   baseURL: `${BACKEND_BASE}/api`,
   withCredentials: true,
-  // Prevent infinite "Loading..." when backend is slow/down (common on cold starts)
-  timeout: 20000,
+  // Optimized timeout for mobile networks - 10 seconds default
+  timeout: 10000,
 });
 
 console.log("API BASE =", `${BACKEND_BASE}/api`);

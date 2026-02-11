@@ -11,6 +11,36 @@ import SkeletonCard from "./products/SkeletonCard.jsx";
 import Button from "../ui/Button.jsx";
 import { getDefaultVariantLabel, getVariantByLabel } from "../../utils/variants.js";
 
+// Cache products to prevent loading issues on slow networks
+const PRODUCTS_CACHE_KEY = "productsCache:v1";
+const PRODUCTS_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function readProductsCache() {
+  try {
+    const raw = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.ts && Date.now() - parsed.ts < PRODUCTS_TTL_MS) {
+        return parsed.products || [];
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function writeProductsCache(products) {
+  try {
+    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify({
+      ts: Date.now(),
+      products: products || []
+    }));
+  } catch {
+    // ignore - localStorage might be full
+  }
+}
+
 export default function ProductsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,28 +68,101 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    async function loadProducts() {
+    let mounted = true;
+    let timeoutId = null;
+
+    async function loadProducts(retryCount = 0) {
+      if (!mounted) return;
+      
       try {
         setLoading(true);
-        let res;
-        try {
-          res = await api.get("/products");
-        } catch (e) {
-          await new Promise((r) => setTimeout(r, 900));
-          res = await api.get("/products");
+        setError("");
+
+        // Try to load from cache first for instant display
+        const cachedProducts = readProductsCache();
+        if (cachedProducts && cachedProducts.length > 0) {
+          setItems(cachedProducts);
+          setLoading(false);
+          // Continue loading in background to update cache
         }
-        if (!res.data.success) throw new Error("Failed to fetch products");
-        setItems(res.data.products || []);
+
+        // Set a maximum loading time (10 seconds) to prevent infinite loading
+        const maxLoadingTime = 10000;
+        const loadingTimeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error("Loading took too long. Please check your connection and try again."));
+          }, maxLoadingTime);
+        });
+
+        // Race between API call and timeout
+        const apiCallPromise = (async () => {
+          try {
+            // Shorter timeout for mobile - 8 seconds per attempt
+            const res = await api.get("/products", { timeout: 8000 });
+            return res;
+          } catch (e) {
+            // Retry logic: max 2 retries with exponential backoff
+            if (retryCount < 2 && e.code === "ECONNABORTED") {
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 3000); // 1s, 2s, 3s max
+              await new Promise((r) => setTimeout(r, delay));
+              if (!mounted) return null;
+              return await api.get("/products", { timeout: 8000 });
+            }
+            throw e;
+          }
+        })();
+
+        const res = await Promise.race([apiCallPromise, loadingTimeoutPromise]);
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        if (!mounted) return;
+        
+        if (!res?.data?.success) throw new Error("Failed to fetch products");
+        const freshProducts = res.data.products || [];
+        setItems(freshProducts);
+        writeProductsCache(freshProducts); // Cache for next visit
         setError("");
       } catch (e) {
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        if (!mounted) return;
+        
         const status = e?.response?.status;
         if (status === 401 || status === 403) return logoutUser();
-        setError(e?.response?.data?.message || e?.message || "Failed to load products");
+        
+        // If we have cached data, don't show error - just use cached data
+        const cachedProducts = readProductsCache();
+        if (cachedProducts && cachedProducts.length > 0) {
+          setItems(cachedProducts);
+          setError("");
+          return;
+        }
+        
+        // Better error messages for mobile users
+        let errorMessage = "Unable to load products";
+        if (e.code === "ECONNABORTED" || e.message?.includes("timeout")) {
+          errorMessage = "Connection is slow. Please check your internet and try again.";
+        } else if (e.message?.includes("Network Error") || e.message?.includes("ERR_NETWORK")) {
+          errorMessage = "No internet connection. Please check your network.";
+        } else if (e.message?.includes("Loading took too long")) {
+          errorMessage = e.message;
+        } else if (e?.response?.data?.message) {
+          errorMessage = e.response.data.message;
+        }
+        
+        setError(errorMessage);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
+
     loadProducts();
+
+    return () => {
+      mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // Sync search from query param (?q=)
