@@ -24,7 +24,7 @@ function cn(...xs) {
 
 function formatRs(amount) {
   if (amount == null || amount === "") return "";
-  return `₹${amount}`;
+  return `Rs. ${amount}`;
 }
 
 function getTagline(desc) {

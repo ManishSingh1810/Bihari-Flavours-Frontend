@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Pencil,
   Plus,
+  Image as ImageIcon,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -80,6 +81,75 @@ const CustomModal = ({ isOpen, type, message, action, onClose }) => {
           ) : (
             <button onClick={onClose} className="rounded-md bg-[#8E1B1B] px-4 py-2 text-sm text-white">Close</button>
           )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+/* ---------------- Photo Gallery Modal ---------------- */
+const PhotoGalleryModal = ({ open, product, onClose, onDeletePhoto }) => {
+  if (!open || !product) return null;
+
+  const photos = Array.isArray(product?.photos) ? product.photos : [];
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="min-h-full flex items-start justify-center py-6">
+        <div className="w-full max-w-4xl rounded-xl bg-[#FAF7F2] border border-[rgba(142,27,27,0.25)] shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(142,27,27,0.15)]">
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold text-[#1F1B16]">Photo Gallery</h3>
+              <p className="text-xs text-[#6F675E] mt-0.5 line-clamp-1">{product?.name}</p>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-black">
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="p-6">
+            {photos.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No photos uploaded for this product</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {photos.map((photoUrl, i) => (
+                  <div key={i} className="relative group">
+                    <img 
+                      src={photoUrl} 
+                      className="w-full h-48 rounded-lg shadow-md object-cover border-2 border-[#8E1B1B]/20" 
+                      alt={`Product photo ${i + 1}`}
+                    />
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete this photo?\n\nThis action cannot be undone.`)) {
+                          onDeletePhoto?.(product._id, photoUrl);
+                        }
+                      }}
+                      className="absolute -top-2 -right-2 rounded-full bg-red-600 p-2 text-white shadow-lg hover:bg-red-700 transition-colors opacity-0 group-hover:opacity-100"
+                      aria-label="Delete this photo"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                      Photo {i + 1}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={onClose}
+                className="rounded-md border px-4 py-2 text-sm bg-white hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>,
@@ -622,6 +692,10 @@ const ProductManager = () => {
   const [comboDiscountEdit, setComboDiscountEdit] = useState(0);
   const [showInCombosSectionEdit, setShowInCombosSectionEdit] = useState(false);
 
+  // Photo Gallery Modal state
+  const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
+  const [photoGalleryProduct, setPhotoGalleryProduct] = useState(null);
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -739,6 +813,43 @@ const handleStatusChange = async (id, newStatus) => {
 
   const removeExistingPhoto = (photoUrl) => {
     setExistingPhotos((prev) => prev.filter((url) => url !== photoUrl));
+  };
+
+  const openPhotoGallery = (product) => {
+    setPhotoGalleryProduct(product);
+    setPhotoGalleryOpen(true);
+  };
+
+  const closePhotoGallery = () => {
+    setPhotoGalleryOpen(false);
+    setPhotoGalleryProduct(null);
+  };
+
+  const deletePhotoFromProduct = async (productId, photoUrl) => {
+    try {
+      const product = products.find(p => p._id === productId);
+      if (!product) return;
+
+      const updatedPhotos = (product.photos || []).filter(url => url !== photoUrl);
+      
+      const formData = new FormData();
+      formData.append("existingPhotos", JSON.stringify(updatedPhotos));
+      
+      const res = await api.put(`/products/${productId}`, formData);
+      
+      if (res?.data?.success) {
+        openInfoModal("Photo deleted successfully!");
+        fetchProducts();
+        // Update the gallery view
+        if (photoGalleryProduct?._id === productId) {
+          setPhotoGalleryProduct({ ...photoGalleryProduct, photos: updatedPhotos });
+        }
+      } else {
+        openInfoModal(res?.data?.message || "Failed to delete photo");
+      }
+    } catch (err) {
+      openInfoModal(err?.response?.data?.message || "Failed to delete photo");
+    }
   };
 
   const onEditSubmit = async (data) => {
@@ -988,6 +1099,13 @@ const handleStatusChange = async (id, newStatus) => {
         setComboDiscount={setComboDiscountEdit}
         showInCombosSection={showInCombosSectionEdit}
         setShowInCombosSection={setShowInCombosSectionEdit}
+      />
+
+      <PhotoGalleryModal
+        open={photoGalleryOpen}
+        product={photoGalleryProduct}
+        onClose={closePhotoGallery}
+        onDeletePhoto={deletePhotoFromProduct}
       />
 
       <div className="mx-auto max-w-6xl">
@@ -1366,6 +1484,7 @@ const handleStatusChange = async (id, newStatus) => {
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock Status</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Photos</th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -1398,6 +1517,16 @@ const handleStatusChange = async (id, newStatus) => {
                           <option value="outofstock">OUT OF STOCK</option>
                         </select>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <button
+                        onClick={() => openPhotoGallery(p)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8E1B1B] hover:text-[#6D1414] bg-[#8E1B1B]/10 hover:bg-[#8E1B1B]/20 px-3 py-1.5 rounded-full transition-colors"
+                        aria-label={`View photos for ${p.name}`}
+                      >
+                        <ImageIcon size={14} />
+                        {Array.isArray(p.photos) ? p.photos.length : 0} photos
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <button

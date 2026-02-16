@@ -167,13 +167,13 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
               {order.items.map((item, i) => (
                 <div key={i} className="flex justify-between">
                   <span>{item.name} × {item.quantity}</span>
-                  <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                  <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
               <div className="mt-3 flex justify-between border-t pt-3 font-semibold">
                 <span>Total</span>
                 <span className="text-[#8E1B1B]">
-                  ₹{order.totalAmount.toFixed(2)}
+                  Rs. {order.totalAmount.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -286,7 +286,7 @@ const AdminPendingOrdersPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right font-semibold text-[#8E1B1B]">
-                        ₹{order.totalAmount.toFixed(2)}
+                        Rs. {order.totalAmount.toFixed(2)}
                       </td>
                     </tr>
                   );

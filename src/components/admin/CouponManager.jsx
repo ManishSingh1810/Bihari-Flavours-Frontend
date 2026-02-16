@@ -225,11 +225,11 @@ const CouponManager = () => {
                 >
                   <td className="px-4 py-3 font-medium">{c.code}</td>
                   <td className="px-4 py-3">{c.discountPercentage}%</td>
-                  <td className="px-4 py-3">₹{c.minPurchase}</td>
+                  <td className="px-4 py-3">Rs. {c.minPurchase}</td>
                   <td className="px-4 py-3">
                     {c.maxPurchase === Number.MAX_SAFE_INTEGER
                       ? "∞"
-                      : `₹${c.maxPurchase}`}
+                      : `Rs. ${c.maxPurchase}`}
                   </td>
                   <td className="px-4 py-3">
                     {c.usedCount || 0}/{c.usageLimit}
