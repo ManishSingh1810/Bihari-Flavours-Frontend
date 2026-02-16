@@ -4,7 +4,12 @@ import Button from "../../ui/Button.jsx";
 import Card from "../../ui/Card.jsx";
 import ProductImage from "../../ui/ProductImage.jsx";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
-import { getDefaultVariantLabel, getDisplayPrice } from "../../../utils/variants.js";
+import { 
+  getDefaultVariantLabel, 
+  getDisplayPrice, 
+  getDisplayMRP, 
+  calculateDiscount 
+} from "../../../utils/variants.js";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -16,7 +21,7 @@ function isOutOfStock(product) {
 
 function formatRs(amount) {
   if (amount == null || amount === "") return "";
-  return `Rs. ${amount}`;
+  return `₹${amount}`;
 }
 
 export default function ProductCard({
@@ -43,6 +48,9 @@ export default function ProductCard({
     typeof product?.inStock === "boolean" ? product.inStock : product?.quantity !== "outofstock";
   const variantLabel = getDefaultVariantLabel(product);
   const displayPrice = getDisplayPrice(product);
+  const displayMRP = getDisplayMRP(product);
+  const discount = calculateDiscount(displayMRP, displayPrice);
+  const hasDiscount = discount > 0;
 
   return (
     <Card
@@ -58,7 +66,7 @@ export default function ProductCard({
       onKeyDown={(e) => e.key === "Enter" && navigate(`/product/${product._id}`)}
       aria-label={`View ${product?.name || "product"}`}
     >
-      {/* Stock badge */}
+      {/* Stock badge + Discount badge */}
       <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
         <span
           className={cn(
@@ -70,6 +78,15 @@ export default function ProductCard({
         >
           {inStock ? "In stock" : "Out of stock"}
         </span>
+        
+        {hasDiscount && (
+          <span
+            className="inline-flex items-center rounded-full bg-[#8E1B1B] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm ring-1 ring-[#8E1B1B]"
+            aria-label={`${discount}% discount`}
+          >
+            {discount}% OFF
+          </span>
+        )}
       </div>
 
       {/* Image */}
@@ -113,14 +130,27 @@ export default function ProductCard({
           </p>
         ) : null}
 
-        {/* Bottom row */}
+        {/* Bottom row - Price area */}
         <div
           className="mt-4 flex items-center justify-between gap-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
-            {formatRs(displayPrice)}
-          </p>
+          <div className="flex flex-col gap-0.5">
+            {hasDiscount ? (
+              <>
+                <p className="text-[11px] text-[#64748B] line-through tabular-nums">
+                  {formatRs(displayMRP)}
+                </p>
+                <p className="text-[13px] sm:text-base font-bold tabular-nums text-[#8E1B1B]">
+                  {formatRs(displayPrice)}
+                </p>
+              </>
+            ) : (
+              <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
+                {formatRs(displayPrice)}
+              </p>
+            )}
+          </div>
 
           <Button
             onClick={() => onAdd?.(product._id, variantLabel)}

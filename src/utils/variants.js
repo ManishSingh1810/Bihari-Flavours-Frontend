@@ -29,9 +29,44 @@ export function getDisplayPrice(product) {
   return Number(product?.price ?? 0);
 }
 
+export function getDisplayMRP(product) {
+  // For combo products
+  if (product?.computedComboPrice != null && product?.computedComboPrice !== "") {
+    return Number(product?.computedComboMRP ?? 0);
+  }
+  if (String(product?.productType || "").toLowerCase() === "combo") {
+    return Number(product?.mrp ?? 0);
+  }
+  // For variant products
+  const variants = product?.variants;
+  if (Array.isArray(variants) && variants.length) {
+    const def = getDefaultVariant(variants);
+    const mrp = def?.mrp ?? variants[0]?.mrp;
+    return Number(mrp ?? 0);
+  }
+  // For regular products
+  return Number(product?.mrp ?? 0);
+}
+
+export function getVariantPrice(variant) {
+  return Number(variant?.price ?? 0);
+}
+
+export function getVariantMRP(variant) {
+  return Number(variant?.mrp ?? 0);
+}
+
+export function calculateDiscount(mrp, price) {
+  const m = Number(mrp ?? 0);
+  const p = Number(price ?? 0);
+  if (m <= 0 || p <= 0 || m <= p) return 0;
+  return Math.round(((m - p) / m) * 100);
+}
+
 export function getDefaultVariantLabel(product) {
   const variants = product?.variants;
   if (!Array.isArray(variants) || !variants.length) return "";
   return String(getDefaultVariant(variants)?.label || variants[0]?.label || "").trim();
 }
+
 

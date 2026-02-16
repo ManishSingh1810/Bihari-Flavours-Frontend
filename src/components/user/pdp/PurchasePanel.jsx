@@ -6,7 +6,15 @@ import Badge from "../../ui/Badge.jsx";
 import QtyStepper from "../product/QtyStepper.jsx";
 import { Link } from "react-router-dom";
 import { useReviewSummary } from "../hooks/useReviewSummary.jsx";
-import { getDefaultVariant, getVariantByLabel, getDisplayPrice } from "../../../utils/variants.js";
+import { 
+  getDefaultVariant, 
+  getVariantByLabel, 
+  getDisplayPrice,
+  getVariantPrice,
+  getVariantMRP,
+  getDisplayMRP,
+  calculateDiscount
+} from "../../../utils/variants.js";
 
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
@@ -14,7 +22,7 @@ function cn(...xs) {
 
 function formatRs(amount) {
   if (amount == null || amount === "") return "";
-  return `Rs. ${amount}`;
+  return `₹${amount}`;
 }
 
 function getTagline(desc) {
@@ -52,9 +60,18 @@ export default function PurchasePanel({
   const selectedVariant = hasVariants
     ? getVariantByLabel(variants, selectedVariantLabel) || getDefaultVariant(variants) || variants[0]
     : null;
+  
+  // Get price and MRP based on variant or product
   const displayPrice = hasVariants
-    ? Number(selectedVariant?.price ?? getDefaultVariant(variants)?.price ?? product?._price ?? product?.price ?? 0)
-    : Number(getDisplayPrice(product) ?? product?._price ?? product?.price ?? 0);
+    ? getVariantPrice(selectedVariant)
+    : getDisplayPrice(product);
+  
+  const displayMRP = hasVariants
+    ? getVariantMRP(selectedVariant)
+    : getDisplayMRP(product);
+  
+  const discount = calculateDiscount(displayMRP, displayPrice);
+  const hasDiscount = discount > 0;
 
   return (
     <Card className="p-6 lg:sticky lg:top-24" hover={false}>
@@ -88,11 +105,36 @@ export default function PurchasePanel({
         {shelfLife ? <Chip label={`Shelf life: ${shelfLife}`} /> : null}
       </div>
 
-      <div className="mt-5 flex items-end justify-between gap-3">
-        <p className="text-3xl font-semibold tabular-nums text-[#8E1B1B]">
-          {formatRs(displayPrice)}
+      {/* Price section with discount */}
+      <div className="mt-5">
+        <div className="flex items-center gap-3 flex-wrap">
+          <p 
+            className="text-3xl font-bold tabular-nums text-[#8E1B1B]"
+            aria-label={`Sale price: ${formatRs(displayPrice)}`}
+          >
+            {formatRs(displayPrice)}
+          </p>
+          
+          {hasDiscount && (
+            <>
+              <p 
+                className="text-xl text-[#64748B] line-through tabular-nums"
+                aria-label={`Original price: ${formatRs(displayMRP)}`}
+              >
+                {formatRs(displayMRP)}
+              </p>
+              <span 
+                className="inline-flex items-center rounded-full bg-[#8E1B1B] px-3 py-1 text-xs font-bold text-white shadow-sm"
+                aria-label={`${discount}% discount`}
+              >
+                {discount}% OFF
+              </span>
+            </>
+          )}
+        </div>
+        <p className="mt-2 text-xs text-[#64748B]">
+          {hasDiscount ? "MRP" : "Price"} inclusive of all taxes
         </p>
-        <p className="text-xs text-[#64748B]">MRP inclusive of taxes</p>
       </div>
 
       {hasVariants ? (
