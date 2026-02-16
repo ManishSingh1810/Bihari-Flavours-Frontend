@@ -69,7 +69,7 @@ export default function ProductDetailsPage() {
         toast.error(message);
       } finally {
         if (mounted) {
-          setLoading(false);
+        setLoading(false);
         }
       }
     };
