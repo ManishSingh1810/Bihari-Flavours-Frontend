@@ -95,6 +95,8 @@ const EditProductModal = ({
   handleSubmit,
   onSubmit,
   onClose,
+  existingPhotos,
+  onRemoveExistingPhoto,
   editPreviews,
   onEditFiles,
   onRemoveEditImage,
@@ -493,23 +495,57 @@ const EditProductModal = ({
             ) : null}
           </div>
 
-          {editPreviews?.length ? (
-            <div className="flex gap-3 flex-wrap">
-              {editPreviews.map((src, i) => (
-                <div key={i} className="relative group">
-                  <img src={src} className="h-24 w-24 rounded shadow-md object-cover border-2 border-white" />
-                  <button
-                    type="button"
-                    onClick={() => onRemoveEditImage?.(i)}
-                    className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow-lg"
-                    aria-label="Remove image"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              ))}
+          {/* Existing Photos + New Photos Preview */}
+          {(existingPhotos?.length > 0 || editPreviews?.length > 0) && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-[#1F1B16]">Product Images</p>
+              <div className="flex gap-3 flex-wrap">
+                {/* Existing photos from server */}
+                {existingPhotos?.map((photoUrl, i) => (
+                  <div key={`existing-${i}`} className="relative group">
+                    <img 
+                      src={photoUrl} 
+                      className="h-24 w-24 rounded shadow-md object-cover border-2 border-[#8E1B1B]" 
+                      alt={`Existing ${i + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onRemoveExistingPhoto?.(photoUrl)}
+                      className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow-lg hover:bg-red-700 transition-colors"
+                      aria-label="Delete this photo"
+                    >
+                      <X size={12} />
+                    </button>
+                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">
+                      Saved
+                    </span>
+                  </div>
+                ))}
+                
+                {/* New photos being uploaded */}
+                {editPreviews?.map((src, i) => (
+                  <div key={`new-${i}`} className="relative group">
+                    <img 
+                      src={src} 
+                      className="h-24 w-24 rounded shadow-md object-cover border-2 border-green-500" 
+                      alt={`New ${i + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onRemoveEditImage?.(i)}
+                      className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow-lg hover:bg-red-700 transition-colors"
+                      aria-label="Remove this new photo"
+                    >
+                      <X size={12} />
+                    </button>
+                    <span className="absolute bottom-1 left-1 bg-green-600 text-white text-[9px] px-1.5 py-0.5 rounded">
+                      New
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : null}
+          )}
 
           <textarea
             {...register("description", { required: true })}
@@ -564,6 +600,7 @@ const ProductManager = () => {
   const [editProduct, setEditProduct] = useState(null);
   const [editImages, setEditImages] = useState([]);
   const [editPreviews, setEditPreviews] = useState([]);
+  const [existingPhotos, setExistingPhotos] = useState([]); // Track existing photos to keep
   const [savingEdit, setSavingEdit] = useState(false);
   const [hasVariantsEdit, setHasVariantsEdit] = useState(false);
   const [variantsEdit, setVariantsEdit] = useState([]);
@@ -631,6 +668,8 @@ const handleStatusChange = async (id, newStatus) => {
     setEditProduct(p);
     setEditImages([]);
     setEditPreviews([]);
+    // Load existing photos from the product
+    setExistingPhotos(Array.isArray(p?.photos) ? [...p.photos] : []);
     const hasV = Array.isArray(p?.variants) && p.variants.length > 0;
     setHasVariantsEdit(hasV);
     setVariantsEdit(
@@ -672,6 +711,7 @@ const handleStatusChange = async (id, newStatus) => {
     setEditProduct(null);
     setEditImages([]);
     setEditPreviews([]);
+    setExistingPhotos([]);
     setHasVariantsEdit(false);
     setVariantsEdit([]);
     setProductTypeEdit("single");
@@ -694,6 +734,10 @@ const handleStatusChange = async (id, newStatus) => {
   const removeEditImage = (i) => {
     setEditImages((prev) => prev.filter((_, idx) => idx !== i));
     setEditPreviews((prev) => prev.filter((_, idx) => idx !== i));
+  };
+
+  const removeExistingPhoto = (photoUrl) => {
+    setExistingPhotos((prev) => prev.filter((url) => url !== photoUrl));
   };
 
   const onEditSubmit = async (data) => {
@@ -756,6 +800,13 @@ const handleStatusChange = async (id, newStatus) => {
       } else {
         formData.append("comboItems", JSON.stringify([]));
       }
+      
+      // Send existing photos to keep (photos not deleted by user)
+      if (existingPhotos.length > 0) {
+        formData.append("existingPhotos", JSON.stringify(existingPhotos));
+      }
+      
+      // Append new photos
       if (Array.isArray(editImages) && editImages.length) {
         editImages.forEach((img) => formData.append("photos", img));
       }
@@ -916,6 +967,8 @@ const handleStatusChange = async (id, newStatus) => {
         handleSubmit={handleSubmitEdit}
         onSubmit={onEditSubmit}
         onClose={closeEdit}
+        existingPhotos={existingPhotos}
+        onRemoveExistingPhoto={removeExistingPhoto}
         editPreviews={editPreviews}
         onEditFiles={handleEditFileChange}
         onRemoveEditImage={removeEditImage}
