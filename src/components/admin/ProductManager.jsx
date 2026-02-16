@@ -15,6 +15,7 @@ import {
 import api from "../../api/axios";
 
 
+
 function getDefaultVariant(variants) {
   const list = Array.isArray(variants) ? variants.filter(Boolean) : [];
   if (!list.length) return null;
