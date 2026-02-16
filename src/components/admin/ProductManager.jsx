@@ -142,13 +142,15 @@ const EditProductModal = ({
             <input
               {...register("price", { required: true })}
               type="number"
-              placeholder="Sale Price (Rs.)"
+              step="0.01"
+              placeholder="Sale Price (Rs.) - Customer pays this"
               className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
             />
             <input
               {...register("mrp")}
               type="number"
-              placeholder="MRP / Original Price (Rs.) - Optional"
+              step="0.01"
+              placeholder="MRP - Original Price (Rs.) - Optional"
               className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
             />
             <input
@@ -380,7 +382,7 @@ const EditProductModal = ({
                     const next = e.target.checked;
                     setHasVariants?.(next);
                     if (next && (!variants || variants.length === 0)) {
-                      setVariants?.([{ label: "250g", price: 0, mrp: 0, stock: 0, isDefault: true }]);
+                      setVariants?.([{ label: "250g", price: 0, mrp: "", stock: 0, isDefault: true }]);
                     }
                     if (!next) {
                       setVariants?.([]);
@@ -397,7 +399,7 @@ const EditProductModal = ({
                 <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   <div className="col-span-3">Label</div>
                   <div className="col-span-2">Sale Price</div>
-                  <div className="col-span-2">MRP</div>
+                  <div className="col-span-2">MRP (Optional)</div>
                   <div className="col-span-2">Variant stock</div>
                   <div className="col-span-3 text-right">Default</div>
                 </div>
@@ -417,6 +419,7 @@ const EditProductModal = ({
                     <input
                       value={v.price}
                       type="number"
+                      step="0.01"
                       min="0"
                       onChange={(e) =>
                         setVariants?.((prev) =>
@@ -427,8 +430,9 @@ const EditProductModal = ({
                       className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                     />
                     <input
-                      value={v.mrp}
+                      value={v.mrp || ""}
                       type="number"
+                      step="0.01"
                       min="0"
                       onChange={(e) =>
                         setVariants?.((prev) =>
@@ -480,7 +484,7 @@ const EditProductModal = ({
                 <button
                   type="button"
                   onClick={() =>
-                    setVariants?.((prev) => [...(prev || []), { label: "", price: 0, mrp: 0, stock: 0, isDefault: false }])
+                    setVariants?.((prev) => [...(prev || []), { label: "", price: 0, mrp: "", stock: 0, isDefault: false }])
                   }
                   className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
                 >
@@ -711,6 +715,8 @@ const handleStatusChange = async (id, newStatus) => {
         const def = getDefaultVariant(normalized);
         formData.append("price", String(def?.price ?? 0));
         formData.append("variants", JSON.stringify(normalized));
+        // Save product-level MRP as well (fallback if variant doesn't have MRP)
+        formData.append("mrp", data.mrp || "0");
       } else {
         formData.append("price", data.price);
         formData.append("mrp", data.mrp || "0");
@@ -791,6 +797,8 @@ const handleStatusChange = async (id, newStatus) => {
         const def = getDefaultVariant(normalized);
         formData.append("price", String(def?.price ?? 0));
         formData.append("variants", JSON.stringify(normalized));
+        // Save product-level MRP as well (fallback if variant doesn't have MRP)
+        formData.append("mrp", data.mrp || "0");
       } else {
         formData.append("price", data.price);
         formData.append("mrp", data.mrp || "0");
@@ -1166,7 +1174,7 @@ const handleStatusChange = async (id, newStatus) => {
                       const next = e.target.checked;
                       setHasVariantsAdd(next);
                       if (next && (!variantsAdd || variantsAdd.length === 0)) {
-                        setVariantsAdd([{ label: "250g", price: 0, mrp: 0, stock: 0, isDefault: true }]);
+                        setVariantsAdd([{ label: "250g", price: 0, mrp: "", stock: 0, isDefault: true }]);
                       }
                       if (!next) setVariantsAdd([]);
                     }}
