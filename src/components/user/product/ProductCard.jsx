@@ -15,7 +15,6 @@ function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
-
 function isOutOfStock(product) {
   return product?.quantity === "outofstock";
 }
