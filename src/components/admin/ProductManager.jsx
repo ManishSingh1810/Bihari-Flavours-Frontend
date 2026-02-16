@@ -29,6 +29,7 @@ function normalizeVariants(raw) {
   const list = (Array.isArray(raw) ? raw : []).map((v) => ({
     label: String(v?.label || "").trim(),
     price: Number(v?.price ?? 0),
+    mrp: Number(v?.mrp ?? 0),
     stock: Number(v?.stock ?? 0),
     isDefault: Boolean(v?.isDefault),
   }));
@@ -140,7 +141,13 @@ const EditProductModal = ({
             <input
               {...register("price", { required: true })}
               type="number"
-              placeholder="Price (Rs.)"
+              placeholder="Sale Price (Rs.)"
+              className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+            />
+            <input
+              {...register("mrp")}
+              type="number"
+              placeholder="MRP / Original Price (Rs.) - Optional"
               className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]"
             />
             <input
@@ -372,7 +379,7 @@ const EditProductModal = ({
                     const next = e.target.checked;
                     setHasVariants?.(next);
                     if (next && (!variants || variants.length === 0)) {
-                      setVariants?.([{ label: "250g", price: 0, stock: 0, isDefault: true }]);
+                      setVariants?.([{ label: "250g", price: 0, mrp: 0, stock: 0, isDefault: true }]);
                     }
                     if (!next) {
                       setVariants?.([]);
@@ -384,13 +391,14 @@ const EditProductModal = ({
               </label>
             </div>
 
-            {hasVariants ? (
+              {hasVariants ? (
               <div className="mt-4 space-y-3">
                 <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <div className="col-span-4">Label</div>
-                  <div className="col-span-3">Price</div>
-                  <div className="col-span-3">Variant stock</div>
-                  <div className="col-span-2 text-right">Default</div>
+                  <div className="col-span-3">Label</div>
+                  <div className="col-span-2">Sale Price</div>
+                  <div className="col-span-2">MRP</div>
+                  <div className="col-span-2">Variant stock</div>
+                  <div className="col-span-3 text-right">Default</div>
                 </div>
 
                 {(variants || []).map((v, idx) => (
@@ -403,7 +411,7 @@ const EditProductModal = ({
                         )
                       }
                       placeholder="250g"
-                      className="col-span-4 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                     />
                     <input
                       value={v.price}
@@ -415,7 +423,19 @@ const EditProductModal = ({
                         )
                       }
                       placeholder="199"
-                      className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                    />
+                    <input
+                      value={v.mrp}
+                      type="number"
+                      min="0"
+                      onChange={(e) =>
+                        setVariants?.((prev) =>
+                          prev.map((x, i) => (i === idx ? { ...x, mrp: e.target.value } : x))
+                        )
+                      }
+                      placeholder="299"
+                      className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                     />
                     <input
                       value={v.stock}
@@ -427,9 +447,9 @@ const EditProductModal = ({
                         )
                       }
                       placeholder="20"
-                      className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                     />
-                    <div className="col-span-2 flex items-center justify-end gap-2">
+                    <div className="col-span-3 flex items-center justify-end gap-2">
                       <input
                         type="radio"
                         checked={!!v.isDefault}
@@ -459,7 +479,7 @@ const EditProductModal = ({
                 <button
                   type="button"
                   onClick={() =>
-                    setVariants?.((prev) => [...(prev || []), { label: "", price: 0, stock: 0, isDefault: false }])
+                    setVariants?.((prev) => [...(prev || []), { label: "", price: 0, mrp: 0, stock: 0, isDefault: false }])
                   }
                   className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
                 >
@@ -630,6 +650,7 @@ const handleStatusChange = async (id, newStatus) => {
     resetEdit({
       name: p?.name || "",
       price: p?.price ?? "",
+      mrp: p?.mrp ?? "",
       stockStatus: p?.quantity || "instock",
       description: p?.description || p?.desc || "",
       netQuantity: p?.netQuantity || "",
@@ -691,6 +712,7 @@ const handleStatusChange = async (id, newStatus) => {
         formData.append("variants", JSON.stringify(normalized));
       } else {
         formData.append("price", data.price);
+        formData.append("mrp", data.mrp || "0");
         formData.append("variants", JSON.stringify([]));
       }
       formData.append("quantity", data.stockStatus);
@@ -770,6 +792,7 @@ const handleStatusChange = async (id, newStatus) => {
         formData.append("variants", JSON.stringify(normalized));
       } else {
         formData.append("price", data.price);
+        formData.append("mrp", data.mrp || "0");
         formData.append("variants", JSON.stringify([]));
       }
       formData.append("quantity", data.stockStatus);
@@ -950,7 +973,8 @@ const handleStatusChange = async (id, newStatus) => {
               />
 
               <input {...register("name", { required: true })} placeholder="Product name" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
-              <input {...register("price", { required: true })} type="number" placeholder="Price (Rs.)" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
+              <input {...register("price", { required: true })} type="number" placeholder="Sale Price (Rs.)" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
+              <input {...register("mrp")} type="number" placeholder="MRP / Original Price (Rs.) - Optional" className="rounded-md p-3 border border-gray-300 outline-none focus:border-[#8E1B1B]" />
               <select {...register("stockStatus", { required: true })} className="rounded-md p-3 border border-gray-300">
                 <option value="instock">In Stock</option>
                 <option value="outofstock">Out of Stock</option>
@@ -1141,7 +1165,7 @@ const handleStatusChange = async (id, newStatus) => {
                       const next = e.target.checked;
                       setHasVariantsAdd(next);
                       if (next && (!variantsAdd || variantsAdd.length === 0)) {
-                        setVariantsAdd([{ label: "250g", price: 0, stock: 0, isDefault: true }]);
+                        setVariantsAdd([{ label: "250g", price: 0, mrp: 0, stock: 0, isDefault: true }]);
                       }
                       if (!next) setVariantsAdd([]);
                     }}
@@ -1154,10 +1178,11 @@ const handleStatusChange = async (id, newStatus) => {
               {hasVariantsAdd ? (
                 <div className="mt-4 space-y-3">
                   <div className="grid grid-cols-12 gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    <div className="col-span-4">Label</div>
-                    <div className="col-span-3">Price</div>
-                    <div className="col-span-3">Stock</div>
-                    <div className="col-span-2 text-right">Default</div>
+                    <div className="col-span-3">Label</div>
+                    <div className="col-span-2">Sale Price</div>
+                    <div className="col-span-2">MRP</div>
+                    <div className="col-span-2">Stock</div>
+                    <div className="col-span-3 text-right">Default</div>
                   </div>
 
                   {(variantsAdd || []).map((v, idx) => (
@@ -1170,7 +1195,7 @@ const handleStatusChange = async (id, newStatus) => {
                           )
                         }
                         placeholder="250g"
-                        className="col-span-4 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                        className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                       />
                       <input
                         value={v.price}
@@ -1182,7 +1207,19 @@ const handleStatusChange = async (id, newStatus) => {
                           )
                         }
                         placeholder="199"
-                        className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                        className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                      />
+                      <input
+                        value={v.mrp}
+                        type="number"
+                        min="0"
+                        onChange={(e) =>
+                          setVariantsAdd((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, mrp: e.target.value } : x))
+                          )
+                        }
+                        placeholder="299"
+                        className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                       />
                       <input
                         value={v.stock}
@@ -1194,9 +1231,9 @@ const handleStatusChange = async (id, newStatus) => {
                           )
                         }
                         placeholder="20"
-                        className="col-span-3 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
+                        className="col-span-2 rounded-md p-2 border border-gray-300 outline-none focus:border-[#8E1B1B]"
                       />
-                      <div className="col-span-2 flex items-center justify-end gap-2">
+                      <div className="col-span-3 flex items-center justify-end gap-2">
                         <input
                           type="radio"
                           checked={!!v.isDefault}
@@ -1225,7 +1262,7 @@ const handleStatusChange = async (id, newStatus) => {
 
                   <button
                     type="button"
-                    onClick={() => setVariantsAdd((prev) => [...(prev || []), { label: "", price: 0, stock: 0, isDefault: false }])}
+                    onClick={() => setVariantsAdd((prev) => [...(prev || []), { label: "", price: 0, mrp: 0, stock: 0, isDefault: false }])}
                     className="inline-flex items-center gap-2 rounded-md border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#1F1B16] hover:bg-gray-50"
                   >
                     <Plus size={16} /> Add variant
