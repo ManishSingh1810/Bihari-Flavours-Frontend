@@ -813,7 +813,12 @@ const handleStatusChange = async (id, newStatus) => {
   };
 
   const removeExistingPhoto = (photoUrl) => {
-    setExistingPhotos((prev) => prev.filter((url) => url !== photoUrl));
+    console.log('Removing photo from state:', photoUrl);
+    setExistingPhotos((prev) => {
+      const updated = prev.filter((url) => url !== photoUrl);
+      console.log('Updated existingPhotos:', updated);
+      return updated;
+    });
   };
 
   const openPhotoGallery = (product) => {
@@ -914,10 +919,9 @@ const handleStatusChange = async (id, newStatus) => {
         formData.append("comboItems", JSON.stringify([]));
       }
       
-      // Send existing photos to keep (photos not deleted by user)
-      if (existingPhotos.length > 0) {
-        formData.append("existingPhotos", JSON.stringify(existingPhotos));
-      }
+      // ALWAYS send existing photos list (even if empty) so backend knows which photos to keep
+      formData.append("existingPhotos", JSON.stringify(existingPhotos || []));
+      console.log('Sending existingPhotos:', existingPhotos); // Debug log
       
       // Append new photos
       if (Array.isArray(editImages) && editImages.length) {
@@ -1498,10 +1502,29 @@ const handleStatusChange = async (id, newStatus) => {
                         <span className="font-semibold text-[#1F1B16]">{p.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-[#6F675E] font-medium">
-                      {Array.isArray(p?.variants) && p.variants.length
-                        ? `Rs. ${getDefaultVariantPrice(p) ?? p.price}`
-                        : `Rs. ${p.price}`}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[#6F675E] font-medium">
+                          {Array.isArray(p?.variants) && p.variants.length
+                            ? `Rs. ${getDefaultVariantPrice(p) ?? p.price}`
+                            : `Rs. ${p.price}`}
+                        </span>
+                        {(() => {
+                          const mrp = Array.isArray(p?.variants) && p.variants.length
+                            ? p.variants[0]?.mrp
+                            : p.mrp;
+                          const hasMRP = mrp && Number(mrp) > 0;
+                          return hasMRP ? (
+                            <span className="text-[10px] text-[#8E1B1B] font-semibold">
+                              MRP: Rs. {mrp} ✓
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400">
+                              No MRP set
+                            </span>
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">

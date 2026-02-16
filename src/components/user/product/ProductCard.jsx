@@ -52,6 +52,17 @@ export default function ProductCard({
   const discount = calculateDiscount(displayMRP, displayPrice);
   const hasDiscount = discount > 0;
 
+  // Debug logging (remove after testing)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Product: ${product?.name}`, {
+      price: displayPrice,
+      mrp: displayMRP,
+      discount,
+      hasDiscount,
+      rawProduct: product
+    });
+  }
+
   return (
     <Card
       hover
