@@ -8,6 +8,7 @@ export function getDefaultVariant(variants) {
   return list.find((v) => v?.isDefault) || list[0];
 }
 
+
 /**
  * Find a specific variant by its label
  * Returns null if label is empty or variant not found
