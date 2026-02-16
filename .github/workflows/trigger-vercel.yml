@@ -1,0 +1,19 @@
+name: Trigger Vercel Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  trigger-vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        run: |
+          echo "Commit by: ${{ github.event.head_commit.author.name }}"
+          echo "Commit message: ${{ github.event.head_commit.message }}"
+          echo "Vercel will auto-deploy this commit"
+          echo "Deploy triggered at: $(date)"
