@@ -6,6 +6,7 @@ import api from "../../api/axios";
 const CouponManager = () => {
   const { register, handleSubmit, reset } = useForm();
 
+  
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
