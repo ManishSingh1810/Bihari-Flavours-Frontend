@@ -1,16 +1,35 @@
-# React + Vite
+# Bihari Flavours - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern e-commerce storefront for Bihari Flavours.
 
-Currently, two official plugins are available:
+## Features
+- 🛍️ Product catalog with variants support
+- 💰 Discount pricing with MRP display
+- 🛒 Shopping cart functionality
+- 📱 Mobile-responsive design
+- 🎨 Modern UI with Tailwind CSS
+- ⚡ Built with Vite + React
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
+- **Framework**: React 18 with Vite
+- **Styling**: Tailwind CSS
+- **Routing**: React Router
+- **State**: Context API
+- **Deployment**: Vercel
 
-## React Compiler
+## Auto-Deployment
+This project is configured for automatic deployment to Vercel on every push to the main branch.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+## Build
+```bash
+npm run build
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+Last updated: 2026
