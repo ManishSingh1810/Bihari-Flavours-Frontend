@@ -15,6 +15,7 @@ export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  
   const [product, setProduct] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
   const [updating, setUpdating] = useState(false);
