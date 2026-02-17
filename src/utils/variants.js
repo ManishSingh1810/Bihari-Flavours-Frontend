@@ -26,16 +26,16 @@ export function getVariantByLabel(variants, label) {
  * Priority: computedComboPrice > combo base price > variant price > product price
  */
 export function getDisplayPrice(product) {
-  // Prefer backend-computed combo price when available
-  if (product?.computedComboPrice != null && product?.computedComboPrice !== "") {
-    return Number(product.computedComboPrice ?? 0);
+  // Prefer backend-computed combo price when available (only if positive)
+  if (product?.computedComboPrice > 0) {
+    return Number(product.computedComboPrice);
   }
   if (String(product?.productType || "").toLowerCase() === "combo") {
     // fallback: combo may still have a base price field
     return Number(product?.price ?? 0);
   }
   const variants = product?.variants;
-  if (Array.isArray(variants) && variants.length) {
+  if (Array.isArray(variants) && variants.length > 0) {
     const def = getDefaultVariant(variants);
     const price = def?.price ?? variants[0]?.price;
     return Number(price ?? 0);
@@ -50,19 +50,23 @@ export function getDisplayPrice(product) {
  * Returns 0 if MRP is not set
  */
 export function getDisplayMRP(product) {
-  // For combo products - use computed MRP if available
-  if (product?.computedComboPrice != null && product?.computedComboPrice !== "") {
-    return Number(product?.computedComboMRP ?? 0);
+  // For combo products - use computed MRP ONLY if it's a positive value
+  if (product?.computedComboPrice > 0 && product?.computedComboMRP > 0) {
+    return Number(product.computedComboMRP);
   }
   if (String(product?.productType || "").toLowerCase() === "combo") {
     return Number(product?.mrp ?? 0);
   }
   // For variant products - get MRP from default variant
   const variants = product?.variants;
-  if (Array.isArray(variants) && variants.length) {
+  if (Array.isArray(variants) && variants.length > 0) {
     const def = getDefaultVariant(variants);
-    const mrp = def?.mrp ?? variants[0]?.mrp;
-    return Number(mrp ?? 0);
+    if (def?.mrp != null && def.mrp > 0) {
+      return Number(def.mrp);
+    }
+    if (variants[0]?.mrp != null && variants[0].mrp > 0) {
+      return Number(variants[0].mrp);
+    }
   }
   // For regular products - direct MRP field
   return Number(product?.mrp ?? 0);
