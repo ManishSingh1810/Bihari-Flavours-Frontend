@@ -123,16 +123,16 @@ export default function ProductCard({
 
         {/* Bottom row - Price area */}
         <div
-          className="mt-4 flex items-center justify-between gap-3"
+          className="mt-4 flex items-center justify-between gap-2"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 min-w-0 flex-1">
             {hasDiscount ? (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-[13px] sm:text-base font-bold tabular-nums text-[#8E1B1B]">
                   {formatRs(displayPrice)}
                 </p>
-                <p className="text-[11px] sm:text-xs text-[#64748B] line-through tabular-nums">
+                <p className="text-[10px] sm:text-xs text-[#64748B] line-through tabular-nums">
                   {formatRs(displayMRP)}
                 </p>
               </div>
@@ -146,7 +146,7 @@ export default function ProductCard({
           <Button
             onClick={() => onAdd?.(product._id, variantLabel)}
             disabled={disabled || !inStock}
-            className="h-10 px-4 text-[12px] sm:text-sm"
+            className="h-9 px-3 sm:h-10 sm:px-4 text-[11px] sm:text-sm whitespace-nowrap flex-shrink-0"
           >
             Add to cart
           </Button>
