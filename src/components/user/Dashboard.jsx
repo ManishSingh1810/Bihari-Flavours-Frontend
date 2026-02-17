@@ -79,7 +79,6 @@ function SectionHeading({ eyebrow, title, subtitle, align = "left" }) {
 }
 
 
-
 function ProductsShowcase({
   products,
   loading,
@@ -606,6 +605,7 @@ export default function Dashboard() {
     </main>
   );
 }
+
 
 
 
