@@ -18,6 +18,7 @@ import { getDefaultVariantLabel } from "../../utils/variants.js";
 const HOME_REVIEWS_TTL_MS = 10 * 60 * 1000; // 10 minutes
 let HOME_REVIEWS_CACHE = { ts: 0, cards: [] };
 
+
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
   localStorage.removeItem("authToken");
@@ -591,6 +592,7 @@ export default function Dashboard() {
     </main>
   );
 }
+
 
 
 
