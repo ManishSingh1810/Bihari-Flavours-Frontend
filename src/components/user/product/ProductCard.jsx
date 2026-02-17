@@ -67,7 +67,7 @@ export default function ProductCard({
       onKeyDown={(e) => e.key === "Enter" && navigate(`/product/${product._id}`)}
       aria-label={`View ${product?.name || "product"}`}
     >
-      {/* Stock badge + Discount badge */}
+      {/* Stock badge */}
       <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
         <span
           className={cn(
@@ -79,15 +79,6 @@ export default function ProductCard({
         >
           {inStock ? "In stock" : "Out of stock"}
         </span>
-        
-        {hasDiscount && (
-          <span
-            className="inline-flex items-center rounded-full bg-[#8E1B1B] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm ring-1 ring-[#8E1B1B]"
-            aria-label={`${discount}% discount`}
-          >
-            {discount}% OFF
-          </span>
-        )}
       </div>
 
       {/* Image */}
@@ -138,22 +129,14 @@ export default function ProductCard({
         >
           <div className="flex flex-col gap-1">
             {hasDiscount ? (
-              <>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-[13px] sm:text-base font-bold tabular-nums text-[#8E1B1B]">
-                    {formatRs(displayPrice)}
-                  </p>
-                  <p className="text-[11px] sm:text-xs text-[#64748B] line-through tabular-nums">
-                    {formatRs(displayMRP)}
-                  </p>
-                </div>
-                <span
-                  className="inline-flex items-center rounded-full bg-[#8E1B1B] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm w-fit"
-                  aria-label={`${discount}% discount`}
-                >
-                  {discount}% OFF
-                </span>
-              </>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-[13px] sm:text-base font-bold tabular-nums text-[#8E1B1B]">
+                  {formatRs(displayPrice)}
+                </p>
+                <p className="text-[11px] sm:text-xs text-[#64748B] line-through tabular-nums">
+                  {formatRs(displayMRP)}
+                </p>
+              </div>
             ) : (
               <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
                 {formatRs(displayPrice)}

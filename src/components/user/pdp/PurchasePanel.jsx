@@ -117,20 +117,12 @@ export default function PurchasePanel({
           </p>
           
           {hasDiscount && (
-            <>
-              <p 
-                className="text-xl text-[#64748B] line-through tabular-nums"
-                aria-label={`Original price: ${formatRs(displayMRP)}`}
-              >
-                {formatRs(displayMRP)}
-              </p>
-              <span 
-                className="inline-flex items-center rounded-full bg-[#8E1B1B] px-3 py-1 text-xs font-bold text-white shadow-sm"
-                aria-label={`${discount}% discount`}
-              >
-                {discount}% OFF
-              </span>
-            </>
+            <p 
+              className="text-xl text-[#64748B] line-through tabular-nums"
+              aria-label={`Original price: ${formatRs(displayMRP)}`}
+            >
+              {formatRs(displayMRP)}
+            </p>
           )}
         </div>
         <p className="mt-2 text-xs text-[#64748B]">
