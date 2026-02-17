@@ -53,16 +53,17 @@ export default function ProductCard({
   const discount = calculateDiscount(displayMRP, displayPrice);
   const hasDiscount = discount > 0;
 
-  // Debug logging (remove after testing)
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Product: ${product?.name}`, {
-      price: displayPrice,
-      mrp: displayMRP,
-      discount,
-      hasDiscount,
-      rawProduct: product
-    });
-  }
+  // Debug logging - ALWAYS ON to diagnose issue
+  console.log(`[ProductCard] ${product?.name}`, {
+    displayPrice,
+    displayMRP,
+    discount,
+    hasDiscount,
+    rawMRP: product?.mrp,
+    rawPrice: product?.price,
+    variants: product?.variants,
+    variantMRP: product?.variants?.[0]?.mrp
+  });
 
   return (
     <Card
@@ -116,6 +117,13 @@ export default function ProductCard({
         <p className="text-[13px] sm:text-sm font-semibold text-[#0F172A] line-clamp-1">
           {product?.name}
         </p>
+        
+        {/* DEBUG: Show raw MRP data */}
+        {(product?.mrp || product?.variants?.[0]?.mrp) && (
+          <div className="mt-1 text-[9px] bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+            DEBUG: MRP={product?.mrp || product?.variants?.[0]?.mrp} | Price={product?.price || product?.variants?.[0]?.price} | hasDiscount={hasDiscount ? 'YES' : 'NO'}
+          </div>
+        )}
 
         {netQty ? (
           <p className="mt-1 text-[11px] sm:text-xs text-[#64748B]">

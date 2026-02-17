@@ -450,7 +450,21 @@ export default function Dashboard() {
         if (!mounted) return;
         
         if (!res?.data?.success) throw new Error("Failed to fetch products");
-        setItems(res.data.products || []);
+        
+        const products = res.data.products || [];
+        
+        // DEBUG: Log first product to see if MRP is coming from backend
+        if (products.length > 0) {
+          console.log('[Dashboard] First product from API:', {
+            name: products[0].name,
+            price: products[0].price,
+            mrp: products[0].mrp,
+            variants: products[0].variants,
+            hasVariants: Array.isArray(products[0].variants) && products[0].variants.length > 0
+          });
+        }
+        
+        setItems(products);
         setError("");
       } catch (err) {
         if (!mounted) return;
