@@ -34,6 +34,18 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // ✅ Detect timeout specifically
+    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+      toast.error("Request timed out. Please check your connection and try again.");
+      return Promise.reject(err);
+    }
+
+    // ✅ Detect network failure (no response at all - offline/no internet)
+    if (!err.response) {
+      toast.error("Network error. Please check your internet connection.");
+      return Promise.reject(err);
+    }
+
     const status = err.response?.status;
     const message = err.response?.data?.message || "Something went wrong";
 
