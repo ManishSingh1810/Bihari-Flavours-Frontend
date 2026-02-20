@@ -7,7 +7,6 @@ import "swiper/css/navigation";
 import api from "../../../api/axios";
 import hero1 from "../../../assets/hero.jpg";
 
-
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
