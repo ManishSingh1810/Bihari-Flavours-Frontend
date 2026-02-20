@@ -7,62 +7,20 @@ import "swiper/css/navigation";
 import api from "../../../api/axios";
 import hero1 from "../../../assets/hero.jpg";
 
-
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
-/**
- * Forces NO cropping on any screen:
- * - Uses block + w-full + h-auto
- * - Uses objectFit: "contain" inline to beat any CSS override
- * - Wraps <picture> in a block element so height behaves correctly
- */
-function ResponsiveHeroImage({
-  src,
-  srcMobile,
-  alt,
-  loading,
-  fetchpriority,
-  className,
-}) {
-  const imgEl = (
+function HeroImage({ src, alt, loading, fetchpriority }) {
+  return (
     <img
       src={src}
       alt={alt}
       draggable="false"
       loading={loading}
       fetchPriority={fetchpriority}
-      className="block w-full"
-      // Inline style beats many global/swiper css overrides (even if they set object-fit elsewhere)
-      style={{
-        width: "100%",
-        height: "auto",
-        minHeight: 0,
-        maxHeight: "none",
-        objectFit: "contain",
-        objectPosition: "center",
-        display: "block",
-      }}
+      className="hero-img"
     />
-  );
-
-  if (!srcMobile) return imgEl;
-
-  return (
-    <picture 
-      className="block w-full"
-      style={{
-        width: "100%",
-        height: "auto",
-        minHeight: 0,
-        maxHeight: "none",
-        display: "block",
-      }}
-    >
-      <source media="(max-width: 768px)" srcSet={srcMobile} />
-      {imgEl}
-    </picture>
   );
 }
 
@@ -72,7 +30,6 @@ export default function HeroSwiper() {
       {
         id: "s1",
         image: hero1,
-        imageMobile: null,
       },
     ],
     []
@@ -82,17 +39,22 @@ export default function HeroSwiper() {
   const [visible, setVisible] = useState(false);
   const inflight = useRef(0);
 
+  // ✅ bump cache key so old cached cropped data is ignored
+  const CACHE_KEY = "homepageHeroSlides:v2";
+
   const normalize = (arr) => {
     if (!Array.isArray(arr)) return null;
+
     const slidesToUse = arr.length > 0 ? arr : defaultSlides;
 
     return slidesToUse.map((fromApi, i) => {
       const imageUrl = fromApi.imageUrl || fromApi.image || fromApi.url;
-      const imageUrlMobile = fromApi.imageUrlMobile || fromApi.imageMobile || null;
+
+      // ✅ IMPORTANT: ignore mobile image completely for now
+      // because mobile variant is likely already cropped/zoomed.
       return {
         id: fromApi.id || `slide-${i}`,
         image: imageUrl || defaultSlides[0]?.image,
-        imageMobile: imageUrlMobile,
       };
     });
   };
@@ -111,8 +73,9 @@ export default function HeroSwiper() {
   useEffect(() => {
     (async () => {
       let cachedNormalized = null;
+
       try {
-        const raw = localStorage.getItem("homepageHeroSlides:v1");
+        const raw = localStorage.getItem(CACHE_KEY);
         const cached = raw ? JSON.parse(raw) : null;
         cachedNormalized = normalize(cached);
       } catch {
@@ -152,11 +115,9 @@ export default function HeroSwiper() {
           return;
         }
 
+        // ✅ cache latest
         try {
-          localStorage.setItem(
-            "homepageHeroSlides:v1",
-            JSON.stringify(heroSlides.slice(0, 3))
-          );
+          localStorage.setItem(CACHE_KEY, JSON.stringify(heroSlides.slice(0, 3)));
         } catch {}
 
         const latest = normalize(heroSlides);
@@ -189,39 +150,19 @@ export default function HeroSwiper() {
   }, [defaultSlides]);
 
   return (
-    <section
-      className="relative w-full bg-white"
-      aria-roledescription="carousel"
-      aria-label="Homepage hero"
-      style={{
-        height: "auto",
-        minHeight: 0,
-        maxHeight: "none",
-      }}
-    >
-      <div
-        className={cn(
-          "w-full transition-opacity duration-300",
-          visible ? "opacity-100" : "opacity-0"
-        )}
-        style={{
-          height: "auto",
-          minHeight: 0,
-          maxHeight: "none",
-        }}
-      >
+    <section className="hero-wrap" aria-label="Homepage hero">
+      <div className={cn("hero-fade", visible ? "opacity-100" : "opacity-0")}>
         {slides && slides.length > 0 ? (
           slides.length === 1 ? (
-            // SINGLE IMAGE - no cropping ever (natural image height)
-            <ResponsiveHeroImage
-              src={slides[0].image}
-              srcMobile={slides[0].imageMobile}
-              alt="Bihari Flavours"
-              loading="eager"
-              fetchpriority="high"
-            />
+            <div className="hero-frame">
+              <HeroImage
+                src={slides[0].image}
+                alt="Bihari Flavours"
+                loading="eager"
+                fetchpriority="high"
+              />
+            </div>
           ) : (
-            // MULTI SLIDES - autoHeight makes Swiper adapt to image height (no forced crop)
             <Swiper
               key={slides.map((s) => s.image).join("|")}
               modules={[Autoplay, Pagination, Navigation, A11y]}
@@ -239,26 +180,26 @@ export default function HeroSwiper() {
                 pauseOnMouseEnter: true,
               }}
               a11y={{ enabled: true }}
-              className="w-full hero-swiper"
+              className="hero-swiper"
             >
               {slides.map((s, idx) => (
                 <SwiperSlide key={s.id}>
-                  <ResponsiveHeroImage
-                    src={s.image}
-                    srcMobile={s.imageMobile}
-                    alt="Bihari Flavours"
-                    loading={idx === 0 ? "eager" : "lazy"}
-                    fetchpriority={idx === 0 ? "high" : "auto"}
-                  />
+                  <div className="hero-frame">
+                    <HeroImage
+                      src={s.image}
+                      alt="Bihari Flavours"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                      fetchpriority={idx === 0 ? "high" : "auto"}
+                    />
+                  </div>
                 </SwiperSlide>
               ))}
             </Swiper>
           )
         ) : (
-          <div className="w-full h-[220px] sm:h-[280px] md:h-[360px] bg-[#F8FAFC]" />
+          <div className="hero-skeleton" />
         )}
       </div>
     </section>
   );
 }
-
