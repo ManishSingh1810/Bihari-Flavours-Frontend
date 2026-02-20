@@ -225,7 +225,7 @@ export default function HeroSwiper() {
       aria-label="Homepage hero"
     >
       {/* Fixed heights to minimize CLS */}
-      <div className="relative h-[220px] sm:h-[320px] lg:h-[380px] xl:h-[420px]">
+      <div className="relative h-[280px] sm:h-[380px] md:h-[440px] lg:h-[500px] xl:h-[560px]">
         {slides && slides.length > 0 ? (
           <div
             className={cn(
@@ -240,7 +240,7 @@ export default function HeroSwiper() {
                   src={slides[0].image}
                   srcMobile={slides[0].imageMobile}
                   alt="Bihari Flavours"
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-cover object-center"
                   loading="eager"
                   fetchpriority="high"
                 />
@@ -270,12 +270,12 @@ export default function HeroSwiper() {
                 {slides.map((s, idx) => (
                   <SwiperSlide key={s.id}>
                     <div className="relative h-full bg-[#F8FAFC]">
-                      {/* Full hero image - shows complete image without cropping */}
+                      {/* Full hero image - fills container for prominent display */}
                       <ResponsiveHeroImage
                         src={s.image}
                         srcMobile={s.imageMobile}
                         alt="Bihari Flavours"
-                        className="h-full w-full object-contain"
+                        className="h-full w-full object-cover object-center"
                         loading={idx === 0 ? "eager" : "lazy"}
                         fetchpriority={idx === 0 ? "high" : "auto"}
                       />
