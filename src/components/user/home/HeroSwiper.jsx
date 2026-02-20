@@ -14,6 +14,21 @@ function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
+/**
+ * HeroSwiper Component
+ * 
+ * Displays homepage hero images with smart rendering:
+ * - 0 slides: Shows loading fallback (gray background)
+ * - 1 slide: Static image (no Swiper overhead, faster load)
+ * - 2+ slides: Full Swiper carousel with autoplay, pagination, navigation
+ * 
+ * Features:
+ * - Fetches slides from backend admin panel
+ * - Falls back to local assets if backend unavailable
+ * - Caches slides in localStorage for instant subsequent loads
+ * - Preloads first image before display to prevent flash
+ * - Optimized for mobile with responsive heights
+ */
 export default function HeroSwiper() {
   const defaultSlides = useMemo(
     () => [
@@ -150,51 +165,67 @@ export default function HeroSwiper() {
     >
       {/* Fixed heights to minimize CLS */}
       <div className="relative h-[220px] sm:h-[320px] lg:h-[380px] xl:h-[420px]">
-        {slides ? (
+        {slides && slides.length > 0 ? (
           <div
             className={cn(
               "h-full transition-opacity duration-300",
               visible ? "opacity-100" : "opacity-0"
             )}
           >
-            <Swiper
-              key={slides.map((s) => s.image).join("|")}
-              modules={[Autoplay, Pagination, Navigation, A11y]}
-              slidesPerView={1}
-              // Avoid "flash" on load caused by loop cloning + initial translate snap.
-              // Rewind keeps UX (auto/manual) without loop DOM duplication.
-              loop={false}
-              rewind
-              speed={650}
-              initialSlide={0}
-              pagination={{ clickable: true }}
-              navigation
-              autoplay={{
-                delay: 4000,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              a11y={{ enabled: true }}
-              className="h-full hero-swiper"
-            >
-              {slides.map((s, idx) => (
-                <SwiperSlide key={s.id}>
-                  <div className="relative h-full bg-[#F8FAFC]">
-                    {/* Full-bleed hero image (reference style) */}
-                    <img
-                      src={s.image}
-                      alt="Bihari Flavours"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      draggable="false"
-                      loading={idx === 0 ? "eager" : "lazy"}
-                      fetchpriority={idx === 0 ? "high" : "auto"}
-                    />
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+            {/* SINGLE SLIDE: Show as static image (no Swiper overhead) */}
+            {slides.length === 1 ? (
+              <div className="relative h-full bg-[#F8FAFC]">
+                <img
+                  src={slides[0].image}
+                  alt="Bihari Flavours"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  draggable="false"
+                  loading="eager"
+                  fetchpriority="high"
+                />
+              </div>
+            ) : (
+              /* MULTIPLE SLIDES: Use Swiper carousel */
+              <Swiper
+                key={slides.map((s) => s.image).join("|")}
+                modules={[Autoplay, Pagination, Navigation, A11y]}
+                slidesPerView={1}
+                // Avoid "flash" on load caused by loop cloning + initial translate snap.
+                // Rewind keeps UX (auto/manual) without loop DOM duplication.
+                loop={false}
+                rewind
+                speed={650}
+                initialSlide={0}
+                pagination={{ clickable: true }}
+                navigation
+                autoplay={{
+                  delay: 4000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                a11y={{ enabled: true }}
+                className="h-full hero-swiper"
+              >
+                {slides.map((s, idx) => (
+                  <SwiperSlide key={s.id}>
+                    <div className="relative h-full bg-[#F8FAFC]">
+                      {/* Full-bleed hero image (reference style) */}
+                      <img
+                        src={s.image}
+                        alt="Bihari Flavours"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        draggable="false"
+                        loading={idx === 0 ? "eager" : "lazy"}
+                        fetchpriority={idx === 0 ? "high" : "auto"}
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            )}
           </div>
         ) : (
+          /* NO SLIDES: Show fallback loading state */
           <div className="h-full w-full bg-[#F8FAFC]" />
         )}
       </div>
