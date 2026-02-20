@@ -147,3 +147,67 @@ h6 {
   font-weight: 700;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
+
+/* ================= HERO BANNER STYLES ================= */
+
+/* Outer section */
+.hero-wrap {
+  width: 100%;
+  background: #ffffff;
+}
+
+/* Fade-in container */
+.hero-fade {
+  width: 100%;
+  transition: opacity 300ms ease;
+}
+
+/* Frame: centers image */
+.hero-frame {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+}
+
+/* The image - responsive behavior */
+.hero-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  
+  /* Mobile: show full image (may have letterboxing) */
+  max-height: 60vh;
+}
+
+/* Desktop/Laptop: fill width, crop top/bottom slightly if needed */
+@media (min-width: 768px) {
+  .hero-img {
+    object-fit: cover; /* Fill width on desktop */
+    max-height: 520px;
+    min-height: 420px;
+  }
+}
+
+/* Swiper: allow natural height */
+.hero-swiper,
+.hero-swiper .swiper-wrapper,
+.hero-swiper .swiper-slide {
+  height: auto !important;
+}
+
+/* Loading skeleton */
+.hero-skeleton {
+  width: 100%;
+  height: 240px;
+  background: #f8fafc;
+}
+
+@media (min-width: 768px) {
+  .hero-skeleton {
+    height: 420px;
+  }
+}
