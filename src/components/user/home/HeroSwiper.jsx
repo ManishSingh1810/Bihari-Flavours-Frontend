@@ -89,19 +89,12 @@ function ResponsiveHeroImage({ src, srcMobile, alt, loading, fetchpriority, clas
  * }
  */
 export default function HeroSwiper() {
+  // Use only 1 default slide to avoid carousel when no backend images
   const defaultSlides = useMemo(
     () => [
       {
         id: "s1",
         image: hero1,
-      },
-      {
-        id: "s2",
-        image: hero2,
-      },
-      {
-        id: "s3",
-        image: hero3,
       },
     ],
     []
@@ -113,13 +106,18 @@ export default function HeroSwiper() {
 
   const normalize = (arr) => {
     if (!Array.isArray(arr)) return null;
-    return defaultSlides.map((s, i) => {
-      const fromApi = arr[i] || {};
+    
+    // If backend returns multiple slides, use them all
+    // If backend returns 1 slide, use just that one
+    // This allows flexibility: admin can upload 1 or multiple images
+    const slidesToUse = arr.length > 0 ? arr : defaultSlides;
+    
+    return slidesToUse.map((fromApi, i) => {
       const imageUrl = fromApi.imageUrl || fromApi.image || fromApi.url;
       const imageUrlMobile = fromApi.imageUrlMobile || fromApi.imageMobile || null;
       return { 
-        ...s, 
-        image: imageUrl || s.image,
+        id: fromApi.id || `slide-${i}`,
+        image: imageUrl || defaultSlides[0]?.image,
         imageMobile: imageUrlMobile, // Mobile-optimized version (optional)
       };
     });
@@ -243,7 +241,7 @@ export default function HeroSwiper() {
                   src={slides[0].image}
                   srcMobile={slides[0].imageMobile}
                   alt="Bihari Flavours"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="h-full w-full object-contain"
                   loading="eager"
                   fetchpriority="high"
                 />
@@ -273,12 +271,12 @@ export default function HeroSwiper() {
                 {slides.map((s, idx) => (
                   <SwiperSlide key={s.id}>
                     <div className="relative h-full bg-[#F8FAFC]">
-                      {/* Full-bleed hero image with responsive mobile support */}
+                      {/* Full hero image - shows complete image without cropping */}
                       <ResponsiveHeroImage
                         src={s.image}
                         srcMobile={s.imageMobile}
                         alt="Bihari Flavours"
-                        className="absolute inset-0 h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                         loading={idx === 0 ? "eager" : "lazy"}
                         fetchpriority={idx === 0 ? "high" : "auto"}
                       />
