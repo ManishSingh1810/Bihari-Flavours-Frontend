@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Instagram, Heart, Mail, Clock, Phone, MapPin, ExternalLink } from 'lucide-react';
 import { Link } from "react-router-dom";
 
+
 const Footer = () => {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -205,6 +206,7 @@ const Footer = () => {
 };
 
 export default Footer;
+
 
 
 
