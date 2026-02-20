@@ -153,17 +153,32 @@ h6 {
 .hero-swiper .swiper-wrapper,
 .hero-swiper .swiper-slide {
   height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
-.hero-swiper .swiper-slide > div {
+.hero-swiper .swiper-slide > * {
   height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
 .hero-swiper img,
 .hero-swiper picture {
-  display: block;
-  width: 100%;
+  display: block !important;
+  width: 100% !important;
   height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
   object-fit: contain !important;
-  object-position: center;
+  object-position: center !important;
+}
+
+/* Prevent any parent container from limiting hero height */
+section[aria-label="Homepage hero"],
+section[aria-label="Homepage hero"] > *,
+section[aria-label="Homepage hero"] img {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }

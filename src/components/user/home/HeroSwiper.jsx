@@ -32,11 +32,13 @@ function ResponsiveHeroImage({
       draggable="false"
       loading={loading}
       fetchPriority={fetchpriority}
-      className={cn("block w-full h-auto", className)}
+      className="block w-full"
       // Inline style beats many global/swiper css overrides (even if they set object-fit elsewhere)
       style={{
         width: "100%",
         height: "auto",
+        minHeight: 0,
+        maxHeight: "none",
         objectFit: "contain",
         objectPosition: "center",
         display: "block",
@@ -47,7 +49,16 @@ function ResponsiveHeroImage({
   if (!srcMobile) return imgEl;
 
   return (
-    <picture className="block w-full">
+    <picture 
+      className="block w-full"
+      style={{
+        width: "100%",
+        height: "auto",
+        minHeight: 0,
+        maxHeight: "none",
+        display: "block",
+      }}
+    >
       <source media="(max-width: 768px)" srcSet={srcMobile} />
       {imgEl}
     </picture>
@@ -181,12 +192,22 @@ export default function HeroSwiper() {
       className="relative w-full bg-white"
       aria-roledescription="carousel"
       aria-label="Homepage hero"
+      style={{
+        height: "auto",
+        minHeight: 0,
+        maxHeight: "none",
+      }}
     >
       <div
         className={cn(
           "w-full transition-opacity duration-300",
           visible ? "opacity-100" : "opacity-0"
         )}
+        style={{
+          height: "auto",
+          minHeight: 0,
+          maxHeight: "none",
+        }}
       >
         {slides && slides.length > 0 ? (
           slides.length === 1 ? (
