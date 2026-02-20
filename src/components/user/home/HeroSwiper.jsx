@@ -225,8 +225,8 @@ export default function HeroSwiper() {
       aria-roledescription="carousel"
       aria-label="Homepage hero"
     >
-      {/* Fixed heights to minimize CLS */}
-      <div className="relative h-[280px] sm:h-[380px] md:h-[440px] lg:h-[500px] xl:h-[560px]">
+      {/* Responsive aspect ratio - shows full image without cropping */}
+      <div className="relative w-full aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5] lg:aspect-[21/6] bg-[#F8FAFC]">
         {slides && slides.length > 0 ? (
           <div
             className={cn(
@@ -236,12 +236,12 @@ export default function HeroSwiper() {
           >
             {/* SINGLE SLIDE: Show as static image (no Swiper overhead) */}
             {slides.length === 1 ? (
-              <div className="relative h-full bg-[#F8FAFC]">
+              <div className="relative h-full w-full">
                 <ResponsiveHeroImage
                   src={slides[0].image}
                   srcMobile={slides[0].imageMobile}
                   alt="Bihari Flavours"
-                  className="h-full w-full object-cover object-center"
+                  className="w-full h-full object-contain"
                   loading="eager"
                   fetchpriority="high"
                 />
@@ -270,13 +270,13 @@ export default function HeroSwiper() {
               >
                 {slides.map((s, idx) => (
                   <SwiperSlide key={s.id}>
-                    <div className="relative h-full bg-[#F8FAFC]">
-                      {/* Full hero image - fills container for prominent display */}
+                    <div className="relative h-full w-full">
+                      {/* Full hero image - shows entire image without cropping */}
                       <ResponsiveHeroImage
                         src={s.image}
                         srcMobile={s.imageMobile}
                         alt="Bihari Flavours"
-                        className="h-full w-full object-cover object-center"
+                        className="w-full h-full object-contain"
                         loading={idx === 0 ? "eager" : "lazy"}
                         fetchpriority={idx === 0 ? "high" : "auto"}
                       />
