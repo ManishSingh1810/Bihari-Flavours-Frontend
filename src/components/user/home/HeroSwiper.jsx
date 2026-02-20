@@ -14,6 +14,51 @@ function cn(...xs) {
 }
 
 /**
+ * ResponsiveHeroImage - Automatically serves mobile/desktop images
+ * Uses <picture> element for native browser optimization
+ * 
+ * @param {string} src - Desktop image URL
+ * @param {string} srcMobile - Mobile-optimized image URL (optional)
+ * @param {string} alt - Alt text
+ * @param {string} loading - 'eager' or 'lazy'
+ * @param {string} fetchpriority - 'high' or 'auto'
+ */
+function ResponsiveHeroImage({ src, srcMobile, alt, loading, fetchpriority, className }) {
+  // If no mobile version provided, use desktop for both
+  if (!srcMobile) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        draggable="false"
+        loading={loading}
+        fetchPriority={fetchpriority}
+      />
+    );
+  }
+
+  // Use <picture> element for responsive images (best practice)
+  return (
+    <picture>
+      {/* Mobile: Load optimized version for screens ≤ 768px */}
+      <source media="(max-width: 768px)" srcSet={srcMobile} />
+      
+      {/* Desktop: Load full resolution */}
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        draggable="false"
+        loading={loading}
+        fetchPriority={fetchpriority}
+      />
+    </picture>
+  );
+}
+
+
+/**
  * HeroSwiper Component
  * 
  * Displays homepage hero images with smart rendering:
@@ -27,6 +72,20 @@ function cn(...xs) {
  * - Caches slides in localStorage for instant subsequent loads
  * - Preloads first image before display to prevent flash
  * - Optimized for mobile with responsive heights
+ * - Supports mobile-optimized images (imageUrlMobile) for faster mobile loads
+ * 
+ * Backend Response Format:
+ * {
+ *   "heroSlides": [
+ *     {
+ *       "imageUrl": "https://...desktop.jpg",
+ *       "imageUrlMobile": "https://...mobile-768x1024.jpg",  // Optional
+ *       "title": "Hero title",
+ *       "subtitle": "Subtitle",
+ *       "link": "https://..."
+ *     }
+ *   ]
+ * }
  */
 export default function HeroSwiper() {
   const defaultSlides = useMemo(
@@ -56,7 +115,12 @@ export default function HeroSwiper() {
     return defaultSlides.map((s, i) => {
       const fromApi = arr[i] || {};
       const imageUrl = fromApi.imageUrl || fromApi.image || fromApi.url;
-      return { ...s, image: imageUrl || s.image };
+      const imageUrlMobile = fromApi.imageUrlMobile || fromApi.imageMobile || null;
+      return { 
+        ...s, 
+        image: imageUrl || s.image,
+        imageMobile: imageUrlMobile, // Mobile-optimized version (optional)
+      };
     });
   };
 
@@ -174,11 +238,11 @@ export default function HeroSwiper() {
             {/* SINGLE SLIDE: Show as static image (no Swiper overhead) */}
             {slides.length === 1 ? (
               <div className="relative h-full bg-[#F8FAFC]">
-                <img
+                <ResponsiveHeroImage
                   src={slides[0].image}
+                  srcMobile={slides[0].imageMobile}
                   alt="Bihari Flavours"
                   className="absolute inset-0 h-full w-full object-cover"
-                  draggable="false"
                   loading="eager"
                   fetchpriority="high"
                 />
@@ -208,12 +272,12 @@ export default function HeroSwiper() {
                 {slides.map((s, idx) => (
                   <SwiperSlide key={s.id}>
                     <div className="relative h-full bg-[#F8FAFC]">
-                      {/* Full-bleed hero image (reference style) */}
-                      <img
+                      {/* Full-bleed hero image with responsive mobile support */}
+                      <ResponsiveHeroImage
                         src={s.image}
+                        srcMobile={s.imageMobile}
                         alt="Bihari Flavours"
                         className="absolute inset-0 h-full w-full object-cover"
-                        draggable="false"
                         loading={idx === 0 ? "eager" : "lazy"}
                         fetchpriority={idx === 0 ? "high" : "auto"}
                       />
