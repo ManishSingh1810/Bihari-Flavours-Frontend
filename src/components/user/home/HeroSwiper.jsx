@@ -4,7 +4,6 @@ import { Autoplay, Pagination, Navigation, A11y } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-
 import api from "../../../api/axios";
 import hero1 from "../../../assets/hero.jpg";
 import hero2 from "../../../assets/hero.png";
