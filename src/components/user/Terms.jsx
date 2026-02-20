@@ -87,8 +87,8 @@ export default function Terms() {
               </a>
               <br />
               Phone:{" "}
-              <a className="text-[#8E1B1B] hover:underline" href="tel:+9185211754329">
-                +91 85211 754329
+              <a className="text-[#8E1B1B] hover:underline" href="tel:+918521754329">
+                +91 8521754329
               </a>
               <br />
               Hours: Monday – Friday, 9:00 AM to 6:00 PM

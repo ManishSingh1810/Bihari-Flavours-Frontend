@@ -79,7 +79,7 @@ const Footer = () => {
 
               {/* WhatsApp */}
               <motion.a
-                href="https://wa.me/9185211754329"
+                href="https://wa.me/918521754329"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.1 }}
@@ -115,10 +115,10 @@ const Footer = () => {
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-[#8E1B1B]" />
                 <a
-                  href="tel:+9185211754329"
+                  href="tel:+918521754329"
                   className="hover:text-[#8E1B1B] transition"
                 >
-                  +91 85211 754329
+                  +91 8521754329
                 </a>
               </li>
               <li className="flex items-center gap-3">
