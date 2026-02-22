@@ -154,7 +154,7 @@ const OrderDetailModal = ({ order, onClose, onStatusUpdate }) => {
 
               <p className="flex items-start gap-2 text-[#6F675E]">
                 <MapPin size={14} />
-                {shipping.street}, {shipping.city}, {shipping.state}
+                {shipping.street}, {shipping.city}, {shipping.state} - {shipping.postalCode}
               </p>
             </div>
           </div>
