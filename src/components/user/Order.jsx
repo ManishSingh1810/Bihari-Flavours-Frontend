@@ -19,18 +19,22 @@ const statusInfo = {
   Delivered: {
     icon: <CheckCircle className="h-5 w-5 text-[#1F7A3F]" />,
     color: 'text-[#1F7A3F]',
+    displayText: 'Delivered',
   },
   Shipped: {
     icon: <Truck className="h-5 w-5 text-[#1F4E79]" />,
     color: 'text-[#1F4E79]',
+    displayText: 'Shipped',
   },
   Pending: {
-    icon: <Package className="h-5 w-5 text-[#8E1B1B]" />,
-    color: 'text-[#8E1B1B]',
+    icon: <CheckCircle className="h-5 w-5 text-[#1F7A3F]" />,
+    color: 'text-[#1F7A3F]',
+    displayText: 'Confirmed',
   },
   Processing: {
-    icon: <Package className="h-5 w-5 text-[#8E1B1B]" />,
-    color: 'text-[#8E1B1B]',
+    icon: <CheckCircle className="h-5 w-5 text-[#1F7A3F]" />,
+    color: 'text-[#1F7A3F]',
+    displayText: 'Confirmed',
   },
 };
 
@@ -85,7 +89,19 @@ const OrderDetailsModal = ({ order, onClose }) => {
               <h3 className="mb-2 font-semibold text-[#1F1B16]">Order Status</h3>
               <div className="rounded-md border border-[rgba(142,27,27,0.1)] bg-white p-3">
                 <p className="text-[#6F675E] text-[11px] uppercase">Current State</p>
-                <p className="font-medium text-[#1F4E79]">{order.orderStatus}</p>
+                <p className="font-medium text-[#1F4E79]">
+                  {statusInfo[order.orderStatus]?.displayText || order.orderStatus}
+                </p>
+                {(order.orderStatus === "Pending" || order.orderStatus === "Processing") && (
+                  <p className="text-[10px] text-[#6F675E] mt-1.5">
+                    Estimated delivery: 5-7 days
+                  </p>
+                )}
+                {order.orderStatus === "Shipped" && (
+                  <p className="text-[10px] text-[#6F675E] mt-1.5">
+                    Arriving soon
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -142,7 +158,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
 
 /* ---------------- Order Card ---------------- */
 const OrderItem = ({ order, onSelect }) => {
-  const { icon, color } = statusInfo[order.orderStatus] || statusInfo.Pending;
+  const { icon, color, displayText } = statusInfo[order.orderStatus] || statusInfo.Pending;
   
   // Using completedAt from your Schema
   const displayDate = order.completedAt || order.createdAt;
@@ -185,7 +201,7 @@ const OrderItem = ({ order, onSelect }) => {
         <div className="flex items-center gap-2">
           {icon}
           <span className={`text-sm font-bold uppercase tracking-tight ${color}`}>
-            {order.orderStatus}
+            {displayText || order.orderStatus}
           </span>
         </div>
         <div className="flex items-center gap-1 text-xs text-[#6F675E] font-medium">

@@ -138,9 +138,9 @@ export default function ProductCard({
                 </p>
               </div>
             ) : (
-              <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
-                {formatRs(displayPrice)}
-              </p>
+          <p className="text-[13px] sm:text-base font-semibold tabular-nums text-[#0F172A]">
+            {formatRs(displayPrice)}
+          </p>
             )}
           </div>
 
