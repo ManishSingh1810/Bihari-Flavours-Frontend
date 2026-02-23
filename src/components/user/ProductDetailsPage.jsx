@@ -11,6 +11,7 @@ import ReviewSection from "./pdp/ReviewSection.jsx";
 import RecommendedProducts from "./pdp/RecommendedProducts.jsx";
 import { getDefaultVariantLabel, getVariantByLabel } from "../../utils/variants.js";
 
+
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
