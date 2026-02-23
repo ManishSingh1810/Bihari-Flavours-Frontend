@@ -62,6 +62,8 @@ const App = () => {
         <Route path="cart" element={<Cart />} />
         <Route path="order" element={<Order />} />
         <Route path="product/:id" element={<ProductDetailsPage />} />
+        {/* ✅ Support plural route for email links from backend */}
+        <Route path="products/:id" element={<ProductDetailsPage />} />
    
 
 
