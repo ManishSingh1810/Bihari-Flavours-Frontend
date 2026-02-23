@@ -82,8 +82,6 @@ const OrderDetailsModal = ({ order, onClose }) => {
               <div className="rounded-md border border-[rgba(142,27,27,0.1)] bg-white p-3">
                 <p className="text-[#6F675E] text-[11px] uppercase">Method</p>
                 <p className="font-medium">{order.paymentMethod}</p>
-                <p className="text-[#6F675E] text-[11px] uppercase mt-2">Status</p>
-                <p className="font-medium text-[#8E1B1B]">{order.paymentStatus}</p>
               </div>
             </div>
             <div>
