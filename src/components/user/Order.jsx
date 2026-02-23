@@ -88,7 +88,12 @@ const OrderDetailsModal = ({ order, onClose }) => {
             <div>
               <h3 className="mb-2 font-semibold text-[#1F1B16]">Order Status</h3>
               <div className="rounded-md border border-[rgba(142,27,27,0.1)] bg-white p-3">
-                <p className="text-[#6F675E] text-[11px] uppercase">Current State</p>
+                <p className="text-[#6F675E] text-[11px] uppercase">Status</p>
+                <p className="font-medium text-[#1F7A3F] flex items-center gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Confirmed
+                </p>
+                <p className="text-[#6F675E] text-[11px] uppercase mt-2">Order State</p>
                 <p className="font-medium text-[#1F4E79]">
                   {statusInfo[order.orderStatus]?.displayText || order.orderStatus}
                 </p>
@@ -198,11 +203,19 @@ const OrderItem = ({ order, onSelect }) => {
       </div>
 
       <div className="mt-5 flex justify-between items-center border-t border-[rgba(142,27,27,0.1)] pt-4">
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className={`text-sm font-bold uppercase tracking-tight ${color}`}>
-            {displayText || order.orderStatus}
-          </span>
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-[#1F7A3F]" />
+            <span className="text-xs font-bold uppercase tracking-tight text-[#1F7A3F]">
+              Confirmed
+            </span>
+          </div>
+          <div className="flex items-center gap-2 ml-6">
+            {icon}
+            <span className={`text-xs font-medium ${color}`}>
+              {displayText || order.orderStatus}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-1 text-xs text-[#6F675E] font-medium">
           <span>{order.items?.length} Items</span>
