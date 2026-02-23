@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { useUser } from "../../Context/userContext";
@@ -14,6 +14,8 @@ import { getDefaultVariantLabel, getVariantByLabel } from "../../utils/variants.
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const reviewSectionRef = useRef(null);
 
   
   const [product, setProduct] = useState(null);
@@ -81,6 +83,22 @@ export default function ProductDetailsPage() {
       mounted = false;
     };
   }, [id]);
+
+  // Auto-scroll to reviews if ?review=true in URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const shouldScrollToReview = params.get('review') === 'true';
+    
+    if (shouldScrollToReview && reviewSectionRef.current && !loading) {
+      // Wait a bit for the page to fully render
+      setTimeout(() => {
+        reviewSectionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 500);
+    }
+  }, [location.search, loading]);
 
   const images = useMemo(() => {
     if (!product) return [];
@@ -239,7 +257,9 @@ export default function ProductDetailsPage() {
         />
 
         {/* Reviews (always visible) */}
-        <ReviewSection productId={product._id} />
+        <div ref={reviewSectionRef}>
+          <ReviewSection productId={product._id} />
+        </div>
 
         <RecommendedProducts
           title="You may also like"
