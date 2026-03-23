@@ -35,8 +35,8 @@ function Stars({ value }) {
 function getLocation(r) {
   // Try multiple possible field names for location
   const raw =
+    r?.location ||      // ✅ Backend uses this field (but it's empty!)
     r?.city ||
-    r?.location ||
     r?.userCity ||
     r?.userLocation ||
     r?.address?.city ||
@@ -50,9 +50,9 @@ function getLocation(r) {
 function getUserName(r) {
   // Try multiple possible field names for user name
   const raw =
+    r?.customerName ||  // ✅ Backend uses this field
     r?.userName ||
     r?.name ||
-    r?.customerName ||
     r?.user?.name ||
     r?.user?.userName ||
     r?.userId?.name ||
