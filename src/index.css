@@ -210,3 +210,74 @@ h6 {
     height: 420px;
   }
 }
+
+/* ======================== Reviews Carousel Styles ======================== */
+
+.reviews-carousel-container {
+  position: relative;
+}
+
+.reviews-swiper {
+  padding-bottom: 50px; /* Space for pagination dots */
+}
+
+/* Swiper pagination (dots) */
+.reviews-swiper .swiper-pagination {
+  bottom: 0 !important;
+}
+
+.reviews-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: #cbd5e1;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.reviews-swiper .swiper-pagination-bullet-active {
+  background: #8e1b1b;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Swiper navigation arrows */
+.reviews-swiper .swiper-button-prev,
+.reviews-swiper .swiper-button-next {
+  color: #8e1b1b;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.reviews-swiper .swiper-button-prev:hover,
+.reviews-swiper .swiper-button-next:hover {
+  background: #f8fafc;
+  border-color: #8e1b1b;
+}
+
+.reviews-swiper .swiper-button-prev::after,
+.reviews-swiper .swiper-button-next::after {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Hide navigation arrows on mobile */
+@media (max-width: 768px) {
+  .reviews-swiper .swiper-button-prev,
+  .reviews-swiper .swiper-button-next {
+    display: none;
+  }
+}
+
+/* Ensure equal height for all review cards */
+.reviews-swiper .swiper-slide {
+  height: auto;
+  display: flex;
+}
+
+.reviews-swiper .swiper-slide > div {
+  width: 100%;
+}
