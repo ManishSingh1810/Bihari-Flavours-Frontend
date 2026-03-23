@@ -98,13 +98,16 @@ export default function ReviewsCarousel({ products }) {
     }
     return [];
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start as true to show loading state
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    // If we have fresh cache, use it.
+    // If we have fresh cache, use it and don't fetch
     if (Date.now() - HOME_ALL_REVIEWS_CACHE.ts < HOME_ALL_REVIEWS_TTL_MS && reviews.length > 0) {
+      setLoading(false);
+      setHasFetched(true);
       return () => {
         mounted = false;
       };
@@ -112,7 +115,13 @@ export default function ReviewsCarousel({ products }) {
 
     // Fetch ALL reviews from all products
     (async () => {
-      if (!products || products.length === 0) return;
+      if (!products || products.length === 0) {
+        if (mounted) {
+          setLoading(false);
+          setHasFetched(true);
+        }
+        return;
+      }
 
       try {
         setLoading(true);
@@ -160,9 +169,15 @@ export default function ReviewsCarousel({ products }) {
 
         // Cache and update
         HOME_ALL_REVIEWS_CACHE = { ts: Date.now(), reviews: filtered };
-        if (mounted) setReviews(filtered);
+        if (mounted) {
+          setReviews(filtered);
+          setHasFetched(true);
+        }
       } catch {
-        if (mounted) setReviews([]);
+        if (mounted) {
+          setReviews([]);
+          setHasFetched(true);
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -173,8 +188,8 @@ export default function ReviewsCarousel({ products }) {
     };
   }, [products, reviews.length]);
 
-  // If no reviews yet, hide this section (no fake testimonials)
-  if (!loading && (!reviews || reviews.length === 0)) return null;
+  // Only hide section after we've fetched and confirmed there are no reviews
+  if (hasFetched && !loading && (!reviews || reviews.length === 0)) return null;
 
   const container = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
 
