@@ -15,6 +15,7 @@ import ProductCard from "./product/ProductCard.jsx";
 import { getDefaultVariantLabel } from "../../utils/variants.js";
 
 
+
 /* ----------------------- Helpers ----------------------- */
 const logoutUser = () => {
   localStorage.removeItem("authToken");
