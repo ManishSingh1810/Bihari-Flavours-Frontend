@@ -33,6 +33,7 @@ function Stars({ value }) {
 }
 
 function getLocation(r) {
+  // Try multiple possible field names for location
   const raw =
     r?.city ||
     r?.location ||
@@ -41,8 +42,22 @@ function getLocation(r) {
     r?.address?.city ||
     r?.user?.city ||
     r?.user?.location ||
+    r?.user?.address?.city ||
     "";
   return String(raw || "").trim();
+}
+
+function getUserName(r) {
+  // Try multiple possible field names for user name
+  const raw =
+    r?.userName ||
+    r?.name ||
+    r?.customerName ||
+    r?.user?.name ||
+    r?.user?.userName ||
+    r?.userId?.name ||
+    "";
+  return String(raw || "Customer").trim() || "Customer";
 }
 
 function ReviewCard({ review, skeleton = false }) {
@@ -67,8 +82,16 @@ function ReviewCard({ review, skeleton = false }) {
 
   const location = getLocation(review);
   const text = String(review?.comment || "").trim();
-  const name = review?.userName || "Customer";
+  const name = getUserName(review);
   const rating = review?.rating || 5;
+
+  // Debug log to see what data we're getting
+  console.log('Review data:', { 
+    name, 
+    location, 
+    rawReview: review,
+    allFields: Object.keys(review || {})
+  });
 
   return (
     <div className="h-full rounded-3xl border border-black/5 bg-white p-6 shadow-sm flex flex-col">
@@ -222,18 +245,19 @@ export default function ReviewsCarousel({ products }) {
               modules={[Autoplay, Pagination, Navigation, A11y]}
               spaceBetween={16}
               slidesPerView={1}
-              loop={reviews.length > 3}
+              loop={reviews.length > 1} // Enable loop if more than 1 review
               speed={600}
               autoplay={{
                 delay: 4000,
                 disableOnInteraction: false,
                 pauseOnMouseEnter: true,
+                waitForTransition: true,
               }}
               pagination={{
                 clickable: true,
                 dynamicBullets: true,
               }}
-              navigation={reviews.length > 3}
+              navigation={reviews.length > 1} // Show arrows if more than 1 review
               breakpoints={{
                 640: {
                   slidesPerView: 1,
