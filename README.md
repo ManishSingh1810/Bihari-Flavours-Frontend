@@ -3,12 +3,12 @@
 Modern e-commerce storefront for Bihari Flavours.
 
 ## Features
-- 🛍️ Product catalog with variants support
-- 💰 Discount pricing with MRP display
-- 🛒 Shopping cart functionality
-- 📱 Mobile-responsive design
-- 🎨 Modern UI with Tailwind CSS
-- ⚡ Built with Vite + React
+- Product catalog with variants support
+- Discount pricing with MRP display
+- Shopping cart functionality
+- Mobile-responsive design
+- Modern UI with Tailwind CSS
+- Built with Vite + React
 
 ## Tech Stack
 - **Framework**: React 18 with Vite
