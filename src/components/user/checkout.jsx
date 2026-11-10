@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,12 @@ import {
   Timer
 } from "lucide-react";
 import api from "../../api/axios";
+import {
+  DEFAULT_STORE_SETTINGS,
+  formatINR,
+  loadPublicStoreSettings,
+  quoteFromSettings,
+} from "../../utils/storeSettings";
 import toast from "react-hot-toast";
 import { showActionToast } from "../ui/showActionToast.jsx";
 import Card from "../ui/Card.jsx";
@@ -50,11 +56,12 @@ function TrustChip({ icon, text }) {
   );
 }
 
-function PaymentOption({ checked, title, subtitle, onChange, badge }) {
+function PaymentOption({ checked, title, subtitle, onChange, badge, disabled = false }) {
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-start justify-between gap-4 rounded-2xl bg-white p-4 ring-1 transition",
+        "flex items-start justify-between gap-4 rounded-2xl bg-white p-4 ring-1 transition",
+        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
         checked ? "ring-[rgba(142,27,27,0.35)] shadow-[0_10px_30px_rgba(15,23,42,0.08)]" : "ring-black/10 hover:ring-black/20"
       )}
     >
@@ -63,6 +70,7 @@ function PaymentOption({ checked, title, subtitle, onChange, badge }) {
           type="radio"
           checked={checked}
           onChange={onChange}
+          disabled={disabled}
           className="mt-1 accent-[#8E1B1B]"
           aria-label={title}
         />
@@ -115,21 +123,29 @@ const Checkout = ({ cart, setShowCheckout }) => {
   const [couponApplied, setCouponApplied] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [storeSettings, setStoreSettings] = useState(DEFAULT_STORE_SETTINGS);
+  const [serverQuote, setServerQuote] = useState(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const clientRequestIdRef = useRef(
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `chk_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  );
 
-  /* ================= CHARGES ================= */
-  const COD_CHARGE = 30;
-
-  const shippingCharge =
-    paymentMethod === "COD" ? COD_CHARGE : 0;
-
-  const discountAmount = couponApplied
-    ? Math.floor(
-        (cart.totalAmount * couponApplied.discountPercentage) / 100
-      )
-    : 0;
-
-  const finalTotal =
-    cart.totalAmount + shippingCharge - discountAmount;
+  const localQuote = useMemo(
+    () =>
+      quoteFromSettings(storeSettings, {
+        subtotal: cart?.totalAmount || 0,
+        discountPercentage: couponApplied?.discountPercentage || 0,
+        paymentMethod,
+      }),
+    [cart, couponApplied, paymentMethod, storeSettings]
+  );
+  const activeQuote =
+    serverQuote && serverQuote.paymentMethod === paymentMethod ? serverQuote : localQuote;
+  const quoteIssues = activeQuote.issues || [];
+  const finalTotal = activeQuote.payableAmount;
 
   /* ================= FORM ================= */
   const {
@@ -150,6 +166,64 @@ const Checkout = ({ cart, setShowCheckout }) => {
   });
 
   const watchedPincode = watch("pincode");
+
+  useEffect(() => {
+    let active = true;
+    loadPublicStoreSettings()
+      .then((settings) => {
+        if (active) setStoreSettings(settings);
+      })
+      .catch(() => {
+        // Keep the live defaults: no delivery fee, ₹30 COD.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (paymentMethod === "COD" && !storeSettings.cod.enabled && storeSettings.checkout.onlinePaymentsEnabled) {
+      setPaymentMethod("ONLINE");
+    }
+    if (paymentMethod === "ONLINE" && !storeSettings.checkout.onlinePaymentsEnabled && storeSettings.cod.enabled) {
+      setPaymentMethod("COD");
+    }
+  }, [paymentMethod, storeSettings]);
+
+  useEffect(() => {
+    if (!cart?.cartItems?.length) return undefined;
+    let active = true;
+    setQuoteLoading(true);
+    const handle = setTimeout(async () => {
+      try {
+        const items = cart.cartItems.map((it) => ({
+          productId: it.productId,
+          quantity: it.quantity,
+          variantLabel: it.variantLabel || "",
+        }));
+        const res = await api.post(
+          "/orders/quote",
+          {
+            items,
+            paymentMethod,
+            couponCode: couponApplied?.code || null,
+          },
+          { skipErrorToast: true }
+        );
+        if (!active) return;
+        setServerQuote(res.data?.quote || null);
+        setNeedsConfirmation(false);
+      } catch {
+        if (active) setServerQuote(null);
+      } finally {
+        if (active) setQuoteLoading(false);
+      }
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(handle);
+    };
+  }, [cart, paymentMethod, couponApplied]);
 
   /* ================= LOCK SCROLL ================= */
   useEffect(() => {
@@ -271,19 +345,16 @@ toast.error(msg);
   };
 
   /* ================= SUBMIT ================= */
-  const onSubmit = async (data) => {
-    try {
-      setLoading(true);
-      setError("");
+  const placeOrder = async (data, expectedPayablePaise) => {
+    const items = (cart?.cartItems || []).map((it) => ({
+      productId: it.productId,
+      quantity: it.quantity,
+      variantLabel: it.variantLabel || "",
+    }));
 
-      // Send minimal line items (backend will calculate price safely)
-      const items = (cart?.cartItems || []).map((it) => ({
-        productId: it.productId,
-        quantity: it.quantity,
-        variantLabel: it.variantLabel || "",
-      }));
-
-      const orderPayload = {
+    const res = await api.post(
+      "/orders/create",
+      {
         items,
         shippingAddress: {
           name: data.name,
@@ -291,44 +362,94 @@ toast.error(msg);
           street: data.address,
           city: data.city,
           state: data.state,
-          postalCode: data.pincode
+          postalCode: data.pincode,
         },
         paymentMethod,
-        shippingCharge,
         couponCode: couponApplied?.code || null,
-        discountAmount,
-        totalAmount: finalTotal
-      };
+        expectedPayablePaise,
+        clientRequestId: clientRequestIdRef.current,
+      },
+      { skipErrorToast: true }
+    );
 
-      const res = await api.post("/orders/create", orderPayload);
+    if (!res.data?.success) {
+      throw new Error(res.data?.message || "Checkout failed");
+    }
 
-      if (paymentMethod === "COD") {
-        showActionToast({
-          title: "Order placed",
-          message: "Thanks! Your order was placed successfully.",
-          actionLabel: "View order",
-          onAction: () => {
-            setShowCheckout(false);
-            navigate("/order");
-          },
-          duration: 3500,
-        });
-
-  setTimeout(() => {
-    setShowCheckout(false);
+    if (paymentMethod === "COD") {
+      showActionToast({
+        title: "Order placed",
+        message: "Thanks! Your order was placed successfully.",
+        actionLabel: "View order",
+        onAction: () => {
+          setShowCheckout(false);
           navigate("/order");
-        }, 800);
-      } else {
-        await handleRazorpayPayment(res.data);
-      }
+        },
+        duration: 3500,
+      });
+      setTimeout(() => {
+        setShowCheckout(false);
+        navigate("/order");
+      }, 800);
+      return;
+    }
+
+    await handleRazorpayPayment(res.data);
+  };
+
+  const onSubmit = async (data) => {
+    if (quoteIssues.length) {
+      setError(quoteIssues[0].message);
+      toast.error(quoteIssues[0].message);
+      return;
+    }
+
+    const expected =
+      serverQuote && serverQuote.paymentMethod === paymentMethod
+        ? serverQuote.amountPaise
+        : localQuote.amountPaise;
+
+    try {
+      setLoading(true);
+      setError("");
+      setNeedsConfirmation(false);
+      await placeOrder(data, expected);
     } catch (err) {
       const status = err?.response?.status;
+      const body = err?.response?.data;
       if (status === 401 || status === 403) return logoutUser();
-      const msg = err.response?.data?.message || "Checkout failed";
-setError(msg);
-toast.error(msg);
-setLoading(false);
+      if (status === 409 && body?.code === "QUOTE_CHANGED" && body.quote) {
+        setServerQuote(body.quote);
+        setNeedsConfirmation(true);
+        setError("The payable amount changed. Review the updated total and confirm.");
+        setLoading(false);
+        return;
+      }
+      const msg = body?.message || err.message || "Checkout failed";
+      setError(msg);
+      toast.error(msg);
+      setLoading(false);
     }
+  };
+
+  const confirmUpdatedTotal = () => {
+    if (!serverQuote) return;
+    handleSubmit(async (data) => {
+      try {
+        setLoading(true);
+        setError("");
+        setNeedsConfirmation(false);
+        await placeOrder(data, serverQuote.amountPaise);
+      } catch (err) {
+        const status = err?.response?.status;
+        const body = err?.response?.data;
+        if (status === 401 || status === 403) return logoutUser();
+        const msg = body?.message || err.message || "Checkout failed";
+        setError(msg);
+        toast.error(msg);
+        setLoading(false);
+      }
+    })();
   };
 
   if (!cart?.cartItems?.length) return null;
@@ -372,6 +493,13 @@ setLoading(false);
           </div>
 
           <div className="px-5 pb-6 pt-5 sm:px-7">
+            {storeSettings.checkout.notice ? (
+              <div className="mb-4 flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                <p className="whitespace-pre-wrap">{storeSettings.checkout.notice}</p>
+              </div>
+            ) : null}
+
             {error ? (
               <div className="mb-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100">
                 <AlertCircle className="mt-0.5 h-4 w-4" />
@@ -481,28 +609,38 @@ setLoading(false);
                     <PaymentOption
                       checked={paymentMethod === "ONLINE"}
                       title="Online payment"
-                      subtitle="UPI / Cards / Netbanking via Razorpay"
+                      subtitle={
+                        storeSettings.checkout.onlinePaymentsEnabled
+                          ? "UPI / Cards / Netbanking via Razorpay"
+                          : "Online payment is unavailable"
+                      }
                       badge="Recommended"
+                      disabled={!storeSettings.checkout.onlinePaymentsEnabled}
                       onChange={() => setPaymentMethod("ONLINE")}
                     />
 
                     <PaymentOption
-                  checked={paymentMethod === "COD"}
-                      title={`Cash on delivery`}
-                      subtitle={`Pay when you receive (+Rs. ${COD_CHARGE} COD fee)`}
-                  onChange={() => setPaymentMethod("COD")}
-                />
+                      checked={paymentMethod === "COD"}
+                      title="Cash on delivery"
+                      subtitle={
+                        storeSettings.cod.enabled
+                          ? `Pay when you receive (+${formatINR(storeSettings.cod.handlingFee)} COD fee)`
+                          : "Cash on delivery is unavailable"
+                      }
+                      disabled={!storeSettings.cod.enabled}
+                      onChange={() => setPaymentMethod("COD")}
+                    />
                   </div>
 
-                  {paymentMethod === "COD" ? (
+                  {paymentMethod === "COD" && storeSettings.cod.enabled && storeSettings.cod.handlingFee > 0 ? (
                     <div className="mt-4 flex items-start gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-800 ring-1 ring-blue-100">
-                      <Info className="mt-0.5 h-4 w-4" /> Pay online to save Rs. {COD_CHARGE}.
+                      <Info className="mt-0.5 h-4 w-4" /> Pay online to save {formatINR(storeSettings.cod.handlingFee)}.
                     </div>
-                  ) : (
+                  ) : paymentMethod === "ONLINE" ? (
                     <div className="mt-4 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-xs text-emerald-800 ring-1 ring-emerald-100">
                       <ShieldCheck className="mt-0.5 h-4 w-4" /> Secure checkout powered by Razorpay.
-            </div>
-                  )}
+                    </div>
+                  ) : null}
                 </Card>
           </div>
 
@@ -574,38 +712,77 @@ setLoading(false);
 
                   <div className="mt-5 space-y-2 text-sm">
                     <div className="flex justify-between text-slate-700 tabular-nums">
-                <span>Subtotal</span>
-                      <span>Rs. {cart.totalAmount}</span>
-              </div>
-                    <div className="flex justify-between text-slate-700 tabular-nums">
-                      <span>COD fee</span>
-                      <span>Rs. {shippingCharge}</span>
-              </div>
-                    {couponApplied ? (
+                      <span>Subtotal</span>
+                      <span>{formatINR(activeQuote.subtotal)}</span>
+                    </div>
+                    {activeQuote.couponDiscount > 0 ? (
                       <div className="flex justify-between text-emerald-700 tabular-nums">
-                  <span>Discount</span>
-                        <span>-Rs. {discountAmount}</span>
-                </div>
+                        <span>Discount</span>
+                        <span>-{formatINR(activeQuote.couponDiscount)}</span>
+                      </div>
+                    ) : null}
+                    {storeSettings.delivery.deliveryChargesEnabled || activeQuote.deliveryCharge > 0 ? (
+                      <div className="flex justify-between text-slate-700 tabular-nums">
+                        <span>Delivery</span>
+                        <span>{activeQuote.freeDeliveryApplied ? "Free" : formatINR(activeQuote.deliveryCharge)}</span>
+                      </div>
+                    ) : null}
+                    {paymentMethod === "COD" ? (
+                      <div className="flex justify-between text-slate-700 tabular-nums">
+                        <span>COD fee</span>
+                        <span>{formatINR(activeQuote.codHandlingFee)}</span>
+                      </div>
                     ) : null}
                     <div className="flex justify-between border-t border-black/5 pt-3 text-base font-semibold text-[#0F172A] tabular-nums">
-                <span>Total</span>
-                      <span>Rs. {finalTotal}</span>
-              </div>
-                    <p className="text-xs text-slate-500">Shipping calculated at checkout. Dispatch in 24–48 hrs.</p>
-            </div>
+                      <span>Total</span>
+                      <span>{formatINR(finalTotal)}</span>
+                    </div>
+                    {activeQuote.freeDeliveryApplied ? (
+                      <p className="text-xs text-emerald-700">Free delivery applied.</p>
+                    ) : null}
+                    {activeQuote.freeDeliveryRemaining > 0 ? (
+                      <p className="text-xs text-slate-600">
+                        Add {formatINR(activeQuote.freeDeliveryRemaining)} more for free delivery.
+                      </p>
+                    ) : null}
+                    {quoteIssues[0] ? <p className="text-xs text-red-600">{quoteIssues[0].message}</p> : null}
+                    <p className="text-xs text-slate-500">
+                      {quoteLoading
+                        ? "Checking the latest total…"
+                        : "The final amount is confirmed by the server when you place the order."}{" "}
+                      Dispatch in 24–48 hrs.
+                    </p>
+                  </div>
 
-                  <Button type="submit" disabled={loading} className="mt-5 w-full py-3 text-base">
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Processing…
-                      </>
-                    ) : paymentMethod === "COD" ? (
-                      `Place order • Rs. ${finalTotal}`
-                    ) : (
-                      `Pay securely • Rs. ${finalTotal}`
-                    )}
-                  </Button>
+                  {needsConfirmation ? (
+                    <Button type="button" onClick={confirmUpdatedTotal} disabled={loading} className="mt-5 w-full py-3 text-base">
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          Processing…
+                        </>
+                      ) : (
+                        `Confirm updated total • ${formatINR(finalTotal)}`
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={loading || quoteLoading || quoteIssues.length > 0}
+                      className="mt-5 w-full py-3 text-base"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          Processing…
+                        </>
+                      ) : paymentMethod === "COD" ? (
+                        `Place order • ${formatINR(finalTotal)}`
+                      ) : (
+                        `Pay securely • ${formatINR(finalTotal)}`
+                      )}
+                    </Button>
+                  )}
                 </Card>
 
                 <p className="px-1 text-xs text-slate-500">

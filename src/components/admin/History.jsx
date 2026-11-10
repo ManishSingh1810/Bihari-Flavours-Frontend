@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import { getDisplayOrderId } from "../../utils/orderId";
+import PricingSnapshot from "../user/PricingSnapshot";
 
 
 /* ---------------- Status Map ---------------- */
@@ -136,6 +137,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
                   </span>
                 </div>
               ))}
+              <PricingSnapshot pricing={order.pricing} />
               <div className="mt-3 flex justify-between border-t pt-3 font-semibold">
                 <span>Total</span>
                 <span className="text-[#8E1B1B]">
@@ -175,7 +177,7 @@ const AdminHistoryPage = () => {
         );
         setError(null);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to fetch order history");
     } finally {
       setLoading(false);

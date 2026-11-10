@@ -384,7 +384,7 @@ PATCH /api/orders/:orderId/status
 
 If customers have issues:
 - Email: support@bihariflavours.com
-- Phone: 8521754329
+- Phone: +918521754329
 
 ---
 

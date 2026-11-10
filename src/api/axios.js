@@ -30,6 +30,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    const status = err.response?.status;
+
+    // Session expiry still signs the user out when a request hides its own toast.
+    if (status === 401) {
+      toast.error("Session expired. Please login again.");
+      localStorage.removeItem("user");
+      localStorage.removeItem("authToken");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 800);
+      return Promise.reject(err);
+    }
+
     // Allow specific requests to opt out of global toasts
     if (err?.config?.skipErrorToast) {
       return Promise.reject(err);
@@ -47,22 +60,7 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    const status = err.response?.status;
     const message = err.response?.data?.message || "Something went wrong";
-
-    // ✅ Only logout when truly unauthenticated
-    if (status === 401) {
-      toast.error("Session expired. Please login again.");
-
-      localStorage.removeItem("user");
-      localStorage.removeItem("authToken");
-
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 800);
-
-      return Promise.reject(err);
-    }
 
     // ✅ 403 = forbidden (role/permission), don't logout
     if (status === 403) {

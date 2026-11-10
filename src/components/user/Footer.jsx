@@ -109,7 +109,7 @@ const Footer = () => {
                 <span className="text-[#6F675E]">
                   Address:{" "}
                   <span className="text-[#1F1B16]">
-                    Near RK Central School, Yusufpur, Hajipur, Vaishali, Bihar, 844101
+                    House No. 109, Bari Yusufpur, Hajipur, Vaishali, Bihar, 844101
                   </span>
                 </span>
               </li>

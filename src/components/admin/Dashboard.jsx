@@ -8,6 +8,7 @@ import {
   Tag,
   Image as ImageIcon,
   Move,
+  Settings,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -165,6 +166,36 @@ const AdminDashboard = () => {
                 </h2>
                 <p className="mt-1 text-sm text-[#6F675E]">
                   Upload and manage hero slider images.
+                </p>
+              </div>
+
+              <ArrowRight
+                className="mt-1 text-[#6F675E]
+                           transition-transform group-hover:translate-x-1"
+              />
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/store-settings"
+            className="group rounded-2xl border
+                       border-black/5
+                       bg-white p-6 shadow-sm transition
+                       hover:shadow-md hover:border-[rgba(142,27,27,0.2)]"
+          >
+            <div className="flex items-start gap-4">
+              <div className="rounded-md border
+                              border-[rgba(142,27,27,0.25)]
+                              p-3 text-[#8E1B1B]">
+                <Settings size={22} />
+              </div>
+
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-[#1F1B16]">
+                  Store Settings
+                </h2>
+                <p className="mt-1 text-sm text-[#6F675E]">
+                  Delivery charges, COD fees, and checkout rules.
                 </p>
               </div>
 

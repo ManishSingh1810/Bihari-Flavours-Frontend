@@ -33,6 +33,7 @@ import ProductManager from "./components/admin/ProductManager";
 import CouponManager from "./components/admin/CouponManager";
 import HomepageManager from "./components/admin/HomepageManager";
 import ReorderProducts from "./components/admin/ReorderProducts.jsx";
+import StoreSettings from "./components/admin/StoreSettings";
 
 const App = () => {
   const { user } = useUser();
@@ -85,6 +86,7 @@ const App = () => {
           <Route path="reorder-products" element={<ReorderProducts />} />
           <Route path="coupons" element={<CouponManager />} />
           <Route path="homepage" element={<HomepageManager />} />
+          <Route path="store-settings" element={<StoreSettings />} />
         </Route>
       </Route>
 

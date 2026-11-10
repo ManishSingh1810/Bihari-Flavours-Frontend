@@ -13,6 +13,7 @@ import {
 import api from '../../api/axios';
 import toast from "react-hot-toast";
 import { getDisplayOrderId } from "../../utils/orderId";
+import PricingSnapshot from "./PricingSnapshot";
 
 
 /* ---------------- Status Map ---------------- */
@@ -144,6 +145,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
                 </div>
               ))}
 
+              <PricingSnapshot pricing={order.pricing} />
               <div className="mt-3 flex justify-between border-t border-gray-200 pt-3 font-bold text-base">
                 <span>Total Paid</span>
                 <span className="text-[#8E1B1B] tabular-nums">
